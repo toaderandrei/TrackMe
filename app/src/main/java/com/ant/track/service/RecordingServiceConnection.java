@@ -135,6 +135,7 @@ public class RecordingServiceConnection {
      * Sets the mRecordingService.
      *
      * @param value the value
+     * TODO - modify so that it uses aidl callbacks.
      */
     private void setRecordingService(IRecordingService value) {
         mRecordingService = value;
