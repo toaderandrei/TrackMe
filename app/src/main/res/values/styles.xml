@@ -1,0 +1,14 @@
+<resources>
+
+    <style name="GPSLiveTrackerTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">#ffff5722</item>
+        <item name="colorPrimaryDark">#ffbf360c</item>
+        <item name="colorAccent">#ffff5722</item>
+    </style>
+
+    <style name="RedText">
+        <item name="android:textColor">@color/red</item>
+    </style>
+
+
+</resources>
