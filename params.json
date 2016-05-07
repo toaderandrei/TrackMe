@@ -1,0 +1,6 @@
+{
+  "name": "Live tracking",
+  "tagline": "TackMe",
+  "body": "##TrackMe\r\n\r\nThis is an application that tracks the user's path. It is based, to some extent to the MyTracks app from google.\r\nI tried to simplify it a bit, plus added my own database my own tracking data and some big changes to the way\r\nthe service interacts with the UI.\r\nAt app's start the user will see the google maps with two button of start and stop tracking.\r\n\r\n\r\nThe user has the possibility to start a new track, running, walking, etc and record its route. The route will at first saved into the database and update/stored to a webservice.\r\nOnce the user is done the route will be visualized into the UI and also stored into the local db. \r\nThe user has the possibility to store all its routes to a webservice.\r\nThe connection is done via session token.\r\n",
+  "note": "Don't delete this file! It's used internally to help with page regeneration."
+}
