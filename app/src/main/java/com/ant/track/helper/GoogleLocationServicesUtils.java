@@ -3,13 +3,22 @@ package com.ant.track.helper;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.util.Log;
 
 import com.ant.track.R;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.LocationSettingsStates;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
 
 /**
- * Created by Toader on 6/2/2015.
  * For a brief explanation about what's happening in this class take a look here:
  * <br>
  *
@@ -17,7 +26,6 @@ import com.ant.track.R;
  */
 
 public class GoogleLocationServicesUtils {
-
 
     // User has agreed to use location for Google services
     public static final int USE_LOCATION_FOR_SERVICES_ON = 1;
@@ -41,7 +49,6 @@ public class GoogleLocationServicesUtils {
 
     private GoogleLocationServicesUtils() {
     }
-
 
     /**
      * Gets the gps disabled message when my location button is pressed.
@@ -128,6 +135,21 @@ public class GoogleLocationServicesUtils {
             value = USE_LOCATION_FOR_SERVICES_NOT_SET;
         }
         return value;
+    }
+
+    /**
+     * Returns true if gps provider is enabled.
+     */
+    public static boolean isGpsProviderEnabled(Context context) {
+        LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        if (!isAllowed(context) || locationManager == null) {
+            return false;
+        }
+        String provider = LocationManager.GPS_PROVIDER;
+        if (locationManager.getProvider(provider) == null) {
+            return false;
+        }
+        return locationManager.isProviderEnabled(provider);
     }
 
 }

@@ -6,7 +6,6 @@ import android.os.HandlerThread;
 
 import com.ant.track.provider.DataProvider;
 import com.ant.track.provider.IDataProvider;
-import com.ant.track.webclient.HttpClient;
 
 /**
  * Created by Toader on 6/1/2015.
@@ -33,16 +32,6 @@ public class GPSLiveTrackerApplication extends Application {
         mHandlerThread = new HandlerThread("AppThread");
         mHandlerThread.start();
         mHandler = new Handler(mHandlerThread.getLooper());
-        createSessionAsync();
-    }
-
-    protected void createSessionAsync() {
-        runAsync(new Runnable() {
-            @Override
-            public void run() {
-                getDataProvider().createSession();
-            }
-        });
     }
 
     public IDataProvider getDataProvider() {
@@ -54,9 +43,5 @@ public class GPSLiveTrackerApplication extends Application {
             return;
         }
         mHandler.post(runnable);
-    }
-
-    public HttpClient getHttpClient() {
-        return HttpClient.getInstance();
     }
 }

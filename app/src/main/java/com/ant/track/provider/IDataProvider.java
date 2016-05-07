@@ -16,16 +16,4 @@ public interface IDataProvider {
      * @param location the location to be updated to the server
      */
     void updateLocation(Location location);
-
-    /**
-     * creates a session that allows the user to make check-ins.
-     */
-    void createSession();
-
-    /**
-     * gets the last auth user in order to make check-ins.
-     *
-     * @return the last authenticated user.
-     */
-    User getLastAuthUser();
 }

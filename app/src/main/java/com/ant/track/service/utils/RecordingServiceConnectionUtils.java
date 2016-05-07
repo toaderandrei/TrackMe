@@ -6,14 +6,14 @@ import android.content.Context;
 import android.os.RemoteException;
 import android.util.Log;
 
-import com.ant.track.IRecordingService;
-import com.ant.track.service.RecordingService;
+import com.ant.track.fragments.LocationFragment;
 import com.ant.track.service.RecordingServiceConnection;
+import com.ant.track.service.RecordingServiceImpl;
 
 import java.util.List;
 
 /**
- * Created by Toader on 6/2/2015.
+ *
  */
 public class RecordingServiceConnectionUtils {
     private static final String TAG = RecordingServiceConnectionUtils.class.getSimpleName();
@@ -34,14 +34,14 @@ public class RecordingServiceConnectionUtils {
         for (ActivityManager.RunningServiceInfo serviceInfo : services) {
             ComponentName componentName = serviceInfo.service;
             String serviceName = componentName.getClassName();
-            if (RecordingService.class.getName().equals(serviceName)) {
+            if (RecordingServiceImpl.class.getName().equals(serviceName)) {
                 return true;
             }
         }
         return false;
     }
 
-    public static void startConnection(Context context, RecordingServiceConnection mRecordingServiceConnection) {
+    public static void startConnection(RecordingServiceConnection mRecordingServiceConnection) {
         mRecordingServiceConnection.bindIfConnected();
     }
 
@@ -53,12 +53,11 @@ public class RecordingServiceConnectionUtils {
      */
     public static void startTracking(RecordingServiceConnection mRecordingServiceConnection) {
         try {
-            IRecordingService service = mRecordingServiceConnection.getServiceIfBound();
-            if (service != null) {
-                service.startNewTracking();
+            if (mRecordingServiceConnection != null) {
+                mRecordingServiceConnection.startTracking();
             }
         } catch (RemoteException e) {
-            Log.e(TAG, "Unable to resume track.", e);
+            Log.e(TAG, "Unable to start the tracking.", e);
         }
     }
 
@@ -68,31 +67,33 @@ public class RecordingServiceConnectionUtils {
      * @param mRecordingServiceConnection the recording service connection
      */
     public static void stopTracking(RecordingServiceConnection mRecordingServiceConnection) {
-        IRecordingService mRecordingService = mRecordingServiceConnection.getServiceIfBound();
-        if (mRecordingService != null) {
+        if (mRecordingServiceConnection != null) {
             try {
-                mRecordingService.endCurrentTracking();
+                mRecordingServiceConnection.stopTracking();
             } catch (Exception e) {
-                Log.e(TAG, "Unable to stop recording.", e);
+                Log.e(TAG, "Unable to stop tracking.", e);
             }
         }
         //mRecordingServiceConnection.unbind();
     }
 
-    /**
-     * Stops the recording.
-     *
-     * @param mRecordingServiceConnection the recording service connection
-     */
-    public static void stopRecording(RecordingServiceConnection mRecordingServiceConnection) {
-        IRecordingService mRecordingService = mRecordingServiceConnection.getServiceIfBound();
-        if (mRecordingService != null) {
+    public static void resumeTracking(RecordingServiceConnection mRecordingServiceConnection) {
+        if (mRecordingServiceConnection != null) {
             try {
-                mRecordingService.stopRecording();
+                mRecordingServiceConnection.resumeTracking();
             } catch (Exception e) {
-                Log.e(TAG, "Unable to stop recording.", e);
+                Log.e(TAG, "Unable to resume tracking.", e);
             }
         }
-        mRecordingServiceConnection.unbindAndStop();
+    }
+
+    public static void startTrackingService(RecordingServiceConnection mRecordingServiceConnection) {
+        if (mRecordingServiceConnection != null) {
+            try {
+                mRecordingServiceConnection.startAndBind();
+            } catch (Exception e) {
+                Log.e(TAG, "Unable to start the recording.", e);
+            }
+        }
     }
 }

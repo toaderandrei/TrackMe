@@ -42,7 +42,7 @@
             android:value="@string/google_maps_key" />
 
         <service
-            android:name="com.ant.track.service.RecordingService"
+            android:name=".service.RecordingServiceImpl"
             android:enabled="true"
             android:exported="true"
             android:icon="@drawable/ic_arrow_320"

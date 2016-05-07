@@ -4,23 +4,70 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.location.Location;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
+import android.os.Message;
+import android.os.Messenger;
 import android.os.RemoteException;
 import android.util.Log;
 
 import com.ant.track.BuildConfig;
-import com.ant.track.IRecordingService;
+import com.ant.track.fragments.LocationFragment;
 import com.ant.track.service.utils.RecordingServiceConnectionUtils;
 
+import java.lang.ref.WeakReference;
+
 /**
- * Created by Toader on 6/2/2015.
+ * Class that deals with starting and stopping the location
+ * service.
  */
 public class RecordingServiceConnection {
 
     private static final String TAG = RecordingServiceConnection.class.getSimpleName();
-    private final Context context;
-    private final Runnable callback;
-    private IRecordingService mRecordingService;
+    private final Callback callback;
+    private WeakReference<Context> contextRef;
+    /**
+     * Messenger for sending messages to the service.
+     */
+    private Messenger mServiceMessenger = null;
+    /**
+     * Messenger for receiving messages from the service.
+     */
+    private Messenger mClientMessenger = null;
+    private IncomingHandler incomingHandler;
+
+    /**
+     * Constructor.
+     *
+     * @param context  the context
+     * @param callback the callback to invoke when the service binding changes
+     */
+    public RecordingServiceConnection(Context context, Callback callback) {
+        this.contextRef = new WeakReference<>(context);
+        this.callback = callback;
+        incomingHandler = new IncomingHandler(Looper.getMainLooper());
+        mClientMessenger = new Messenger(incomingHandler);
+    }
+
+    private class IncomingHandler extends Handler {
+
+        public IncomingHandler(Looper looper) {
+            super(looper);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case RecordingServiceConstants.MSG_UPDATE_LOCATION:
+                    if (callback != null && msg.obj != null) {
+                        callback.onLocationUpdate((Location) msg.obj);
+                    }
+                    break;
+            }
+        }
+    }
 
     private final IBinder.DeathRecipient deathRecipient = new IBinder.DeathRecipient() {
         @Override
@@ -39,7 +86,7 @@ public class RecordingServiceConnection {
             } catch (RemoteException e) {
                 Log.e(TAG, "Failed to bind a death recipient.", e);
             }
-            setRecordingService(IRecordingService.Stub.asInterface(service));
+            setRecordingService(service);
         }
 
         @Override
@@ -48,17 +95,6 @@ public class RecordingServiceConnection {
             setRecordingService(null);
         }
     };
-
-    /**
-     * Constructor.
-     *
-     * @param context  the context
-     * @param callback the callback to invoke when the service binding changes
-     */
-    public RecordingServiceConnection(Context context, Runnable callback) {
-        this.context = context;
-        this.callback = callback;
-    }
 
     /**
      * Starts and binds the service.
@@ -79,7 +115,7 @@ public class RecordingServiceConnection {
      */
     public void unbindAndStop() {
         unbind();
-        context.stopService(new Intent(context, RecordingService.class));
+        contextRef.get().stopService(new Intent(contextRef.get(), RecordingServiceImpl.class));
     }
 
     /**
@@ -87,7 +123,7 @@ public class RecordingServiceConnection {
      */
     public void unbind() {
         try {
-            context.unbindService(serviceConnection);
+            contextRef.get().unbindService(serviceConnection);
         } catch (IllegalArgumentException e) {
             // Means not bound to the service. OK to ignore.
         }
@@ -97,12 +133,15 @@ public class RecordingServiceConnection {
     /**
      * Gets the track recording service if bound. Returns null otherwise
      */
-    public IRecordingService getServiceIfBound() {
-        if (mRecordingService != null && !mRecordingService.asBinder().isBinderAlive()) {
+    public IBinder getServiceIfBound() {
+        if (mServiceMessenger != null && !mServiceMessenger.getBinder().isBinderAlive()) {
             setRecordingService(null);
             return null;
         }
-        return mRecordingService;
+        if (mServiceMessenger != null) {
+            return mServiceMessenger.getBinder();
+        }
+        return null;
     }
 
     /**
@@ -111,36 +150,100 @@ public class RecordingServiceConnection {
      * @param startIfNeeded start the service if needed
      */
     private void bindService(boolean startIfNeeded) {
-        if (mRecordingService != null) {
+        if (mServiceMessenger.getBinder() != null) {
             // Service is already started and bound.
             return;
         }
 
-        if (!startIfNeeded && !RecordingServiceConnectionUtils.isRecordingServiceRunning(context)) {
+        if (!startIfNeeded && !RecordingServiceConnectionUtils.isRecordingServiceRunning(contextRef.get())) {
             Log.d(TAG, "Service is not started. Not binding it.");
             return;
         }
 
         if (startIfNeeded) {
             Log.i(TAG, "Starting the service.");
-            context.startService(new Intent(context, RecordingService.class));
+            contextRef.get().startService(new Intent(contextRef.get(), RecordingServiceImpl.class));
         }
 
         Log.i(TAG, "Binding the service.");
         int flags = BuildConfig.DEBUG ? Context.BIND_DEBUG_UNBIND : 0;
-        context.bindService(new Intent(context, RecordingService.class), serviceConnection, flags);
+        contextRef.get().bindService(new Intent(contextRef.get(), RecordingServiceImpl.class), serviceConnection, flags);
     }
 
     /**
      * Sets the mRecordingService.
      *
-     * @param value the value
-     * TODO - modify so that it uses aidl callbacks.
+     * @param binder the binder
      */
-    private void setRecordingService(IRecordingService value) {
-        mRecordingService = value;
-        if (callback != null) {
-            callback.run();
+    private void setRecordingService(IBinder binder) {
+
+        try {
+            if (binder != null) {
+                attachListenerToService(binder);
+            } else {
+                mServiceMessenger = null;
+                callback.onDisconnected();
+            }
+        } catch (RemoteException remex) {
+            Log.e(TAG, "Exception in sending the message to the service");
+            if (callback != null) {
+                callback.onError();
+            }
         }
+    }
+
+    private void attachListenerToService(IBinder binder) throws RemoteException {
+        mServiceMessenger = new Messenger(binder);
+        Message message = Message.obtain(null, RecordingServiceConstants.MSG_SERVICE_CALL, 0, 0);
+        message.replyTo = mClientMessenger;
+        mServiceMessenger.send(message);
+        if (callback != null) {
+            callback.onConnected();
+        }
+    }
+
+    public void startTracking() throws RemoteException {
+        Message message = Message.obtain(null, RecordingServiceConstants.MSG_START_TRACKING, 0, 0);
+        mServiceMessenger.send(message);
+    }
+
+    public void resumeTracking() throws RemoteException {
+        Message message = Message.obtain(null, RecordingServiceConstants.MSG_RESUME_TRACKING, 0, 0);
+        mServiceMessenger.send(message);
+    }
+
+    public void pauseTracking() throws RemoteException {
+        Message message = Message.obtain(null, RecordingServiceConstants.MSG_PAUSE_TRACKING, 0, 0);
+        mServiceMessenger.send(message);
+    }
+
+    public void stopTracking() throws RemoteException {
+        Message message = Message.obtain(null, RecordingServiceConstants.MSG_END_TRACKING, 0, 0);
+        mServiceMessenger.send(message);
+    }
+
+    public interface Callback {
+
+        /**
+         * callback for when a new location came from the service
+         *
+         * @param location location to be updated.
+         */
+        void onLocationUpdate(Location location);
+
+        /**
+         * callback for when the service has been connected.
+         */
+        void onConnected();
+
+        /**
+         * callback for when the service has been disconnected.
+         */
+        void onDisconnected();
+
+        /**
+         * Notification about an error that occurred.
+         */
+        void onError();
     }
 }

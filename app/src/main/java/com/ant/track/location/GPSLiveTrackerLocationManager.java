@@ -5,6 +5,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import com.ant.track.helper.GoogleLocationServicesUtils;
 import com.google.android.gms.common.ConnectionResult;
@@ -19,7 +20,6 @@ import com.google.android.gms.location.LocationServices;
 public class GPSLiveTrackerLocationManager {
 
     private final GoogleApiClient locationClient;
-    private final LocationManager locationManager;
     private final Context context;
     private final Handler handler;
     private final GoogleApiClient.OnConnectionFailedListener
@@ -34,6 +34,7 @@ public class GPSLiveTrackerLocationManager {
     private LocationListener requestLocationUpdates;
     private float requestLocationUpdatesDistance;
     private long requestLocationUpdatesTime;
+    private static final String TAG = GPSLiveTrackerLocationManager.class.getCanonicalName();
     private final GoogleApiClient.ConnectionCallbacks connectionCallbacks = new GoogleApiClient.ConnectionCallbacks() {
 
         @Override
@@ -41,16 +42,20 @@ public class GPSLiveTrackerLocationManager {
             handler.post(new Runnable() {
                 @Override
                 public void run() {
-                    if (requestLastLocation != null && locationClient.isConnected()) {
-                        requestLastLocation.onLocationChanged(LocationServices.FusedLocationApi.getLastLocation(locationClient));
-                        requestLastLocation = null;
-                    }
-                    if (requestLocationUpdates != null && locationClient.isConnected()) {
-                        LocationRequest locationRequest = new LocationRequest()
-                                .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY).setInterval(requestLocationUpdatesTime)
-                                .setFastestInterval(requestLocationUpdatesTime)
-                                .setSmallestDisplacement(requestLocationUpdatesDistance);
-                        LocationServices.FusedLocationApi.requestLocationUpdates(locationClient, locationRequest, requestLocationUpdates);
+                    try {
+                        if (requestLastLocation != null && locationClient.isConnected()) {
+                            requestLastLocation.onLocationChanged(LocationServices.FusedLocationApi.getLastLocation(locationClient));
+                            requestLastLocation = null;
+                        }
+                        if (requestLocationUpdates != null && locationClient.isConnected()) {
+                            LocationRequest locationRequest = new LocationRequest()
+                                    .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY).setInterval(requestLocationUpdatesTime)
+                                    .setFastestInterval(requestLocationUpdatesTime)
+                                    .setSmallestDisplacement(requestLocationUpdatesDistance);
+                            LocationServices.FusedLocationApi.requestLocationUpdates(locationClient, locationRequest, requestLocationUpdates);
+                        }
+                    } catch (SecurityException secex) {
+                        Log.e(TAG, "security exception problem:" + secex.getMessage());
                     }
                 }
             });
@@ -62,38 +67,20 @@ public class GPSLiveTrackerLocationManager {
         }
     };
 
-    public GPSLiveTrackerLocationManager(Context context, Looper looper, boolean enableLocationClient) {
+    public GPSLiveTrackerLocationManager(Context context) {
         this.context = context;
-        this.handler = new Handler(looper);
+        this.handler = new Handler(Looper.getMainLooper());
 
-        if (enableLocationClient) {
-            locationClient = new GoogleApiClient.Builder(context)
-                    .addApi(LocationServices.API)
-                    .addConnectionCallbacks(connectionCallbacks)
-                    .addOnConnectionFailedListener(onConnectionFailedListener)
-                    .build();
-            locationClient.connect();
-        } else {
-            locationClient = null;
-        }
-        locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        locationClient = new GoogleApiClient.Builder(context)
+                .addApi(LocationServices.API)
+                .addConnectionCallbacks(connectionCallbacks)
+                .addOnConnectionFailedListener(onConnectionFailedListener)
+                .build();
+        locationClient.connect();
         isAllowed = GoogleLocationServicesUtils.isAllowed(context);
 
     }
 
-    /**
-     * Returns true if gps provider is enabled.
-     */
-    public boolean isGpsProviderEnabled() {
-        if (!isAllowed()) {
-            return false;
-        }
-        String provider = LocationManager.GPS_PROVIDER;
-        if (locationManager.getProvider(provider) == null) {
-            return false;
-        }
-        return locationManager.isProviderEnabled(provider);
-    }
 
     /**
      * Request last location.

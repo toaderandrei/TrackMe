@@ -10,7 +10,7 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 
 import com.ant.track.R;
-import com.ant.track.activities.IRecordStateListener;
+import com.ant.track.activities.TrackStateListener;
 import com.ant.track.application.GPSLiveTrackerApplication;
 
 /**
@@ -18,17 +18,16 @@ import com.ant.track.application.GPSLiveTrackerApplication;
  */
 public class RecordControlsFragment extends Fragment {
 
-    ImageButton recordImageButton;
-    ImageButton stopImageButton;
+    private ImageButton recordImageButton;
     private boolean isResumed = false;
-    private IRecordStateListener listener;
+    private TrackStateListener listener;
     private boolean isRecording;
 
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         if (listener == null) {
-            listener = (IRecordStateListener) activity;
+            listener = (TrackStateListener) activity;
         }
     }
 
@@ -42,7 +41,6 @@ public class RecordControlsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_record_controls, container, false);
         recordImageButton = (ImageButton) rootView.findViewById(R.id.play_pause_track);
-        stopImageButton = (ImageButton) rootView.findViewById(R.id.stop_track);
         return rootView;
     }
 
@@ -57,8 +55,6 @@ public class RecordControlsFragment extends Fragment {
         }
         isRecording = recording;
         recordImageButton.setImageResource(isRecording ? R.drawable.ic_button_pause : R.drawable.button_record);
-        stopImageButton.setImageResource(isRecording ? R.drawable.ic_button_stop : R.drawable.ic_button_stop_disabled);
-        stopImageButton.setEnabled(isRecording);
     }
 
 
@@ -87,9 +83,6 @@ public class RecordControlsFragment extends Fragment {
     public void updateRecordListeners(View.OnClickListener recordListener, View.OnClickListener stopListener) {
         if (recordListener != null && recordImageButton != null) {
             recordImageButton.setOnClickListener(recordListener);
-        }
-        if (stopListener != null && stopImageButton != null) {
-            stopImageButton.setOnClickListener(stopListener);
         }
     }
 }

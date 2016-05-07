@@ -1,11 +1,11 @@
 package com.ant.track.fragments;
 
 import android.app.Activity;
-import android.app.Fragment;
+import android.content.IntentSender;
 import android.location.Location;
 import android.os.Bundle;
-import android.os.Looper;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,23 +14,26 @@ import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.ant.track.R;
-import com.ant.track.activities.IRecordStateListener;
+import com.ant.track.activities.TrackStateListener;
+import com.ant.track.helper.GoogleAskToEnableLocationService;
 import com.ant.track.helper.GoogleLocationServicesUtils;
 import com.ant.track.location.GPSLiveTrackerLocationManager;
 import com.ant.track.models.User;
 import com.ant.track.publisher.ContentPublisher;
 import com.ant.track.publisher.INotifyUIListener;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.LocationSource;
-import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 
 /**
- * Created by Toader on 6/1/2015.
+ * Fragment in which a google map resides.
  */
 public class LocationFragment extends Fragment implements INotifyUIListener {
 
@@ -41,11 +44,13 @@ public class LocationFragment extends Fragment implements INotifyUIListener {
     private GoogleMap mMap;
     private ImageButton myLocationImageButton;
     private LocationListener locationListener;
-    private GPSLiveTrackerLocationManager mGPSLiveTrackerLocManager;
     private LocationSource.OnLocationChangedListener onLocationChangedListener;
     // Current location
     private Location currentLocation;
-    private IRecordStateListener listener;
+    private TrackStateListener listener;
+    private GoogleAskToEnableLocationService enableLocationService;
+    public static final int CONNECTION_RESOLUTION_CODE = 300;
+    private GPSLiveTrackerLocationManager mGPSLiveTrackerLocManager;
 
     public static LocationFragment newInstance(boolean isRecording) {
         LocationFragment f = new LocationFragment();
@@ -69,7 +74,7 @@ public class LocationFragment extends Fragment implements INotifyUIListener {
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         if (this.listener == null) {
-            listener = (IRecordStateListener) activity;
+            listener = (TrackStateListener) activity;
         }
     }
 
@@ -77,22 +82,9 @@ public class LocationFragment extends Fragment implements INotifyUIListener {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.maps_layout, container, false);
-        setMyLocationButton(rootView);
+        enableLocationService = new GoogleAskToEnableLocationService(getActivity());
+        mGPSLiveTrackerLocManager = new GPSLiveTrackerLocationManager(getActivity());
         return rootView;
-    }
-
-    private void setMyLocationButton(View rootView) {
-        myLocationImageButton = (ImageButton) rootView.findViewById(R.id.map_my_location);
-        myLocationImageButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mGPSLiveTrackerLocManager != null && !mGPSLiveTrackerLocManager.isGpsProviderEnabled()) {
-                    notifyUserNoLocationIsAvailable();
-                } else {
-                    initOrUpdateGPSLiveTrackingManager();
-                }
-            }
-        });
     }
 
     /**
@@ -103,33 +95,40 @@ public class LocationFragment extends Fragment implements INotifyUIListener {
         Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
     }
 
-    /**
-     * Initializes the gps live tracking manager. Initially it checks if there was a location listener. If yes,
-     * it removes all the updates and starts fresh.
-     */
-    protected void initOrUpdateGPSLiveTrackingManager() {
-        if (locationListener != null) {
-            mGPSLiveTrackerLocManager.removeLocationUpdates(locationListener);
-            locationListener = null;
-        }
-        if (isSelectedLiveTracking()) {
-            mGPSLiveTrackerLocManager.requestLastLocation(new LocationListener() {
-                @Override
-                public void onLocationChanged(Location location) {
-                    if (isResumed()) {
-                        setCurrentLocation(location);
-                        updateCurrentLocation(true);
-                    }
-                }
-            });
+
+    private GoogleMap.OnMyLocationButtonClickListener getOnMyLocationClickListener() {
+        return new GoogleMap.OnMyLocationButtonClickListener() {
+            @Override
+            public boolean onMyLocationButtonClick() {
+                requestLastLocationOrNotify();
+                return true;
+            }
+        };
+    }
+
+    private void requestLastLocationOrNotify() {
+        if (mGPSLiveTrackerLocManager != null && !GoogleLocationServicesUtils.isGpsProviderEnabled(getActivity())) {
+            notifyUserNoLocationIsAvailable();
         } else {
+            requestLastKnowLocation();
+        }
+    }
+
+    private void requestLastKnowLocation() {
+        if (mGPSLiveTrackerLocManager != null) {
+            if (locationListener != null) {
+                mGPSLiveTrackerLocManager.removeLocationUpdates(locationListener);
+            }
+            locationListener = null;
             initLocationListener();
-            /*
-             * Set currentLocation to null to cause the first requested location
-             * to force zoom to the default level.
-             */
-            currentLocation = null;
-            mGPSLiveTrackerLocManager.requestLocationUpdates(0, 0f, locationListener);
+            mGPSLiveTrackerLocManager.requestLastLocation(locationListener);
+        }
+    }
+
+    public void updateCurrentLocation(Location location) {
+        if (isResumed()) {
+            setCurrentLocation(location);
+            updateCurrentLocation(true);
         }
     }
 
@@ -144,7 +143,6 @@ public class LocationFragment extends Fragment implements INotifyUIListener {
             }
         };
     }
-
 
     /**
      * Sets the current location.
@@ -212,25 +210,21 @@ public class LocationFragment extends Fragment implements INotifyUIListener {
         return getGoogleMap().getProjection().getVisibleRegion().latLngBounds.contains(latLng);
     }
 
-
-    /**
-     * checks if the recording service has started.
-     *
-     * @return true if yes, false if not.
-     */
-    protected boolean isSelectedLiveTracking() {
-        if (this.listener != null) {
-            return this.listener.isRecording();
-        }
-        return false;
-    }
-
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         initializeMapIfNeeded();
     }
 
+    private void initializeMapIfNeeded() {
+        if (mMap == null) {
+            loadMapAsync();
+        }
+    }
+
+    private void loadMapAsync() {
+        ((SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.location_map)).getMapAsync(getOnMapReadyCallback());
+    }
 
     @Override
     public void onStart() {
@@ -240,38 +234,50 @@ public class LocationFragment extends Fragment implements INotifyUIListener {
     @Override
     public void onResume() {
         super.onResume();
-        mGPSLiveTrackerLocManager = new GPSLiveTrackerLocationManager(getActivity(), Looper.myLooper(), true);
-        boolean isGpsProviderEnabled = mGPSLiveTrackerLocManager.isGpsProviderEnabled();
+        initGpsTracker(true);
+    }
 
-        if (getGoogleMap() != null) {
-            // Disable my location if gps is disabled
-            getGoogleMap().setMyLocationEnabled(isGpsProviderEnabled);
-        }
-        if (currentLocation != null && isSelectedLiveTracking()) {
-            updateCurrentLocation(true);
-        } else {
-            if (onLocationChangedListener != null) {
-                onLocationChangedListener.onLocationChanged(getDefaultLocation());
+    public synchronized void initGpsTracker(boolean force) {
+        boolean isGPSProviderEnabled = GoogleLocationServicesUtils.isGpsProviderEnabled(getActivity());
+        if (mMap != null) {
+            try {
+                if (isGPSProviderEnabled) {
+                    mMap.setMyLocationEnabled(true);
+                } else if (force) {
+                    askToEnableGps();
+                }
+            } catch (SecurityException secex) {
+                Toast.makeText(getActivity(), "not enabled in manifest", Toast.LENGTH_SHORT).show();
             }
         }
     }
 
-    protected void initializeMapIfNeeded() {
-        if (mMap == null) {
-            mMap = getMap();
-            if (mMap == null) {
-                return;
-            }
-           /*
-           *  Currently, the Google Maps API doesn't allow handling onClick event,
-           * thus hiding the default my location button and providing our own.
-           */
-            mMap.setIndoorEnabled(true);
-            mMap.getUiSettings().setMyLocationButtonEnabled(false);
-            mMap.setLocationSource(getNewLocationSource());
-            mMap.setOnCameraChangeListener(getCameraChangeListener());
+    private void askToEnableGps() {
+        if (enableLocationService != null) {
+            enableLocationService.askToEnableGps(locationCallback);
         }
     }
+
+    private GoogleAskToEnableLocationService.GpsCallback locationCallback = new GoogleAskToEnableLocationService.GpsCallback() {
+        @Override
+        public void onSuccess() {
+            initGpsTracker(false);
+        }
+
+        @Override
+        public void onResolutionRequired(Status status) {
+            try {
+                status.startResolutionForResult(getActivity(), CONNECTION_RESOLUTION_CODE);
+            } catch (IntentSender.SendIntentException setex) {
+                Toast.makeText(getActivity(), "Exception in sending intent:", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        @Override
+        public void onError() {
+            Toast.makeText(getActivity(), "Location services unavailable!", Toast.LENGTH_SHORT).show();
+        }
+    };
 
     private GoogleMap.OnCameraChangeListener getCameraChangeListener() {
         return new GoogleMap.OnCameraChangeListener() {
@@ -316,8 +322,29 @@ public class LocationFragment extends Fragment implements INotifyUIListener {
     }
 
 
-    private GoogleMap getMap() {
-        return ((MapFragment) getFragmentManager().findFragmentById(R.id.location_map)).getMap();
+    public OnMapReadyCallback getOnMapReadyCallback() {
+        return new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(GoogleMap map) {
+                mMap = map;
+                if (mMap == null) {
+                    return;
+                }
+
+                mMap.setIndoorEnabled(true);
+                mMap.getUiSettings().setMyLocationButtonEnabled(true);
+                mMap.setOnMyLocationButtonClickListener(getOnMyLocationClickListener());
+                mMap.setLocationSource(getNewLocationSource());
+                mMap.setOnCameraChangeListener(getCameraChangeListener());
+                initGpsTracker(true);
+            }
+        };
+    }
+
+    public void getLocationListener() {
+        if (locationListener == null) {
+            initLocationListener();
+        }
     }
 
     public GoogleMap getGoogleMap() {
@@ -325,7 +352,7 @@ public class LocationFragment extends Fragment implements INotifyUIListener {
     }
 
     /**
-     * notifies the UI about a checkin that was made.
+     * notifies the UI about a checking that was made.
      *
      * @param user for which to show the notification.
      */
@@ -355,12 +382,5 @@ public class LocationFragment extends Fragment implements INotifyUIListener {
         loc.setLatitude(DEFAULT_LATITUDE);
         loc.setLongitude(DEFAULT_LONGITUDE);
         return loc;
-    }
-
-    public LocationListener getLocationListener() {
-        if (locationListener == null) {
-            initLocationListener();
-        }
-        return locationListener;
     }
 }

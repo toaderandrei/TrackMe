@@ -2,12 +2,12 @@ package com.ant.track.activities;
 
 import android.app.Fragment;
 import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.ActivityOptionsCompat;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -30,7 +30,7 @@ import com.ant.track.helper.ResourceHelper;
  * Created by Toader on 6/1/2015.
  * This is in charge of initializing the fragments and also the toolbars.
  */
-public abstract class BaseActivity extends AppCompatActivity implements IRecordStateListener {
+public abstract class BaseActivity extends AppCompatActivity implements TrackStateListener {
 
     public LocationFragment mMapFragment;
     protected RecordControlsFragment mRecordFragment;
@@ -102,7 +102,7 @@ public abstract class BaseActivity extends AppCompatActivity implements IRecordS
     protected void initGoogleMapsIfNotAlready() {
         if (mMapFragment == null) {
             mMapFragment = LocationFragment.newInstance(isRecording());
-            FragmentTransaction ft = getFragmentManager().beginTransaction();
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
             ft.replace(R.id.container, mMapFragment);
             ft.commit();
         }
@@ -110,7 +110,7 @@ public abstract class BaseActivity extends AppCompatActivity implements IRecordS
 
     protected void initGoogleMaps() {
         if (mMapFragment == null) {
-            mMapFragment = (LocationFragment) getFragmentManager().findFragmentById(R.id.container);
+            mMapFragment = (LocationFragment) getSupportFragmentManager().findFragmentById(R.id.container);
         }
         if (mMapFragment == null) {
             initGoogleMapsIfNotAlready();
