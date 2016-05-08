@@ -150,7 +150,7 @@ public class RecordingServiceConnection {
      * @param startIfNeeded start the service if needed
      */
     private void bindService(boolean startIfNeeded) {
-        if (mServiceMessenger.getBinder() != null) {
+        if (mServiceMessenger != null && mServiceMessenger.getBinder() != null) {
             // Service is already started and bound.
             return;
         }

@@ -17,7 +17,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@color/gray"
-    android:orientation="horizontal"
+    android:orientation="vertical"
     android:padding="@dimen/record_controls_padding">
 
     <ImageButton
@@ -27,7 +27,7 @@
         android:layout_gravity="center"
         android:background="@color/gray"
         android:contentDescription="@string/start_tracking"
-        android:gravity="center_horizontal"
+        android:gravity="center"
         android:padding="3dp"
         android:src="@drawable/button_record" />
 

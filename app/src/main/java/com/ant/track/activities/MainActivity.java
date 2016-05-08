@@ -31,8 +31,6 @@ public class MainActivity extends ServiceConnectActivity {
     public void onResume() {
         super.onResume();
     }
-
-
     /**
      */
     @Override

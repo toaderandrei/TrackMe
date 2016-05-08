@@ -248,7 +248,6 @@ public class RecordingServiceImpl extends Service {
         }
     }
 
-
     /**
      * Shows the notification.
      *

@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "565975358445",
+    "project_id": "api-project-565975358445"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:565975358445:android:9e42de3dd6976741",
+        "android_client_info": {
+          "package_name": "com.ant.track"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "565975358445-lr0fb3jhrvrlcfq2q9n5accheln1qs9c.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ant.track",
+            "certificate_hash": "BD8F166C002211322FE83371F571F1AFE49C82B8"
+          }
+        },
+        {
+          "client_id": "565975358445-oi1lol3q8rmtavb2g2i6s155u12jrodn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBRJjYV-d1I79cfmiaWzc0VW2TZjI6csLs"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
