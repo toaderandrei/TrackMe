@@ -5,15 +5,14 @@ import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.RemoteException;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.View;
-import android.widget.Toast;
 
 import com.ant.track.R;
 import com.ant.track.fragments.LocationFragment;
 import com.ant.track.fragments.RecordControlsFragment;
+import com.ant.track.helper.UiHelperUtils;
 import com.ant.track.service.RecordingServiceConnection;
 import com.ant.track.service.utils.RecordingServiceConnectionUtils;
 
@@ -23,6 +22,7 @@ import com.ant.track.service.utils.RecordingServiceConnectionUtils;
 public abstract class ServiceConnectActivity extends BaseActivity {
 
     private static final String TAG = ServiceConnectActivity.class.getSimpleName();
+    public static final String GENERIC_ERROR_IN_STARTING_THE_LOCATION_SERVICE = "Generic Error in starting the location service!";
     boolean isRecording = false;
     boolean isPaused = false;
     private RecordingServiceConnection mRecordingServiceConnection;
@@ -79,10 +79,10 @@ public abstract class ServiceConnectActivity extends BaseActivity {
                         }
                         break;
                     case Activity.RESULT_CANCELED:
-                        Toast.makeText(this, "Gps not enabled:", Toast.LENGTH_SHORT).show();
+                        showErrToast("Gps not enabled:");
                         break;
                     default:
-                        Toast.makeText(this, "Gps not enabled:", Toast.LENGTH_SHORT).show();
+                        showErrToast("Gps not enabled:");
                         break;
                 }
                 break;
@@ -92,7 +92,6 @@ public abstract class ServiceConnectActivity extends BaseActivity {
     private boolean isMapLocationFragment(Fragment fragment) {
         return fragment != null && fragment instanceof LocationFragment;
     }
-
 
     @Override
     protected void onStop() {
@@ -151,30 +150,52 @@ public abstract class ServiceConnectActivity extends BaseActivity {
         }
 
         @Override
-        public void onError() {
-
+        public void onError(String errrMessage) {
+            if (errrMessage == null) {
+                errrMessage = GENERIC_ERROR_IN_STARTING_THE_LOCATION_SERVICE;
+            }
+            showErrToast(errrMessage);
+            stopTrackingService();
         }
     };
 
     private final View.OnClickListener recordListener = new View.OnClickListener() {
         public void onClick(View v) {
             if (!isRecording() && !isPaused) {
-                RecordingServiceConnectionUtils.startTrackingService(mRecordingServiceConnection);
-                isRecording = true;
-                isPaused = false;
-                startNewRecording = true;
+                startTrackingService();
             } else if (!isRecording() && isPaused) {
-                RecordingServiceConnectionUtils.resumeTracking(mRecordingServiceConnection);
-                isRecording = true;
-                isPaused = false;
+                resumeTracking();
             } else if (isRecording()) {
-                RecordingServiceConnectionUtils.stopTracking(mRecordingServiceConnection);
-                isRecording = false;
-                isPaused = true;
+                stopTracking();
             }
             updateRecordState(isRecording);
         }
     };
+
+    private void startTrackingService() {
+        RecordingServiceConnectionUtils.startTrackingService(mRecordingServiceConnection);
+        isRecording = true;
+        isPaused = false;
+        startNewRecording = true;
+    }
+
+    private void resumeTracking() {
+        RecordingServiceConnectionUtils.resumeTracking(mRecordingServiceConnection);
+        isRecording = true;
+        isPaused = false;
+    }
+
+    private void stopTracking() {
+        RecordingServiceConnectionUtils.stopTracking(mRecordingServiceConnection);
+        isRecording = false;
+        isPaused = true;
+    }
+
+    private void stopTrackingService() {
+        RecordingServiceConnectionUtils.stopTrackingService(mRecordingServiceConnection);
+        isRecording = false;
+        isPaused = true;
+    }
 
     @Override
     public void updateRecordState(boolean update) {
@@ -188,5 +209,9 @@ public abstract class ServiceConnectActivity extends BaseActivity {
     @Override
     public boolean isRecording() {
         return isRecording;
+    }
+
+    private void showErrToast(String errMessage) {
+        UiHelperUtils.showErrToast(ServiceConnectActivity.this, errMessage);
     }
 }

@@ -77,6 +77,23 @@ public class RecordingServiceConnectionUtils {
         //mRecordingServiceConnection.unbind();
     }
 
+
+    /**
+     * Stops the recording.
+     *
+     * @param mRecordingServiceConnection the recording service connection
+     */
+    public static void stopTrackingService(RecordingServiceConnection mRecordingServiceConnection) {
+        if (mRecordingServiceConnection != null) {
+            try {
+                mRecordingServiceConnection.stopTracking();
+                mRecordingServiceConnection.unbindAndStop();
+            } catch (Exception e) {
+                Log.e(TAG, "Unable to stop tracking.", e);
+            }
+        }
+        //mRecordingServiceConnection.unbind();
+    }
     public static void resumeTracking(RecordingServiceConnection mRecordingServiceConnection) {
         if (mRecordingServiceConnection != null) {
             try {

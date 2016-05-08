@@ -41,6 +41,7 @@ public class RecordingServiceImpl extends Service {
     // 1 second in milliseconds
     private static final long ONE_SECOND = (long) UnitConversions.S_TO_MS;
     private static final String TAG = RecordingServiceImpl.class.getSimpleName();
+    public static final String NOT_ALLOWED_TO_ACCESS_THE_LOCATION_SERVICES = "Not allowed to access the location services";
     private Handler handlerService;
     private HandlerThread handlerThread;
     private LocationListenerRestrictions locationListenerPolicy;
@@ -59,6 +60,7 @@ public class RecordingServiceImpl extends Service {
         @Override
         public void onLocationChanged(final Location location) {
             if (mLiveTrackingLocationManager == null || !mLiveTrackingLocationManager.isAllowed()) {
+                sendErrorLocationUpdate(NOT_ALLOWED_TO_ACCESS_THE_LOCATION_SERVICES, RecordingServiceConstants.MSG_NOT_ALLOWED);
                 return;
             }
             runAsync(new Runnable() {
@@ -73,7 +75,7 @@ public class RecordingServiceImpl extends Service {
         @Override
         public void run() {
             if (isRecording()) {
-                registerLocationListener();
+                startRequestingLocationUpdates();
             }
             handler.postDelayed(this, ONE_MINUTE);
         }
@@ -91,7 +93,7 @@ public class RecordingServiceImpl extends Service {
         showNotification(false);
     }
 
-    protected void registerLocationListener() {
+    protected void startRequestingLocationUpdates() {
         if (mLiveTrackingLocationManager == null) {
             Log.e(TAG, "locationManager is null.");
             return;
@@ -151,7 +153,7 @@ public class RecordingServiceImpl extends Service {
         }
         locationListenerPolicy.updateIdleTime(idleTime);
         if (currentRecordingInterval != locationListenerPolicy.getDesiredPollingInterval()) {
-            registerLocationListener();
+            startRequestingLocationUpdates();
         }
         if (lastValidPoint == null) {
             mLastLocation = location;
@@ -176,6 +178,18 @@ public class RecordingServiceImpl extends Service {
         if (serviceMessenger != null) {
             Message message = Message.obtain(null, RecordingServiceConstants.MSG_UPDATE_LOCATION, 0, 0);
             message.obj = location;
+            try {
+                serviceMessenger.send(message);
+            } catch (RemoteException remex) {
+                Log.e(TAG, "Exception in sending the message" + remex.getMessage());
+            }
+        }
+    }
+
+    private void sendErrorLocationUpdate(String errMessage, int messageId) {
+        if (serviceMessenger != null) {
+            Message message = Message.obtain(null, messageId, 0, 0);
+            message.obj = errMessage;
             try {
                 serviceMessenger.send(message);
             } catch (RemoteException remex) {
@@ -212,7 +226,7 @@ public class RecordingServiceImpl extends Service {
      */
     private void startGPSTracking() {
         wakeLock = SystemUtils.acquireWakeLock(this, wakeLock);
-        registerLocationListener();
+        startRequestingLocationUpdates();
         showNotification(true);
     }
 

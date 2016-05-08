@@ -65,6 +65,11 @@ public class RecordingServiceConnection {
                         callback.onLocationUpdate((Location) msg.obj);
                     }
                     break;
+                case RecordingServiceConstants.MSG_NOT_ALLOWED:
+                    if (callback != null && msg.obj != null) {
+                        callback.onError((String) msg.obj);
+                    }
+                    break;
             }
         }
     }
@@ -187,7 +192,7 @@ public class RecordingServiceConnection {
         } catch (RemoteException remex) {
             Log.e(TAG, "Exception in sending the message to the service");
             if (callback != null) {
-                callback.onError();
+                callback.onError(remex.getMessage());
             }
         }
     }
@@ -244,6 +249,6 @@ public class RecordingServiceConnection {
         /**
          * Notification about an error that occurred.
          */
-        void onError();
+        void onError(String message);
     }
 }
