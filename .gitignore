@@ -5,3 +5,16 @@
 .DS_Store
 /build
 /captures
+/.idea/.name
+/.idea/compiler.xml
+/.idea/copyright/profiles_settings.xml
+/.idea/encodings.xml
+/.idea/gradle.xml
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/runConfigurations.xml
+/.idea/vcs.xml
+/tracklib/.gitignore
+/tracklib/proguard-rules.pro
+/tracklib/tracklib.iml
+/trackme.iml
