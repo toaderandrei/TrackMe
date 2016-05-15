@@ -1,47 +1,25 @@
 package com.ant.track.application;
 
-import android.app.Application;
-import android.os.Handler;
-import android.os.HandlerThread;
-
+import com.ant.lib.application.TrackLibApplication;
 import com.ant.track.provider.DataProvider;
 import com.ant.track.provider.IDataProvider;
 
 /**
- * Created by Toader on 6/1/2015.
+ * Extension of the TrackLibApplication which in turn extends the Android Application.
  */
-public class GPSLiveTrackerApplication extends Application {
+public class GPSLiveTrackerApplication extends TrackLibApplication {
 
-
-    private static GPSLiveTrackerApplication instance = null;
-    Handler mHandler;
-    HandlerThread mHandlerThread;
 
     public GPSLiveTrackerApplication() {
-        super();
-        GPSLiveTrackerApplication.instance = this;
-    }
-
-    public static GPSLiveTrackerApplication getInstance() {
-        return GPSLiveTrackerApplication.instance;
+        TrackLibApplication.instance = this;
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        mHandlerThread = new HandlerThread("AppThread");
-        mHandlerThread.start();
-        mHandler = new Handler(mHandlerThread.getLooper());
     }
 
     public IDataProvider getDataProvider() {
         return DataProvider.getInstance();
-    }
-
-    public void runAsync(Runnable runnable) {
-        if (runnable == null) {
-            return;
-        }
-        mHandler.post(runnable);
     }
 }

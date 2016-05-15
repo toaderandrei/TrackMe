@@ -2,6 +2,7 @@
     package="com.ant.lib">
 
     <application
+        android:name=".application.TrackLibApplication"
         android:allowBackup="true"
         android:label="@string/app_name"
         android:supportsRtl="true">
