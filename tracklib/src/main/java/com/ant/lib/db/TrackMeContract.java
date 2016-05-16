@@ -21,7 +21,7 @@ public class TrackMeContract {
 
     public static final String PATH_ROUTE_POINT = "route_point";
 
-    public static final String PATH_ACTIVITY_MODE = "route_activity_mode";
+    public static final String PATH_ROUTE_MAP_POINT = "route_map_point";
 
 
     public static final class RouteEntry implements BaseColumns {
@@ -32,14 +32,24 @@ public class TrackMeContract {
         public static final String TABLE_NAME = "route";
 
         public static final String NAME = "name";
+
         public static final String DESCRIPTION = "description";
 
         public static final String START_POINT_ID = "start_point_id";
 
         public static final String STOP_POINT_ID = "stop_point_id";
+
+        public static final String START_TIME = "start_time";
+
+        public static final String STOP_TIME = "stop_time";
+
         public static final String TOTAL_TIME = "total_time";
 
         public static final String TOTAL_DISTANCE = "total_distance";
+
+        public static final String MIN_LONGITUDE = "min_long";
+
+        public static final String MAX_LONGITUDE = "max_long";
 
         public static final String NUM_ROUTE_POINTS = "num_route_points";
 
@@ -72,13 +82,7 @@ public class TrackMeContract {
 
         public static final String DESCRIPTION = "description";
 
-        public static final String DURATION = "duration";
-
         public static final String LOCATION_ACCURACY = "location_accuracy";
-
-        public static final String STOP_ROUTE_ID = "stop_route_id";
-
-        public static final String START_ROUTE_ID = "start_route_id";
 
         public static final String ROUTE_ACTIVITY_MODE = "route_activity_mode";
 
@@ -90,25 +94,46 @@ public class TrackMeContract {
 
         public static final String LOCATION_BEARING = "location_bearing";
 
-        public static final String MAX_SPEED = "MAX_SPEED";
+        public static final String SPEED = "speed";
 
 
     }
 
+    public static final class RouteMapPointEntry implements BaseColumns {
 
-    public static final class RouteActivityMode implements BaseColumns {
+        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_ROUTE_POINT).build();
 
-        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_ACTIVITY_MODE).build();
+        public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + File.separator + CONTENT_AUTHORITY + File.separator + PATH_ROUTE_POINT;
 
-        public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + File.separator + CONTENT_AUTHORITY + File.separator + PATH_ACTIVITY_MODE;
+        public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + File.separator + CONTENT_AUTHORITY + File.separator + PATH_ROUTE_POINT;
 
-        public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + File.separator + CONTENT_AUTHORITY + File.separator + PATH_ACTIVITY_MODE;
+        public static final String TABLE_NAME = "route_point";
 
-        public static final String TABLE_NAME = "route_activity_mode";
+        public static final String LOCATION_LAT = "location_lat";
 
         public static final String ROUTE_ID = "route_id";
 
-        public static final String ROUTE_POINT_ID = "route_point_id";
-    }
+        public static final String NAME = "name";
 
+        public static final String DESCRIPTION = "description";
+
+        public static final String LOCATION_ACCURACY = "location_accuracy";
+
+        public static final String ROUTE_ACTIVITY_MODE = "route_activity_mode";
+
+        public static final String LOCATION_LONG = "location_long";
+
+        public static final String LOCATION_ALT = "location_alt";
+
+        public static final String TIME = "time";
+
+        public static final String DURATION = "duration";
+
+        public static final String TOTAL_TIME = "total_time";
+
+        public static final String LOCATION_BEARING = "location_bearing";
+
+        public static final String SPEED = "speed";
+
+    }
 }

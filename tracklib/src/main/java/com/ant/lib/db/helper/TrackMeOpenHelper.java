@@ -1,4 +1,4 @@
-package com.ant.lib.db;
+package com.ant.lib.db.helper;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -8,16 +8,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Class that deals with creating the database.
+ * Extension of the SQLiteOpenHelper
  */
-public class TrackDbHelper extends SQLiteOpenHelper {
+public class TrackMeOpenHelper extends SQLiteOpenHelper {
 
 
-    private Context context;
     private static final String DATABASE_NAME = "trackme.db";
     private static final int DATABASE_VERSION = 1;
 
-    public TrackDbHelper(Context context) {
+    public TrackMeOpenHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
@@ -33,7 +32,7 @@ public class TrackDbHelper extends SQLiteOpenHelper {
         }
     }
 
-    private List<String> createScripts(){
+    private List<String> createScripts() {
         List<String> scripts = new ArrayList<>();
 
 
