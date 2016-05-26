@@ -76,8 +76,6 @@ public class TrackMeContract {
 
         public static final String LOCATION_LAT = "location_lat";
 
-        public static final String ROUTE_ID = "route_id";
-
         public static final String NAME = "name";
 
         public static final String DESCRIPTION = "description";
@@ -99,7 +97,7 @@ public class TrackMeContract {
 
     }
 
-    public static final class RouteMapPointEntry implements BaseColumns {
+    public static final class RouteCheckPointEntry implements BaseColumns {
 
         public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_ROUTE_POINT).build();
 

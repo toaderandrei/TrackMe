@@ -29,9 +29,9 @@ public class TrackMeDbProvider extends ContentProvider {
 
         final UriMatcher matcher = new UriMatcher(UriMatcher.NO_MATCH);
         final String authority = TrackMeContract.CONTENT_AUTHORITY;
+
         matcher.addURI(authority, TrackMeContract.PATH_ROUTE, UriType.ROUTE.ordinal());
         matcher.addURI(authority, TrackMeContract.PATH_ROUTE + PATH_SEPARATOR_PROVIDER, UriType.ROUTE_ID.ordinal());
-
 
         matcher.addURI(authority, TrackMeContract.PATH_ROUTE_POINT, UriType.ROUTE_POINT.ordinal());
         matcher.addURI(authority, TrackMeContract.PATH_ROUTE_POINT + PATH_SEPARATOR_PROVIDER, UriType.ROUTE_POINT_ID.ordinal());

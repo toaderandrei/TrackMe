@@ -11,29 +11,36 @@ public class GenericColumnImpl implements GenericColumn {
 
     private boolean uniqueField = false;
 
+    private boolean autoIncrement = false;
+
     private boolean primaryKey = false;
 
     private String rowName;
     private RowType dataRowType;
 
-    public GenericColumnImpl(boolean primaryKey, boolean uniqueField, String fieldName, @NonNull RowType type) {
+    public GenericColumnImpl(boolean primaryKey, boolean autoIncrement, boolean uniqueField, String fieldName, @NonNull RowType type) {
         this.uniqueField = uniqueField;
         this.primaryKey = primaryKey;
+        this.autoIncrement = autoIncrement;
         this.dataRowType = type;
         this.rowName = fieldName;
     }
 
+    public GenericColumnImpl(boolean primaryKey, boolean autoIncrement, String fieldName, @NonNull RowType type) {
+        this(primaryKey, autoIncrement, false, fieldName, type);
+    }
+
     public GenericColumnImpl(boolean primaryKey, String rowName, @NonNull RowType type) {
-        this(primaryKey, false, rowName, type);
+        this(primaryKey, false, false, rowName, type);
     }
 
     public GenericColumnImpl(String rowName, @NonNull RowType type) {
-        this(false, false, rowName, type);
+        this(false, false, false, rowName, type);
     }
 
 
     public GenericColumnImpl(boolean primaryKey, @NonNull RowType type) {
-        this(primaryKey, false, null, type);
+        this(primaryKey, false, false, null, type);
     }
 
     @Override
@@ -56,6 +63,10 @@ public class GenericColumnImpl implements GenericColumn {
         return dataRowType;
     }
 
+    @Override
+    public boolean isAutoIncremented() {
+        return autoIncrement;
+    }
 
     @Override
     public String toString() {
