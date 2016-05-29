@@ -11,23 +11,10 @@
           "package_name": "com.ant.track"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "565975358445-lr0fb3jhrvrlcfq2q9n5accheln1qs9c.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.ant.track",
-            "certificate_hash": "BD8F166C002211322FE83371F571F1AFE49C82B8"
-          }
-        },
-        {
-          "client_id": "565975358445-oi1lol3q8rmtavb2g2i6s155u12jrodn.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBRJjYV-d1I79cfmiaWzc0VW2TZjI6csLs"
+          "current_key": "AIzaSyDJPWYk6jzusdriWfZ75RuqIqO3CqVT0sQ"
         }
       ],
       "services": {
@@ -40,6 +27,34 @@
         },
         "ads_service": {
           "status": 1
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:565975358445:android:1fa74e33d6627dfb",
+        "android_client_info": {
+          "package_name": "com.ant.track.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDJPWYk6jzusdriWfZ75RuqIqO3CqVT0sQ"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2,
+          "test_banner_ad_unit_id": "ca-app-pub-3940256099942544/6300978111",
+          "test_interstitial_ad_unit_id": "ca-app-pub-3940256099942544/1033173712"
         }
       }
     }

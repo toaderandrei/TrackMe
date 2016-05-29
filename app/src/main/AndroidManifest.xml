@@ -1,35 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.ant.track">
+    package="com.ant.track.app">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
-    <uses-permission android:name="com.trial.familonet.tracker.GPSLIVETRACKER_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
     <!-- Creating Permission to receive Google Maps -->
     <permission
-        android:name="com.ant.track.permission.MAPS_RECEIVE"
+        android:name="com.ant.track.app.permission.MAPS_RECEIVE"
         android:protectionLevel="signature" />
     <permission
-        android:name="com.ant.track.GPSLIVETRACKER_NOTIFICATIONS"
+        android:name="com.ant.track.app.GPSLIVETRACKER_NOTIFICATIONS"
         android:description="@string/permission_notification_label"
         android:label="@string/permission_notification_label"
         android:permissionGroup="android.permission-group.LOCATION" />
     <!-- Permission to receive Google Maps -->
-    <uses-permission android:name="com.ant.track.permission.MAPS_RECEIVE" />
+    <uses-permission android:name="com.ant.track.app.permission.MAPS_RECEIVE" />
     <!--
  The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
          Google Maps Android API v2, but are recommended.
     -->
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
-        android:name="com.ant.track.application.GPSLiveTrackerApplication"
+        android:name=".application.GPSLiveTrackerApplication"
         android:allowBackup="true"
         android:icon="@drawable/walk"
         android:label="@string/app_name"
@@ -43,15 +43,8 @@
             android:name="com.google.android.maps.v2.API_KEY"
             android:value="@string/google_maps_key" />
 
-        <service
-            android:name=".service.RecordingServiceImpl"
-            android:enabled="true"
-            android:exported="true"
-            android:icon="@drawable/ic_arrow_320"
-            android:label="@string/gps_live_tracking_recording_service" />
         <activity
-            android:name="com.ant.track.activities.MainActivity"
-            android:configChanges="keyboardHidden|orientation"
+            android:name=".activities.MainActivity"
             android:label="@string/title_activity_main"
             android:launchMode="singleTask">
             <intent-filter>
@@ -59,6 +52,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <service
+            android:name=".service.RecordingServiceImpl"
+            android:enabled="true"
+            android:exported="true"
+            android:icon="@drawable/ic_arrow_320"
+            android:label="@string/gps_live_tracking_recording_service" />
 
     </application>
 

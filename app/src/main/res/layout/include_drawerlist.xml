@@ -13,7 +13,7 @@
   See the License for the specific language governing permissions and
   limitations under the License.
   -->
-<com.ant.track.ui.ScrimInsetsRelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.ant.track.app.ui.ScrimInsetsRelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:custom="http://schemas.android.com/apk/res-auto"
     android:layout_width="240dp"
     android:layout_height="match_parent"
@@ -36,4 +36,4 @@
         android:layout_below="@id/drawer_header"
         android:drawSelectorOnTop="true"
         android:listSelector="?android:selectableItemBackground" />
-</com.ant.track.ui.ScrimInsetsRelativeLayout>
+</com.ant.track.app.ui.ScrimInsetsRelativeLayout>

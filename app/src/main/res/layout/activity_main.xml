@@ -19,7 +19,7 @@
     android:id="@+id/drawerLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".activities.MainActivity">
+    tools:context=".app.activities.MainActivity">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -45,7 +45,7 @@
 
             <fragment
                 android:id="@+id/fragment_record_controls"
-                android:name="com.ant.track.fragments.RecordControlsFragment"
+                android:name="com.ant.track.app.fragments.RecordControlsFragment"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true" />
