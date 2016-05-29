@@ -21,7 +21,7 @@ public class TrackMeContract {
 
     public static final String PATH_ROUTE_POINT = "route_point";
 
-    public static final String PATH_ROUTE_MAP_POINT = "route_map_point";
+    public static final String PATH_ROUTE_CHECK_POINT = "route_map_point";
 
 
     public static final class RouteEntry implements BaseColumns {
@@ -62,6 +62,9 @@ public class TrackMeContract {
 
         public static final String MIN_ELEVATION = "min_elevation";
 
+        public static Uri buildRouteUri(long id) {
+            return null;
+        }
     }
 
     public static final class RoutePointEntry implements BaseColumns {
@@ -97,6 +100,9 @@ public class TrackMeContract {
         public static final String SPEED = "speed";
 
 
+        public static Uri buildRoutePointUri(long id) {
+            return null;
+        }
     }
 
     public static final class RouteCheckPointEntry implements BaseColumns {
