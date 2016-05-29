@@ -20,15 +20,15 @@ import android.util.Log;
 import com.ant.track.app.R;
 import com.ant.track.app.activities.MainActivity;
 import com.ant.track.app.application.GPSLiveTrackerApplication;
+import com.ant.track.app.helper.IntentUtils;
+import com.ant.track.app.helper.LocationUtils;
+import com.ant.track.app.helper.SystemUtils;
 import com.ant.track.app.location.AbsoluteLocationListenerRestrictions;
 import com.ant.track.app.location.GPSLiveTrackerLocationManager;
 import com.ant.track.app.location.LocationListenerRestrictions;
 import com.ant.track.app.provider.IDataProvider;
 import com.ant.track.app.service.utils.UnitConversions;
 import com.ant.track.lib.constants.Constants;
-import com.ant.track.app.helper.IntentUtils;
-import com.ant.track.app.helper.LocationUtils;
-import com.ant.track.app.helper.SystemUtils;
 import com.google.android.gms.location.LocationListener;
 
 import java.lang.ref.WeakReference;
