@@ -54,6 +54,11 @@ public class GenericColumnImpl implements GenericColumn {
     }
 
     @Override
+    public boolean isForeignKey() {
+        return false;
+    }
+
+    @Override
     public boolean isUnique() {
         return uniqueField;
     }

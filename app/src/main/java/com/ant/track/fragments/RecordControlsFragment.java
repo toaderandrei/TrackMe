@@ -65,7 +65,7 @@ public class RecordControlsFragment extends Fragment {
     }
 
     private GPSLiveTrackerApplication getApp() {
-        return GPSLiveTrackerApplication.getInstance();
+        return (GPSLiveTrackerApplication) GPSLiveTrackerApplication.getInstance();
     }
 
     @Override

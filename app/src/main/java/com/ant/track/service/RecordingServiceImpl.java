@@ -365,7 +365,7 @@ public class RecordingServiceImpl extends Service {
     }
 
     private GPSLiveTrackerApplication getApp() {
-        return GPSLiveTrackerApplication.getInstance();
+        return (GPSLiveTrackerApplication) GPSLiveTrackerApplication.getInstance();
     }
 
     protected Location getLastLocation() {

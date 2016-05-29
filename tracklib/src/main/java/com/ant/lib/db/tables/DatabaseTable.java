@@ -29,7 +29,7 @@ public enum DatabaseTable {
     ),
 
     ROUTE_POINT(new GenericColumnImpl(true, TrackMeContract.RoutePointEntry._ID, SqliteDataType.String),
-            new GenericColumnImpl(false, false, true, TrackMeContract.RoutePointEntry.ROUTE_ID, SqliteDataType.Integer),
+            new GenericColumnImpl(false, false, true, TrackMeContract.RoutePointEntry.LOCATION_LONG, SqliteDataType.Integer),
             new GenericColumnImpl(TrackMeContract.RoutePointEntry.DESCRIPTION, SqliteDataType.String),
             new GenericColumnImpl(TrackMeContract.RoutePointEntry.NAME, SqliteDataType.String),
             new GenericColumnImpl(TrackMeContract.RoutePointEntry.TIME, SqliteDataType.Integer),
