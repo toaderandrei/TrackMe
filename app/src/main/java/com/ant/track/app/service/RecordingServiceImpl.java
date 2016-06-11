@@ -29,6 +29,7 @@ import com.ant.track.app.location.LocationListenerRestrictions;
 import com.ant.track.app.provider.IDataProvider;
 import com.ant.track.app.service.utils.UnitConversions;
 import com.ant.track.lib.constants.Constants;
+import com.ant.track.lib.model.Route;
 import com.google.android.gms.location.LocationListener;
 
 import java.lang.ref.WeakReference;
@@ -227,10 +228,14 @@ public class RecordingServiceImpl extends Service {
      */
     private void startGPSTracking() {
         wakeLock = SystemUtils.acquireWakeLock(this, wakeLock);
+        startRouteTracking();
         startRequestingLocationUpdates();
         showNotification();
     }
 
+    private void startRouteTracking(){
+        Route route = new Route();
+    }
 
     private void endTracking(boolean stopped) {
         if (!canAccess()) {

@@ -1,6 +1,7 @@
 package com.ant.track.lib.db;
 
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
@@ -63,7 +64,7 @@ public class TrackMeContract {
         public static final String MIN_ELEVATION = "min_elevation";
 
         public static Uri buildRouteUri(long id) {
-            return null;
+            return ContentUris.withAppendedId(CONTENT_URI, id);
         }
     }
 
@@ -101,7 +102,7 @@ public class TrackMeContract {
 
 
         public static Uri buildRoutePointUri(long id) {
-            return null;
+            return ContentUris.withAppendedId(CONTENT_URI, id);
         }
     }
 
@@ -141,5 +142,11 @@ public class TrackMeContract {
 
         public static final String SPEED = "speed";
 
+        public static final String MARKER_COLOR = "marker_color";
+
+        public static Uri buildRouteCheckPointUri(long id) {
+            return ContentUris.withAppendedId(CONTENT_URI, id);
+
+        }
     }
 }

@@ -93,6 +93,10 @@ public class TrackMeDbProvider extends ContentProvider {
                 queryCursor = trackMeOpenHelper.getReadableDatabase().query(TrackMeContract.RoutePointEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
                 break;
             }
+            case ROUTE_CHECK_POINT: {
+                queryCursor = trackMeOpenHelper.getReadableDatabase().query(TrackMeContract.RouteCheckPointEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
+                break;
+            }
             default:
                 throw new UnsupportedOperationException("Query for data failed!");
         }
@@ -124,6 +128,15 @@ public class TrackMeDbProvider extends ContentProvider {
                     throw new android.database.SQLException("Failed to insert row into " + uri);
                 break;
             }
+            case ROUTE_CHECK_POINT: {
+                long _id = db.insert(TrackMeContract.RouteCheckPointEntry.TABLE_NAME, null, values);
+                if (_id > 0) {
+                    returnUri = TrackMeContract.RouteCheckPointEntry.buildRouteCheckPointUri(_id);
+                } else {
+                    throw new android.database.SQLException("failed to insert row into: " + uri);
+                }
+                break;
+            }
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -143,6 +156,10 @@ public class TrackMeDbProvider extends ContentProvider {
             }
             case ROUTE_POINT: {
                 rowsDeleted = db.delete(TrackMeContract.RoutePointEntry.TABLE_NAME, selection, selectionArgs);
+                break;
+            }
+            case ROUTE_CHECK_POINT: {
+                rowsDeleted = db.delete(TrackMeContract.RouteCheckPointEntry.TABLE_NAME, selection, selectionArgs);
                 break;
             }
             default:
@@ -166,6 +183,10 @@ public class TrackMeDbProvider extends ContentProvider {
             }
             case ROUTE_POINT: {
                 rowsDeleted = db.update(TrackMeContract.RoutePointEntry.TABLE_NAME, values, selection, selectionArgs);
+                break;
+            }
+            case ROUTE_CHECK_POINT: {
+                rowsDeleted = db.update(TrackMeContract.RouteCheckPointEntry.TABLE_NAME, values, selection, selectionArgs);
                 break;
             }
             default:

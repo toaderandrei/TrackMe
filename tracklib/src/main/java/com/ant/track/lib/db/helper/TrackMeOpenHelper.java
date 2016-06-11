@@ -24,13 +24,10 @@ public class TrackMeOpenHelper extends SQLiteOpenHelper {
 
     // default statements used for different queries
     public static final String PRIMARY_KEY_STATEMENT = "PRIMARY KEY, ";
-    public static final String PRIMARY_KEY_AUTOINCREMENT_STATEMENT = " PRIMARY KEY AUTOINCREMENT, ";
+    public static final String PRIMARY_KEY_AUTOINCREMENT_STATEMENT = " PRIMARY KEY AUTOINCREMENT ";
 
-    public static final String COMMA_CHARACTER = ",";
-    public static final String END_CREATE_TABLE_QUERY = ")\n";
     private static final String CREATE_TABLE = "CREATE TABLE IF NOT EXISTS ";
     private static final String LEFT_PARANTHESIS = "( \n";
-    private static final String RIGHT_PARANTHESIS = ")";
 
     private static final String SPACE_CHARACTER = " ";
     private static final String CONFLICT_REPALCE_TEXT = ") ON CONFLICT IGNORE ";
@@ -60,12 +57,29 @@ public class TrackMeOpenHelper extends SQLiteOpenHelper {
 
         for (DatabaseTable table : DatabaseTable.values()) {
             String sqlQuery = CREATE_TABLE + table.getName() + LEFT_PARANTHESIS;
-            String primaryKeyQuery = getPrimaryKeyScript(table);
+            String primaryKeyQuery = getQueryScript(table);
             sqlQuery += primaryKeyQuery;
-            scripts.add(primaryKeyQuery);
-            //Collection<String> secondKeyScripts =
+            sqlQuery += ")\n";
+            scripts.add(sqlQuery);
         }
         return scripts;
+    }
+
+    private String getQueryScript(DatabaseTable table) {
+        String query = "";
+        for (int k = 0; k < table.getColumns().length; k++) {
+            GenericColumn column = table.getColumns()[k];
+            query += column.getFieldName() + SPACE_CHARACTER + column.getDataType().getRowType();
+            if (column.isPrimaryKey() && column.isAutoIncremented()) {
+                query += PRIMARY_KEY_AUTOINCREMENT_STATEMENT;
+            } else if (column.isPrimaryKey()) {
+                query += PRIMARY_KEY_STATEMENT;
+            } else if (column.isUnique()) {
+                query += UNIQUE_KEY_STATEMENT + column.getFieldName() + CONFLICT_REPALCE_TEXT;
+            }
+            query += (k == table.getColumns().length - 1 ? "" : ",") + "\n";
+        }
+        return query;
     }
 
     @Override
@@ -76,31 +90,6 @@ public class TrackMeOpenHelper extends SQLiteOpenHelper {
             db.execSQL(query);
         }
     }
-
-    private String getPrimaryKeyScript(DatabaseTable table) {
-        String query = "";
-        for (GenericColumn column : table.getColumns()) {
-            if (column.isPrimaryKey() && column.isAutoIncremented()) {
-                query += column.getFieldName();
-                query += PRIMARY_KEY_AUTOINCREMENT_STATEMENT;
-            } else if (column.isPrimaryKey()) {
-                query += PRIMARY_KEY_STATEMENT;
-            } else if (column.isUnique()) {
-                query += UNIQUE_KEY_STATEMENT + column.getFieldName() + CONFLICT_REPALCE_TEXT;
-            }
-        }
-
-        return query;
-    }
-
-/**
-
- // Set up the location column as a foreign key to location table.
- " FOREIGN KEY (" + WeatherEntry.COLUMN_LOC_KEY + ") REFERENCES " +
- LocationEntry.TABLE_NAME + " (" + LocationEntry._ID + "), "
-
- */
-
 
     /**
      * creates a list of all the drop table queries and add them

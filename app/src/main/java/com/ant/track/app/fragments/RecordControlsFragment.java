@@ -14,8 +14,8 @@ import com.ant.track.app.activities.TrackStateListener;
 import com.ant.track.app.application.GPSLiveTrackerApplication;
 
 /**
- * Created by Toader on 6/1/2015.
- */
+ * Fragment containing the controls for starting/stopping a service.
+ * */
 public class RecordControlsFragment extends Fragment {
 
     private ImageButton recordImageButton;
@@ -24,10 +24,10 @@ public class RecordControlsFragment extends Fragment {
     private boolean isRecording;
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
         if (listener == null) {
-            listener = (TrackStateListener) activity;
+            listener = (TrackStateListener) getActivity();
         }
     }
 
