@@ -27,10 +27,10 @@ public class TrackMeOpenHelper extends SQLiteOpenHelper {
     public static final String PRIMARY_KEY_AUTOINCREMENT_STATEMENT = " PRIMARY KEY AUTOINCREMENT ";
 
     private static final String CREATE_TABLE = "CREATE TABLE IF NOT EXISTS ";
-    private static final String LEFT_PARANTHESIS = "( \n";
+    private static final String LEFT_PARENTHESES = "( \n";
 
     private static final String SPACE_CHARACTER = " ";
-    private static final String CONFLICT_REPALCE_TEXT = ") ON CONFLICT IGNORE ";
+    private static final String CONFLICT_REPLACE_TEXT = ") ON CONFLICT IGNORE ";
     public static final String UNIQUE_KEY_STATEMENT = " UNIQUE (";
     // end of default queries
 
@@ -56,7 +56,7 @@ public class TrackMeOpenHelper extends SQLiteOpenHelper {
         Collection<String> scripts = new ArrayList<>();
 
         for (DatabaseTable table : DatabaseTable.values()) {
-            String sqlQuery = CREATE_TABLE + table.getName() + LEFT_PARANTHESIS;
+            String sqlQuery = CREATE_TABLE + table.getName() + LEFT_PARENTHESES;
             String primaryKeyQuery = getQueryScript(table);
             sqlQuery += primaryKeyQuery;
             sqlQuery += ")\n";
@@ -75,7 +75,7 @@ public class TrackMeOpenHelper extends SQLiteOpenHelper {
             } else if (column.isPrimaryKey()) {
                 query += PRIMARY_KEY_STATEMENT;
             } else if (column.isUnique()) {
-                query += UNIQUE_KEY_STATEMENT + column.getFieldName() + CONFLICT_REPALCE_TEXT;
+                query += UNIQUE_KEY_STATEMENT + column.getFieldName() + CONFLICT_REPLACE_TEXT;
             }
             query += (k == table.getColumns().length - 1 ? "" : ",") + "\n";
         }

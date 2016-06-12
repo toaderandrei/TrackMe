@@ -1,6 +1,7 @@
 package com.ant.track.lib.db.content;
 
 import android.content.ContentValues;
+import android.net.Uri;
 
 import com.ant.track.lib.application.TrackLibApplication;
 import com.ant.track.lib.model.Route;
@@ -23,8 +24,8 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
 
 
     @Override
-    public void insertRouteTrack(Route route) {
-
+    public Uri insertRouteTrack(Route route) {
+        return null;
     }
 
     @Override
@@ -64,5 +65,9 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
 
     private TrackLibApplication getApp() {
         return TrackLibApplication.getInstance();
+    }
+
+    public static void reset() {
+        instance = null;
     }
 }

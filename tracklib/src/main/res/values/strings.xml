@@ -39,4 +39,6 @@
     Recording your track&#8230;
   </string>
     <string name="content_authority">com.ant.track</string>
+
+    <string name="route_id_key">route_key</string>
 </resources>

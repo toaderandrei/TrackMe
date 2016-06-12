@@ -4,7 +4,9 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
@@ -28,8 +30,12 @@ import com.ant.track.app.location.GPSLiveTrackerLocationManager;
 import com.ant.track.app.location.LocationListenerRestrictions;
 import com.ant.track.app.provider.IDataProvider;
 import com.ant.track.app.service.utils.UnitConversions;
+import com.ant.track.lib.PreferenceUtils;
 import com.ant.track.lib.constants.Constants;
+import com.ant.track.lib.db.content.TrackMeDatabaseUtils;
+import com.ant.track.lib.db.content.TrackMeDatabaseUtilsImpl;
 import com.ant.track.lib.model.Route;
+import com.ant.track.lib.model.RouteStats;
 import com.google.android.gms.location.LocationListener;
 
 import java.lang.ref.WeakReference;
@@ -39,6 +45,7 @@ import java.lang.ref.WeakReference;
  * Tracking Service
  */
 public class RecordingServiceImpl extends Service {
+    private long routeId;
     private static final long ONE_MINUTE = (long) (UnitConversions.MIN_TO_S * UnitConversions.S_TO_MS);
     // 1 second in milliseconds
     private static final long ONE_SECOND = (long) UnitConversions.S_TO_MS;
@@ -52,11 +59,14 @@ public class RecordingServiceImpl extends Service {
     private int recordingGpsAccuracy = LocationUtils.RECORDING_GPS_ACCURACY_DEFAULT;
     private boolean isRecording = false;
     private PowerManager.WakeLock wakeLock;
+    private SharedPreferences sharedPrefs;
     private Location mLastLocation;
     private WeakReference<Context> contextWeakRef;
     private long currentRecordingInterval;
     private Handler handler;
     private Messenger serviceMessenger;
+    private RouteStats routeStats;
+    private TrackMeDatabaseUtils trackMeDatabaseUtils;
 
     private LocationListener locationListener = new LocationListener() {
         @Override
@@ -83,6 +93,14 @@ public class RecordingServiceImpl extends Service {
         }
     };
 
+
+    private SharedPreferences.OnSharedPreferenceChangeListener shareListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+        @Override
+        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+            //todo check the strings
+        }
+    };
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -92,7 +110,18 @@ public class RecordingServiceImpl extends Service {
         contextWeakRef = new WeakReference<Context>(this);
         locationListenerPolicy = new AbsoluteLocationListenerRestrictions(minRecordingInterval * ONE_SECOND);
         handler.post(registerLocationRunnable);
+        trackMeDatabaseUtils = TrackMeDatabaseUtilsImpl.getInstance();
+        routeId = PreferenceUtils.DEFAULT_ROUTE_ID;
+        getSharedPrefs().registerOnSharedPreferenceChangeListener(shareListener);
+        shareListener.onSharedPreferenceChanged(getSharedPrefs(), null);
         showNotification();
+    }
+
+    private SharedPreferences getSharedPrefs() {
+        if (sharedPrefs == null) {
+            sharedPrefs = PreferenceUtils.getSharedPrefs(this);
+        }
+        return sharedPrefs;
     }
 
     protected void startRequestingLocationUpdates() {
@@ -233,8 +262,14 @@ public class RecordingServiceImpl extends Service {
         showNotification();
     }
 
-    private void startRouteTracking(){
+    private void startRouteTracking() {
+        long now = System.currentTimeMillis();
         Route route = new Route();
+        Uri uriRouteInsert = trackMeDatabaseUtils.insertRouteTrack(route);
+        long id = Long.parseLong(uriRouteInsert.getLastPathSegment());
+        PreferenceUtils.setRouteId(this, R.string.route_id_key, id);
+        routeStats = new RouteStats(now);
+
     }
 
     private void endTracking(boolean stopped) {
@@ -408,6 +443,8 @@ public class RecordingServiceImpl extends Service {
         //binder = null;
         // This should be the next to last operation
         releaseWakeLock();
+        TrackMeDatabaseUtilsImpl.reset();
+        trackMeDatabaseUtils = null;
         super.onDestroy();
     }
 

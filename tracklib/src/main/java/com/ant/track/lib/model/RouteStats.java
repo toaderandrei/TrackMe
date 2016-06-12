@@ -30,11 +30,14 @@ public class RouteStats implements Parcelable {
     private float maxElevation;
     private List<RoutePoint> routePointList;
     private List<RouteCheckPoint> routeCheckPoints;
+    private long currentTime;
 
-    public RouteStats() {
+    public RouteStats(long currentTime) {
+        this.currentTime = currentTime;
     }
 
     protected RouteStats(Parcel in) {
+        currentTime = in.readLong();
         name = in.readString();
         description = in.readString();
         start_pointId = in.readLong();
@@ -59,6 +62,7 @@ public class RouteStats implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeLong(currentTime);
         dest.writeString(name);
         dest.writeString(description);
         dest.writeLong(start_pointId);

@@ -17,4 +17,6 @@ public class Constants {
     public static final String CHECKIN = "checkin";
     public static final String EXTRA_RECORDING_ID = "recording_id";
 
+    public static final String SETTINGS_KEY = "settings_key";
+
 }

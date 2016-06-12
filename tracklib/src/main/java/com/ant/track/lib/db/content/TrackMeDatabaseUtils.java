@@ -1,6 +1,7 @@
 package com.ant.track.lib.db.content;
 
 import android.content.ContentValues;
+import android.net.Uri;
 
 import com.ant.track.lib.model.Route;
 import com.ant.track.lib.model.RoutePoint;
@@ -15,7 +16,7 @@ public interface TrackMeDatabaseUtils {
      *
      * @param route the route to be inserted.
      */
-    void insertRouteTrack(Route route);
+    Uri insertRouteTrack(Route route);
 
     /**
      * deletes a route by id.
