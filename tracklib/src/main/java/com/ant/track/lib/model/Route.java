@@ -11,8 +11,8 @@ public class Route implements Parcelable{
 
     private RouteStats routeStats;
 
-    public Route(){
-        routeStats = new RouteStats();
+    public Route(RouteStats stats){
+        routeStats = stats;
     }
 
     protected Route(Parcel in) {

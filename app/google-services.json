@@ -12,14 +12,13 @@
         }
       },
       "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyDJPWYk6jzusdriWfZ75RuqIqO3CqVT0sQ"
-        }
-      ],
+      "api_key": [],
       "services": {
         "analytics_service": {
-          "status": 1
+          "status": 2,
+          "analytics_property": {
+            "tracking_id": "UA-61956958-3"
+          }
         },
         "appinvite_service": {
           "status": 1,
@@ -38,14 +37,13 @@
         }
       },
       "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyDJPWYk6jzusdriWfZ75RuqIqO3CqVT0sQ"
-        }
-      ],
+      "api_key": [],
       "services": {
         "analytics_service": {
-          "status": 1
+          "status": 2,
+          "analytics_property": {
+            "tracking_id": "UA-61956958-5"
+          }
         },
         "appinvite_service": {
           "status": 1,
@@ -55,6 +53,31 @@
           "status": 2,
           "test_banner_ad_unit_id": "ca-app-pub-3940256099942544/6300978111",
           "test_interstitial_ad_unit_id": "ca-app-pub-3940256099942544/1033173712"
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:565975358445:android:2775a9fb86cab612",
+        "android_client_info": {
+          "package_name": "com.ant.track.lib"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [],
+      "services": {
+        "analytics_service": {
+          "status": 2,
+          "analytics_property": {
+            "tracking_id": "UA-61956958-4"
+          }
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
         }
       }
     }

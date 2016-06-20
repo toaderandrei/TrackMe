@@ -264,11 +264,11 @@ public class RecordingServiceImpl extends Service {
 
     private void startRouteTracking() {
         long now = System.currentTimeMillis();
-        Route route = new Route();
+        routeStats = new RouteStats(now);
+        Route route = new Route(routeStats);
         Uri uriRouteInsert = trackMeDatabaseUtils.insertRouteTrack(route);
         long id = Long.parseLong(uriRouteInsert.getLastPathSegment());
         PreferenceUtils.setRouteId(this, R.string.route_id_key, id);
-        routeStats = new RouteStats(now);
 
     }
 
