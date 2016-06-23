@@ -22,6 +22,12 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
         return instance;
     }
 
+    public Route getRouteById(long routeId) {
+        Route route = new Route();
+
+
+        return route;
+    }
 
     @Override
     public Uri insertRouteTrack(Route route) {

@@ -10,10 +10,7 @@ import com.ant.track.lib.constants.Constants;
  */
 public class PreferenceUtils {
 
-
     public static final long DEFAULT_ROUTE_ID = -1L;
-
-    private static SharedPreferences sharedPreferences;
 
     private PreferenceUtils() {
 
@@ -50,6 +47,11 @@ public class PreferenceUtils {
     public static boolean getBoolean(Context context, int keyId, boolean value) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.SETTINGS_KEY, Context.MODE_PRIVATE);
         return sharedPreferences.getBoolean(getKey(context, keyId), value);
+    }
+
+    public static long getLong(Context context, int keyId, long defaultVal) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.SETTINGS_KEY, Context.MODE_PRIVATE);
+        return sharedPreferences.getLong(getKey(context, keyId), defaultVal);
     }
 
     public static void setRouteId(Context context, int keyid, long routeId) {

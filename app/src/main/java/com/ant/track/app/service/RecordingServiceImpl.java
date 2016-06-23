@@ -17,6 +17,7 @@ import android.os.PowerManager;
 import android.os.RemoteException;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.ant.track.app.R;
@@ -66,6 +67,7 @@ public class RecordingServiceImpl extends Service {
     private Handler handler;
     private Messenger serviceMessenger;
     private RouteStats routeStats;
+    private boolean recordingRoutePaused;
     private TrackMeDatabaseUtils trackMeDatabaseUtils;
 
     private LocationListener locationListener = new LocationListener() {
@@ -97,7 +99,13 @@ public class RecordingServiceImpl extends Service {
     private SharedPreferences.OnSharedPreferenceChangeListener shareListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
         @Override
         public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-            //todo check the strings
+
+            if (!TextUtils.isEmpty(key)) {
+                if (TextUtils.equals(key, PreferenceUtils.getKey(contextWeakRef.get(), R.string.route_id_key))) {
+                    routeId = PreferenceUtils.getLong(contextWeakRef.get(), R.string.route_id_key, -1);
+                }
+            }
+
         }
     };
 
@@ -114,7 +122,30 @@ public class RecordingServiceImpl extends Service {
         routeId = PreferenceUtils.DEFAULT_ROUTE_ID;
         getSharedPrefs().registerOnSharedPreferenceChangeListener(shareListener);
         shareListener.onSharedPreferenceChanged(getSharedPrefs(), null);
-        showNotification();
+
+        //this is useful in case a service restart occurs - which happens
+        Route route = TrackMeDatabaseUtilsImpl.getInstance().getRouteById(routeId);
+        if (route != null) {
+            restartRoute();
+        } else {
+            if (isRecording()) {
+                //can be paused - just started
+                updateRecordingState(PreferenceUtils.DEFAULT_ROUTE_ID, true);
+            }
+            showNotification();
+        }
+    }
+
+
+    private void updateRecordingState(long _routeId, boolean state) {
+        routeId = _routeId;
+        PreferenceUtils.setRouteId(this, R.string.route_id_key, routeId);
+        recordingRoutePaused = state;
+        PreferenceUtils.setBoolean(this, R.string.recording_paused_key, recordingRoutePaused);
+    }
+
+    private void restartRoute() {
+        //todo restart the route from the last point - last id inserted.
     }
 
     private SharedPreferences getSharedPrefs() {
@@ -250,6 +281,8 @@ public class RecordingServiceImpl extends Service {
         mLastLocation = null;
         isRecording = true;
         startGPSTracking();
+        startRouteTracking();
+        showNotification();
     }
 
     /**
@@ -257,22 +290,26 @@ public class RecordingServiceImpl extends Service {
      */
     private void startGPSTracking() {
         wakeLock = SystemUtils.acquireWakeLock(this, wakeLock);
-        startRouteTracking();
         startRequestingLocationUpdates();
-        showNotification();
     }
 
     private void startRouteTracking() {
         long now = System.currentTimeMillis();
         routeStats = new RouteStats(now);
-        Route route = new Route(routeStats);
+        Route route = new Route();
         Uri uriRouteInsert = trackMeDatabaseUtils.insertRouteTrack(route);
-        long id = Long.parseLong(uriRouteInsert.getLastPathSegment());
-        PreferenceUtils.setRouteId(this, R.string.route_id_key, id);
+        long insertedRouteId = Long.parseLong(uriRouteInsert.getLastPathSegment());
+        PreferenceUtils.setRouteId(this, R.string.route_id_key, insertedRouteId);
+        route.setRouteId(insertedRouteId);
+        routeId = insertedRouteId;
 
     }
 
-    private void endTracking(boolean stopped) {
+    private void resumeTracking() {
+
+    }
+
+    private void stopTracking(boolean stopped) {
         if (!canAccess()) {
             return;
         }
@@ -383,11 +420,15 @@ public class RecordingServiceImpl extends Service {
                 case RecordingServiceConstants.MSG_START_TRACKING:
                     startNewTracking();
                     break;
-                case RecordingServiceConstants.MSG_END_TRACKING:
-                    endTracking(true);
+                case RecordingServiceConstants.MSG_STOP_TRACKING:
+                    stopTracking(true);
                     break;
-                case RecordingServiceConstants.MSG_STOP_SERVICE:
-                    stopRecordingService(true);
+                case RecordingServiceConstants.MSG_PAUSE_TRACKING:
+                    stopTracking(false);
+                    break;
+
+                case RecordingServiceConstants.MSG_RESUME_TRACKING:
+                    resumeTracking();
                     break;
             }
         }
@@ -400,15 +441,6 @@ public class RecordingServiceImpl extends Service {
         //TODO check for the processes - which process accesses it.
         return true;
     }
-
-    private IDataProvider getDataProvider() {
-        return getApp().getDataProvider();
-    }
-
-    private GPSLiveTrackerApplication getApp() {
-        return (GPSLiveTrackerApplication) GPSLiveTrackerApplication.getInstance();
-    }
-
 
     /**
      * sends messages to the listeners
@@ -430,6 +462,16 @@ public class RecordingServiceImpl extends Service {
     protected Location getLastLocation() {
         return mLastLocation;
     }
+
+
+    private IDataProvider getDataProvider() {
+        return getApp().getDataProvider();
+    }
+
+    private GPSLiveTrackerApplication getApp() {
+        return (GPSLiveTrackerApplication) GPSLiveTrackerApplication.getInstance();
+    }
+
 
     @Override
     public void onDestroy() {

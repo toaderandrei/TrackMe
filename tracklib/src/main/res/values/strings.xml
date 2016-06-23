@@ -41,4 +41,7 @@
     <string name="content_authority">com.ant.track</string>
 
     <string name="route_id_key">route_key</string>
+
+    <string name="recording_paused_key">recording_paused_key</string>
+
 </resources>

@@ -222,7 +222,7 @@ public class RecordingServiceConnection {
     }
 
     public void stopTracking() throws RemoteException {
-        Message message = Message.obtain(null, RecordingServiceConstants.MSG_END_TRACKING, 0, 0);
+        Message message = Message.obtain(null, RecordingServiceConstants.MSG_STOP_TRACKING, 0, 0);
         mServiceMessenger.send(message);
     }
 

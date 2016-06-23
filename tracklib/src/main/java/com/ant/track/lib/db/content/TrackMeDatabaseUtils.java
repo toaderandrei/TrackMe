@@ -69,4 +69,6 @@ public interface TrackMeDatabaseUtils {
      * @param routePoint the routepoint to be updated.
      */
     void updateRoutePoint(RoutePoint routePoint);
+
+    Route getRouteById(long routeId);
 }
