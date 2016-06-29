@@ -3,13 +3,16 @@ package com.ant.track.app.helper;
 import android.location.Location;
 
 /**
- * Created by Toader on 6/3/2015.
+ * Location utils
  */
 public class LocationUtils {
 
+    /**
+     * the accuracy is in meters
+     */
     public static final int RECORDING_GPS_ACCURACY_DEFAULT = 50;
     public static final int RECORDING_GPS_ACCURACY_EXCELLENT = 10;
-    public static final int RECORDING_GPS_ACCURACY_POOR = 2000;
+    public static final int RECORDING_GPS_ACCURACY_POOR = 200;
 
     /**
      * Checks if a given location is a valid (i.e. physically possible) location

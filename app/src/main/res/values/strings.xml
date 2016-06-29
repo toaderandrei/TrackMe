@@ -1,3 +1,5 @@
 <resources>
 
+    <string name="recording_gps_accuracy_key">recording_gpsy_accuracy_key</string>
+    <string name="recording_location_threshold_key">recording_location_threshold_key</string>
 </resources>

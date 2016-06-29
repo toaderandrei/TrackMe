@@ -26,9 +26,10 @@ import com.ant.track.app.application.GPSLiveTrackerApplication;
 import com.ant.track.app.helper.IntentUtils;
 import com.ant.track.app.helper.LocationUtils;
 import com.ant.track.app.helper.SystemUtils;
-import com.ant.track.app.location.AbsoluteLocationListenerRestrictions;
 import com.ant.track.app.location.GPSLiveTrackerLocationManager;
 import com.ant.track.app.location.LocationListenerRestrictions;
+import com.ant.track.app.location.LocationListenerRestrictionsImpl;
+import com.ant.track.app.location.RecordingInterval;
 import com.ant.track.app.provider.IDataProvider;
 import com.ant.track.app.service.utils.UnitConversions;
 import com.ant.track.lib.PreferenceUtils;
@@ -67,7 +68,21 @@ public class RecordingServiceImpl extends Service {
     private Handler handler;
     private Messenger serviceMessenger;
     private RouteStats routeStats;
-    private boolean recordingRoutePaused;
+    private RecordingState recordingState;
+    private int maxRecordingDistance;
+    private int recordingDistanceInterval;
+
+    //location listener policy
+    //Battery life
+    private static final long DEFAULT_BATTERY_MIN_INTERVAL = 30 * ONE_SECOND;
+    private static final long DEFAULT_BATTERY_MAX_INTERVAL = 5 * ONE_MINUTE;
+    private static final int DEFAULT_BATTERY_MIN_DISTANCE = 5;
+
+    //high accuracy
+    private static final long DEFAULT_HIGH_ACCURACY_MIN_INTERVAL = ONE_SECOND;
+    private static final long DEFAULT_HIGH_ACCURACY_MAX_INTERVAL = ONE_MINUTE;
+    private static final int DEFAULT_ACCURACY_MIN_DISTANCE = 5;
+
     private TrackMeDatabaseUtils trackMeDatabaseUtils;
 
     private LocationListener locationListener = new LocationListener() {
@@ -104,6 +119,34 @@ public class RecordingServiceImpl extends Service {
                 if (TextUtils.equals(key, PreferenceUtils.getKey(contextWeakRef.get(), R.string.route_id_key))) {
                     routeId = PreferenceUtils.getLong(contextWeakRef.get(), R.string.route_id_key, -1);
                 }
+
+                //gps accuracy
+                if (TextUtils.equals(key, PreferenceUtils.getKey(contextWeakRef.get(), R.string.recording_gps_accuracy_key))) {
+                    recordingGpsAccuracy = PreferenceUtils.getInt(contextWeakRef.get(),
+                            R.string.recording_gps_accuracy_key,
+                            PreferenceUtils.RECORDING_GPS_ACCURACY_DEFAUL);
+                }
+
+                //location listener policy
+                if (TextUtils.equals(key, PreferenceUtils.getKey(contextWeakRef.get(), R.string.recording_location_threshold_key))) {
+                    int recordingThreshold = PreferenceUtils.getInt(contextWeakRef.get(),
+                            R.string.recording_location_threshold_key,
+                            PreferenceUtils.RECORDING_GPS_ACCURACY_DEFAUL);
+
+                    switch (recordingThreshold) {
+                        case RecordingInterval.BATTERY_LIFE:
+                            locationListenerPolicy = new LocationListenerRestrictionsImpl(DEFAULT_BATTERY_MIN_INTERVAL,
+                                    DEFAULT_BATTERY_MAX_INTERVAL, DEFAULT_BATTERY_MIN_DISTANCE);
+                            break;
+                        case RecordingInterval.ACCURACY:
+                            locationListenerPolicy = new LocationListenerRestrictionsImpl(DEFAULT_HIGH_ACCURACY_MIN_INTERVAL,
+                                    DEFAULT_HIGH_ACCURACY_MAX_INTERVAL, DEFAULT_ACCURACY_MIN_DISTANCE);
+                            break;
+                        default:
+                            locationListenerPolicy = new LocationListenerRestrictionsImpl(recordingThreshold * ONE_SECOND);
+                            break;
+                    }
+                }
             }
 
         }
@@ -116,7 +159,7 @@ public class RecordingServiceImpl extends Service {
         serviceMessenger = new Messenger(handlerService);
         mLiveTrackingLocationManager = new GPSLiveTrackerLocationManager(this);
         contextWeakRef = new WeakReference<Context>(this);
-        locationListenerPolicy = new AbsoluteLocationListenerRestrictions(minRecordingInterval * ONE_SECOND);
+        locationListenerPolicy = new LocationListenerRestrictionsImpl(minRecordingInterval * ONE_SECOND);
         handler.post(registerLocationRunnable);
         trackMeDatabaseUtils = TrackMeDatabaseUtilsImpl.getInstance();
         routeId = PreferenceUtils.DEFAULT_ROUTE_ID;
@@ -129,19 +172,19 @@ public class RecordingServiceImpl extends Service {
             restartRoute();
         } else {
             if (isRecording()) {
-                //can be paused - just started
-                updateRecordingState(PreferenceUtils.DEFAULT_ROUTE_ID, true);
+                //cannot be paused - just started
+                updateRecordingState(PreferenceUtils.DEFAULT_ROUTE_ID, RecordingState.STARTED);
             }
             showNotification();
         }
     }
 
 
-    private void updateRecordingState(long _routeId, boolean state) {
+    private void updateRecordingState(long _routeId, RecordingState state) {
         routeId = _routeId;
         PreferenceUtils.setRouteId(this, R.string.route_id_key, routeId);
-        recordingRoutePaused = state;
-        PreferenceUtils.setBoolean(this, R.string.recording_paused_key, recordingRoutePaused);
+        recordingState = state;
+        PreferenceUtils.setString(this, R.string.recording_state_key, recordingState.getState());
     }
 
     private void restartRoute() {
@@ -195,8 +238,8 @@ public class RecordingServiceImpl extends Service {
 
 
     protected void onLocationChangedAsync(Location location) {
-        if (!isRecording()) {
-            Log.w(TAG, "Ignore onLocationChangedAsync. Not recording.");
+        if (!isRecording() || isPaused()) {
+            Log.w(TAG, "Ignore onLocationChangedAsync. Not recording or we are in paused state.");
             return;
         }
         if (!LocationUtils.isValidLocation(location)) {
@@ -260,12 +303,11 @@ public class RecordingServiceImpl extends Service {
         }
     }
 
-
     public boolean isRecording() {
         if (!canAccess()) {
             return false;
         }
-        return isRecording;
+        return recordingState == RecordingState.RESUMED || recordingState == RecordingState.STARTED;
     }
 
     public void startNewTracking() {
@@ -302,11 +344,27 @@ public class RecordingServiceImpl extends Service {
         PreferenceUtils.setRouteId(this, R.string.route_id_key, insertedRouteId);
         route.setRouteId(insertedRouteId);
         routeId = insertedRouteId;
+        updateRecordingState(routeId, RecordingState.STARTED);
 
     }
 
     private void resumeTracking() {
+        Log.d(TAG, "resume the route track");
 
+    }
+
+    private void pauseTracking() {
+
+        Log.d(TAG, "pausing the route track");
+
+        updateRecordingState(routeId, RecordingState.PAUSED);
+        Route route = trackMeDatabaseUtils.getRouteById(routeId);
+
+        if (route != null) {
+            trackMeDatabaseUtils.insertLocation(route, mLastLocation, getLastValidRouteTrack(route));
+        }
+
+        stopRecordingService(false);
     }
 
     private void stopTracking(boolean stopped) {
@@ -424,7 +482,7 @@ public class RecordingServiceImpl extends Service {
                     stopTracking(true);
                     break;
                 case RecordingServiceConstants.MSG_PAUSE_TRACKING:
-                    stopTracking(false);
+                    pauseTracking();
                     break;
 
                 case RecordingServiceConstants.MSG_RESUME_TRACKING:
@@ -463,16 +521,6 @@ public class RecordingServiceImpl extends Service {
         return mLastLocation;
     }
 
-
-    private IDataProvider getDataProvider() {
-        return getApp().getDataProvider();
-    }
-
-    private GPSLiveTrackerApplication getApp() {
-        return (GPSLiveTrackerApplication) GPSLiveTrackerApplication.getInstance();
-    }
-
-
     @Override
     public void onDestroy() {
         stopNotifications();
@@ -488,6 +536,26 @@ public class RecordingServiceImpl extends Service {
         TrackMeDatabaseUtilsImpl.reset();
         trackMeDatabaseUtils = null;
         super.onDestroy();
+    }
+
+    private Location getLastValidRouteTrack(Route route) {
+        return trackMeDatabaseUtils.getLastValidRouteTrack(route.getRouteId());
+    }
+
+    private boolean isPaused() {
+        return recordingState == RecordingState.PAUSED;
+    }
+
+    private boolean isResumed() {
+        return recordingState == RecordingState.RESUMED;
+    }
+
+    private IDataProvider getDataProvider() {
+        return getApp().getDataProvider();
+    }
+
+    private GPSLiveTrackerApplication getApp() {
+        return (GPSLiveTrackerApplication) GPSLiveTrackerApplication.getInstance();
     }
 
 }

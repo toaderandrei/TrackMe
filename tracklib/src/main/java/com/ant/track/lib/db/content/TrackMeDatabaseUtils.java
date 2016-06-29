@@ -1,6 +1,7 @@
 package com.ant.track.lib.db.content;
 
 import android.content.ContentValues;
+import android.location.Location;
 import android.net.Uri;
 
 import com.ant.track.lib.model.Route;
@@ -70,5 +71,28 @@ public interface TrackMeDatabaseUtils {
      */
     void updateRoutePoint(RoutePoint routePoint);
 
+    /**
+     * gets a route by id.
+     *
+     * @param routeId the id of the route
+     * @return the Route by id.
+     */
     Route getRouteById(long routeId);
+
+    /**
+     * inserts a route into the db.
+     *
+     * @param route               the route to be inserted.
+     * @param mLastLocation       the last location
+     * @param lastValidRouteTrack the last valid location inserted.
+     */
+    void insertLocation(Route route, Location mLastLocation, Location lastValidRouteTrack);
+
+    /**
+     * get last valid route point.
+     *
+     * @param routeId the id of the route.
+     * @return the last valid location.
+     */
+    Location getLastValidRouteTrack(long routeId);
 }

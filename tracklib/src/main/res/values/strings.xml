@@ -42,6 +42,6 @@
 
     <string name="route_id_key">route_key</string>
 
-    <string name="recording_paused_key">recording_paused_key</string>
+    <string name="recording_state_key">recording_state_key</string>
 
 </resources>

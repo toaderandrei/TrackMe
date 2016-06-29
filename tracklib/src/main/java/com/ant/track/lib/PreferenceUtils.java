@@ -11,6 +11,8 @@ import com.ant.track.lib.constants.Constants;
 public class PreferenceUtils {
 
     public static final long DEFAULT_ROUTE_ID = -1L;
+    //in meters
+    public static final int RECORDING_GPS_ACCURACY_DEFAUL = 5;
 
     private PreferenceUtils() {
 
@@ -41,6 +43,13 @@ public class PreferenceUtils {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.SETTINGS_KEY, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putBoolean(getKey(context, keyId), value);
+        editor.apply();
+    }
+
+    public static void setString(Context context, int keyId, String value) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.SETTINGS_KEY, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(getKey(context, keyId), value);
         editor.apply();
     }
 
