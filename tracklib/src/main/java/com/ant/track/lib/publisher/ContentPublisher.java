@@ -1,59 +1,27 @@
 package com.ant.track.lib.publisher;
 
-import com.ant.track.lib.models.User;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 /**
- * Created by Toader on 6/4/2015.
+ * interface for the content publisher.
  */
-public class ContentPublisher implements IContentPublisher {
+public interface ContentPublisher<U, T> {
+    /**
+     * register listener
+     *
+     * @param listener
+     */
+    void registerListener(T listener);
 
-    private static IContentPublisher instance = null;
-    private List<INotifyUIListener> listeners = new ArrayList<>();
+    /**
+     * unregister listener
+     *
+     * @param listener
+     */
+    void unregisterListener(T listener);
 
-    public static IContentPublisher getInstance() {
-        if (instance == null) {
-            instance = new ContentPublisher();
-        }
-        return instance;
-    }
-
-    @Override
-    public void registerListener(final INotifyUIListener listener) {
-        synchronized (listeners) {
-            if (listener != null && !listeners.contains(listener)) {
-                listeners.add(listener);
-            }
-        }
-    }
-
-    @Override
-    public void unregisterListener(INotifyUIListener listener) {
-        synchronized (listeners) {
-            if (listener != null) {
-                Iterator<INotifyUIListener> it = listeners.iterator();
-                while ((it.hasNext())) {
-                    INotifyUIListener mListener = it.next();
-                    if (mListener.equals(listener)) {
-                        it.remove();
-                    }
-                }
-            }
-        }
-    }
-
-    @Override
-    public void notifyListeners(User user) {
-        if (listeners.isEmpty()) {
-            return;
-        }
-        for (INotifyUIListener listener : listeners) {
-            if (listener != null) {
-                listener.notifyUI(user);
-            }
-        }
-    }
+    /**
+     * notify listeners.
+     *
+     * @param
+     */
+    void notifyListeners(U data);
 }

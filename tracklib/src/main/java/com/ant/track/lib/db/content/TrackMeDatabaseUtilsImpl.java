@@ -1,6 +1,7 @@
 package com.ant.track.lib.db.content;
 
 import android.content.ContentValues;
+import android.location.Location;
 import android.net.Uri;
 
 import com.ant.track.lib.application.TrackLibApplication;
@@ -27,6 +28,16 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
 
 
         return route;
+    }
+
+    @Override
+    public void insertLocation(Route route, Location mLastLocation, Location lastValidRouteTrack) {
+
+    }
+
+    @Override
+    public Location getLastValidRouteTrack(long routeId) {
+        return null;
     }
 
     @Override

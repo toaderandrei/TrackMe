@@ -19,8 +19,8 @@ import com.ant.track.app.helper.GoogleAskToEnableLocationService;
 import com.ant.track.app.helper.GoogleLocationServicesUtils;
 import com.ant.track.app.location.GPSLiveTrackerLocationManager;
 import com.ant.track.lib.models.User;
-import com.ant.track.lib.publisher.ContentPublisher;
-import com.ant.track.lib.publisher.INotifyUIListener;
+import com.ant.track.lib.publisher.ContentPublisherImpl;
+import com.ant.track.lib.publisher.NotifyListener;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.maps.CameraUpdate;
@@ -35,7 +35,7 @@ import com.google.android.gms.maps.model.LatLng;
 /**
  * Fragment in which a google map resides.
  */
-public class LocationFragment extends Fragment implements INotifyUIListener {
+public class LocationFragment extends Fragment implements NotifyListener {
 
     private static final float DEFAULT_ZOOM_LEVEL = 18f;
     private static final String TAG = LocationFragment.class.getSimpleName();
@@ -67,7 +67,7 @@ public class LocationFragment extends Fragment implements INotifyUIListener {
     }
 
     private void registerToContentPublisher() {
-        ContentPublisher.getInstance().registerListener(this);
+        ContentPublisherImpl.getInstance().registerListener(this);
     }
 
     @Override
@@ -318,7 +318,7 @@ public class LocationFragment extends Fragment implements INotifyUIListener {
     }
 
     private void unregisterFromContentPublisher() {
-        ContentPublisher.getInstance().unregisterListener(this);
+        ContentPublisherImpl.getInstance().unregisterListener(this);
     }
 
 

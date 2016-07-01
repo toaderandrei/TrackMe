@@ -345,12 +345,21 @@ public class RecordingServiceImpl extends Service {
         route.setRouteId(insertedRouteId);
         routeId = insertedRouteId;
         updateRecordingState(routeId, RecordingState.STARTED);
-
     }
 
     private void resumeTracking() {
         Log.d(TAG, "resume the route track");
+        if (isResumed()) {
+            Log.d(TAG, " already resumed");
+            return;
+        }
+        updateRecordingState(routeId, RecordingState.RESUMED);
 
+        Route pausedRoute = trackMeDatabaseUtils.getRouteById(routeId);
+        if (pausedRoute != null) {
+            //todo resuming...
+        }
+        startGPSTracking();
     }
 
     private void pauseTracking() {
