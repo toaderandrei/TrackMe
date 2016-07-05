@@ -7,14 +7,14 @@ public interface ContentPublisher<U, T> {
     /**
      * register listener
      *
-     * @param listener
+     * @param listener - to be registered
      */
     void registerListener(T listener);
 
     /**
      * unregister listener
      *
-     * @param listener
+     * @param listener to be unregistered
      */
     void unregisterListener(T listener);
 

@@ -3,6 +3,8 @@ package com.ant.track.lib.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.ant.track.lib.stats.RouteStats;
+
 /**
  * Describes a route/track on the map. A route can contain
  * points and check points.

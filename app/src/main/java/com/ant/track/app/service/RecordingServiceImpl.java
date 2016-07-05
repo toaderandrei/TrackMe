@@ -24,7 +24,7 @@ import com.ant.track.app.R;
 import com.ant.track.app.activities.MainActivity;
 import com.ant.track.app.application.GPSLiveTrackerApplication;
 import com.ant.track.app.helper.IntentUtils;
-import com.ant.track.app.helper.LocationUtils;
+import com.ant.track.lib.utils.LocationUtils;
 import com.ant.track.app.helper.SystemUtils;
 import com.ant.track.app.location.GPSLiveTrackerLocationManager;
 import com.ant.track.app.location.LocationListenerRestrictions;
@@ -37,7 +37,7 @@ import com.ant.track.lib.constants.Constants;
 import com.ant.track.lib.db.content.TrackMeDatabaseUtils;
 import com.ant.track.lib.db.content.TrackMeDatabaseUtilsImpl;
 import com.ant.track.lib.model.Route;
-import com.ant.track.lib.model.RouteStats;
+import com.ant.track.lib.stats.RouteStats;
 import com.google.android.gms.location.LocationListener;
 
 import java.lang.ref.WeakReference;
@@ -47,7 +47,10 @@ import java.lang.ref.WeakReference;
  * Tracking Service
  */
 public class RecordingServiceImpl extends Service {
+
     private long routeId;
+    private static double PAUSE_LATITUDE = 100.0d;
+
     private static final long ONE_MINUTE = (long) (UnitConversions.MIN_TO_S * UnitConversions.S_TO_MS);
     // 1 second in milliseconds
     private static final long ONE_SECOND = (long) UnitConversions.S_TO_MS;
@@ -147,6 +150,7 @@ public class RecordingServiceImpl extends Service {
                             break;
                     }
                 }
+                //
             }
 
         }

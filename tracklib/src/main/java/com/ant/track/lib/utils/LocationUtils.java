@@ -1,4 +1,4 @@
-package com.ant.track.app.helper;
+package com.ant.track.lib.utils;
 
 import android.location.Location;
 
@@ -13,6 +13,11 @@ public class LocationUtils {
     public static final int RECORDING_GPS_ACCURACY_DEFAULT = 50;
     public static final int RECORDING_GPS_ACCURACY_EXCELLENT = 10;
     public static final int RECORDING_GPS_ACCURACY_POOR = 200;
+
+
+    public static final double PAUSE_LATITUDE = 100;
+
+    public static final double PAUSE_LONGITUDE = 200;
 
     /**
      * Checks if a given location is a valid (i.e. physically possible) location

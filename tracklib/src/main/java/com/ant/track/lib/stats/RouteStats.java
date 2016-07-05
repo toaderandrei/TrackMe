@@ -1,7 +1,10 @@
-package com.ant.track.lib.model;
+package com.ant.track.lib.stats;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+
+import com.ant.track.lib.model.RouteCheckPoint;
+import com.ant.track.lib.model.RoutePoint;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,14 +33,19 @@ public class RouteStats implements Parcelable {
     private float maxElevation;
     private List<RoutePoint> routePointList;
     private List<RouteCheckPoint> routeCheckPoints;
-    private long currentTime;
 
     public RouteStats(long currentTime) {
-        this.currentTime = currentTime;
+        this.startTime = currentTime;
+        this.stopTime = currentTime;
+    }
+
+
+    public RouteStats(long startTime, long stopTime) {
+        this.startTime = startTime;
+        this.stopTime = stopTime;
     }
 
     protected RouteStats(Parcel in) {
-        currentTime = in.readLong();
         name = in.readString();
         description = in.readString();
         start_pointId = in.readLong();
@@ -62,7 +70,6 @@ public class RouteStats implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeLong(currentTime);
         dest.writeString(name);
         dest.writeString(description);
         dest.writeLong(start_pointId);

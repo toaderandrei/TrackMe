@@ -19,7 +19,6 @@ import com.google.android.gms.location.LocationServices;
 public class GPSLiveTrackerLocationManager {
 
     private final GoogleApiClient locationClient;
-    private final Context context;
     private final Handler handler;
     private final GoogleApiClient.OnConnectionFailedListener
             onConnectionFailedListener = new GoogleApiClient.OnConnectionFailedListener() {
@@ -67,7 +66,6 @@ public class GPSLiveTrackerLocationManager {
     };
 
     public GPSLiveTrackerLocationManager(Context context) {
-        this.context = context;
         this.handler = new Handler(Looper.getMainLooper());
 
         locationClient = new GoogleApiClient.Builder(context)
