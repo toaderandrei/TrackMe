@@ -26,11 +26,12 @@ public class RouteStats implements Parcelable {
     private int minAltitude;
     private int maxAltitude;
     private int totalDuration;
-    private int maxSpeed;
-    private int minSpeed;
-    private int avgSpeed;
+    private double maxSpeed;
+    private double minSpeed;
+    private double avgSpeed;
     private float minElevation;
     private float maxElevation;
+    private double totalDistance;
     private List<RoutePoint> routePointList;
     private List<RouteCheckPoint> routeCheckPoints;
 
@@ -59,11 +60,12 @@ public class RouteStats implements Parcelable {
         minAltitude = in.readInt();
         maxAltitude = in.readInt();
         totalDuration = in.readInt();
-        maxSpeed = in.readInt();
-        minSpeed = in.readInt();
-        avgSpeed = in.readInt();
+        maxSpeed = in.readDouble();
+        minSpeed = in.readDouble();
+        avgSpeed = in.readDouble();
         minElevation = in.readFloat();
         maxElevation = in.readFloat();
+        totalDistance = in.readDouble();
         routePointList = in.createTypedArrayList(RoutePoint.CREATOR);
         routeCheckPoints = in.createTypedArrayList(RouteCheckPoint.CREATOR);
     }
@@ -83,11 +85,12 @@ public class RouteStats implements Parcelable {
         dest.writeInt(minAltitude);
         dest.writeInt(maxAltitude);
         dest.writeInt(totalDuration);
-        dest.writeInt(maxSpeed);
-        dest.writeInt(minSpeed);
-        dest.writeInt(avgSpeed);
+        dest.writeDouble(maxSpeed);
+        dest.writeDouble(minSpeed);
+        dest.writeDouble(avgSpeed);
         dest.writeFloat(minElevation);
         dest.writeFloat(maxElevation);
+        dest.writeDouble(totalDistance);
         dest.writeTypedList(routePointList);
         dest.writeTypedList(routeCheckPoints);
     }
@@ -214,27 +217,27 @@ public class RouteStats implements Parcelable {
         this.totalDuration = totalDuration;
     }
 
-    public int getMaxSpeed() {
+    public double getMaxSpeed() {
         return maxSpeed;
     }
 
-    public void setMaxSpeed(int maxSpeed) {
+    public void setMaxSpeed(double maxSpeed) {
         this.maxSpeed = maxSpeed;
     }
 
-    public int getMinSpeed() {
+    public double getMinSpeed() {
         return minSpeed;
     }
 
-    public void setMinSpeed(int minSpeed) {
+    public void setMinSpeed(double minSpeed) {
         this.minSpeed = minSpeed;
     }
 
-    public int getAvgSpeed() {
+    public double getAvgSpeed() {
         return avgSpeed;
     }
 
-    public void setAvgSpeed(int avgSpeed) {
+    public void setAvgSpeed(double avgSpeed) {
         this.avgSpeed = avgSpeed;
     }
 
@@ -285,6 +288,15 @@ public class RouteStats implements Parcelable {
         if (routePoint instanceof RouteCheckPoint) {
             routeCheckPoints.add((RouteCheckPoint) routePoint);
         }
+    }
+
+    public void addNewDistanceToStats(final double distance) {
+        totalDistance += distance;
+
+    }
+
+    public void merge(RouteStats currentSegmentStats) {
+        //todo merge
     }
 }
 

@@ -7,6 +7,8 @@ import com.ant.track.lib.utils.LocationUtils;
 
 /**
  * Route stats manager. Updates, modifies the route stats.
+ * The entire class is based on the MyTracks application with
+ * slight modifications.
  */
 public class RouteStatsManager {
 
@@ -15,6 +17,14 @@ public class RouteStatsManager {
      */
     @VisibleForTesting
     static final int SPEED_DEFAULT_FACTOR = 25;
+    public static final String GPS = "GPS";
+
+    /**
+     * Ignore any acceleration faster than this. Will ignore any speeds that imply
+     * acceleration greater than 2g's 2g = 19.6 m/s^2 = 0.0002 m/ms^2 = 0.02
+     * m/(m*ms)
+     */
+    private static final double MAX_ACCELERATION = 0.02;
 
     /**
      * the entire route from start to stop
@@ -36,24 +46,43 @@ public class RouteStatsManager {
         init(time);
     }
 
-    public void addLocationToStats(Location location) {
-
-        if (!LocationUtils.isValidLocation(location)) {
-            //pause location - update.
-            if (lastLocation != null && lastValidLocation != null && lastValidLocation != lastLocation) {
-
-            }
-        } else {
-            //todo add location to all the stats.
-        }
-    }
-
     private void init(long time) {
         currentRouteStats = new RouteStats(time);
         currentSegmentStats = new RouteStats(time);
-        lastLocation = new Location("GPS");
+        lastLocation = new Location(GPS);
         lastLocation.setLatitude(LocationUtils.PAUSE_LATITUDE);
     }
+
+    public void addLocationToStats(Location location) {
+
+        if (!LocationUtils.isValidLocation(location)) {
+            //pause location - update the current stats and add them
+            //to the big route
+            if (isPausedLocation(location)) {
+                if (lastLocation != null && lastValidLocation != null && lastValidLocation != lastLocation) {
+                    currentSegmentStats.addNewDistanceToStats(lastValidLocation.distanceTo(lastLocation));
+                }
+            }
+
+            currentRouteStats.merge(currentSegmentStats);
+            lastLocation = null;
+            lastValidLocation = null;
+            currentSegmentStats = new RouteStats(location.getTime());
+            speedBuffer.reset();
+            return;
+        }
+        //location is valid somehow.
+        updateMaxSpeed(location.getTime(), location.getSpeed(), lastValidLocation.getTime(), lastValidLocation.getSpeed());
+    }
+
+
+    private boolean isPausedLocation(Location location) {
+        if (location.getLatitude() == LocationUtils.PAUSE_LATITUDE || location.getLongitude() == LocationUtils.PAUSE_LONGITUDE) {
+            return true;
+        }
+        return false;
+    }
+
 
     public RouteStatsManager(RouteStatsManager other) {
         //todo this behaves like a copy constructor
@@ -62,15 +91,59 @@ public class RouteStatsManager {
     /**
      * updates the max speed for the current route.
      */
-    private void updateMaxSpeed(long time, double speed, long lastTime, double lastSpeed) {
+    protected void updateMaxSpeed(long time, double speed, long lastTime, double lastSpeed) {
         if (speed > 0) {
-            if (speed != lastSpeed && time > lastTime) {
+
+            if (isValidSpeed(time, speed, lastTime, lastSpeed)) {
                 speedBuffer.setNext(speed);
             }
-            speedBuffer.setNext(speed);
-            //double maxSpeed = speedBuffer.get
-            //currentRouteStats.setMaxSpeed(speedBuffer.getAverage());
+            currentSegmentStats.setMaxSpeed(speedBuffer.getMax());
+            currentSegmentStats.setAvgSpeed(speedBuffer.getAverage());
+            currentSegmentStats.setMinSpeed(speedBuffer.getMin());
+        }
+    }
+
+    /**
+     * checks if the current time and speed is valid
+     * in respect to the old ones, valid.
+     *
+     * @param time      the current time of location
+     * @param speed     the speed
+     * @param lastTime  the last time registered
+     * @param lastSpeed the last speed recorded
+     * @return true if the new speed is valid, false otherwise
+     */
+    private boolean isValidSpeed(long time, double speed, long lastTime, double lastSpeed) {
+
+        /*
+        * we exclude weird readings like speed = 0;
+        */
+        if (speed == 0) {
+            return false;
         }
 
+        /*
+         * The following code will ignore unlikely readings. 128 m/s seems to be an
+         * internal android error code.
+         */
+        if (Math.abs(speed - 128) < 1) {
+            return false;
+        }
+
+        long timeDiff = Math.abs(lastTime - time);
+        double speedDif = Math.abs(lastSpeed - speed);
+
+        if (speedDif > MAX_ACCELERATION * timeDiff) {
+            return false;
+        }
+
+        if (speedBuffer.hasSufficientReadings()) {
+
+            return speed >= speedBuffer.getMin() &&
+                    speed <= speedBuffer.getMax() &&
+                    speed <= speedBuffer.getAverage() &&
+                    speed <= MAX_ACCELERATION * timeDiff;
+        }
+        return true;
     }
 }

@@ -21,7 +21,11 @@ public interface DataBuffer {
      */
     double getVariance();
 
+    double getMin();
+
+    double getMax();
+
     void reset();
 
-    boolean isFull();
+    boolean hasSufficientReadings();
 }
