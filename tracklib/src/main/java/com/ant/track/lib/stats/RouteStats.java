@@ -213,10 +213,6 @@ public class RouteStats implements Parcelable {
         return totalDuration;
     }
 
-    public void setTotalDuration(int totalDuration) {
-        this.totalDuration = totalDuration;
-    }
-
     public double getMaxSpeed() {
         return maxSpeed;
     }
@@ -295,8 +291,17 @@ public class RouteStats implements Parcelable {
 
     }
 
+    /**
+     * merges the current stats with stats received
+     *
+     * @param currentSegmentStats the stats received to be merged with the current stats.
+     */
     public void merge(RouteStats currentSegmentStats) {
         //todo merge
+    }
+
+    public void addNewMovingTimeToStats(double movingTime) {
+        this.totalDuration += movingTime;
     }
 }
 

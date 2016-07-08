@@ -1,8 +1,8 @@
 package com.ant.track.lib.stats;
 
 import android.location.Location;
-import android.support.annotation.VisibleForTesting;
 
+import com.ant.track.lib.constants.Constants;
 import com.ant.track.lib.utils.LocationUtils;
 
 /**
@@ -12,19 +12,6 @@ import com.ant.track.lib.utils.LocationUtils;
  */
 public class RouteStatsManager {
 
-    /**
-     * The number of speed reading to smooth to get a somewhat accurate signal.
-     */
-    @VisibleForTesting
-    static final int SPEED_DEFAULT_FACTOR = 25;
-    public static final String GPS = "GPS";
-
-    /**
-     * Ignore any acceleration faster than this. Will ignore any speeds that imply
-     * acceleration greater than 2g's 2g = 19.6 m/s^2 = 0.0002 m/ms^2 = 0.02
-     * m/(m*ms)
-     */
-    private static final double MAX_ACCELERATION = 0.02;
 
     /**
      * the entire route from start to stop
@@ -40,7 +27,11 @@ public class RouteStatsManager {
     private Location lastLocation;
     private Location lastValidLocation;
 
-    private DataBuffer speedBuffer = new DataBufferImpl(SPEED_DEFAULT_FACTOR);
+    private DataBuffer speedBuffer = new DataBufferImpl(Constants.SPEED_DEFAULT_FACTOR);
+
+    private LocationProximitiesManager latitudeProximityManager = new LocationProximitiesManager();
+
+    private LocationProximitiesManager longitudeProximityManager = new LocationProximitiesManager();
 
     public RouteStatsManager(long time) {
         init(time);
@@ -49,11 +40,11 @@ public class RouteStatsManager {
     private void init(long time) {
         currentRouteStats = new RouteStats(time);
         currentSegmentStats = new RouteStats(time);
-        lastLocation = new Location(GPS);
+        lastLocation = new Location(Constants.GPS);
         lastLocation.setLatitude(LocationUtils.PAUSE_LATITUDE);
     }
 
-    public void addLocationToStats(Location location) {
+    public void addLocationToStats(Location location, double minRecordingDistance) {
 
         if (!LocationUtils.isValidLocation(location)) {
             //pause location - update the current stats and add them
@@ -69,10 +60,33 @@ public class RouteStatsManager {
             lastValidLocation = null;
             currentSegmentStats = new RouteStats(location.getTime());
             speedBuffer.reset();
+
             return;
         }
         //location is valid somehow.
-        updateMaxSpeed(location.getTime(), location.getSpeed(), lastValidLocation.getTime(), lastValidLocation.getSpeed());
+        //we need to validate the location
+        if (lastValidLocation == null || lastLocation == null) {
+            lastLocation = location;
+            return;
+        }
+
+        updateLatitudeStats(location);
+        updateLongitudeStats(location);
+
+        double distanceToLastMovingLocation = lastValidLocation.distanceTo(location);
+        double movingTime = location.getTime() - lastValidLocation.getTime();
+
+        if ((distanceToLastMovingLocation < minRecordingDistance) ||
+                (!location.hasSpeed() || location.getSpeed() < Constants.MAX_SPEED_NO_MOVEMENT)) {
+            lastLocation = location;
+            return;
+        }
+
+        currentRouteStats.addNewDistanceToStats(distanceToLastMovingLocation);
+        currentSegmentStats.addNewMovingTimeToStats(movingTime);
+        if (location.hasSpeed() && lastValidLocation.hasSpeed()) {
+            updateMaxSpeed(location.getTime(), location.getSpeed(), lastValidLocation.getTime(), lastValidLocation.getSpeed());
+        }
     }
 
 
@@ -86,6 +100,14 @@ public class RouteStatsManager {
 
     public RouteStatsManager(RouteStatsManager other) {
         //todo this behaves like a copy constructor
+    }
+
+    private void updateLatitudeStats(Location currentLoc) {
+        latitudeProximityManager.add(currentLoc.getLatitude());
+    }
+
+    private void updateLongitudeStats(Location currentLocation) {
+        longitudeProximityManager.add(currentLocation.getLongitude());
     }
 
     /**
@@ -133,7 +155,7 @@ public class RouteStatsManager {
         long timeDiff = Math.abs(lastTime - time);
         double speedDif = Math.abs(lastSpeed - speed);
 
-        if (speedDif > MAX_ACCELERATION * timeDiff) {
+        if (speedDif > Constants.MAX_ACCELERATION * timeDiff) {
             return false;
         }
 
@@ -142,7 +164,7 @@ public class RouteStatsManager {
             return speed >= speedBuffer.getMin() &&
                     speed <= speedBuffer.getMax() &&
                     speed <= speedBuffer.getAverage() &&
-                    speed <= MAX_ACCELERATION * timeDiff;
+                    speed <= Constants.MAX_ACCELERATION * timeDiff;
         }
         return true;
     }

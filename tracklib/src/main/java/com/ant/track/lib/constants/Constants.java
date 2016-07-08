@@ -1,22 +1,29 @@
 package com.ant.track.lib.constants;
 
+import android.support.annotation.VisibleForTesting;
+
 /**
- * Created by Toader on 6/4/2015.
- */
+ * Constants
+ * */
 public class Constants {
 
-    public static final String EMAIL = "toaderstandrei@gmail.com";
-    public static final String PASSWORD = "p@$$w0rd1";
-    public static final String REGION = "Austria";
-    public static final String OS = "android";
-    public static final String LANGUAGE = "en";
-    public static final String APN_TOKEN = "apn_token";
-    public static final String APP_VERSION = "APP_VERSION";
-    public static final String BASE_URL = "IP_address/api/v2/";
-    public static final String SESSION = "session";
-    public static final String CHECKIN = "checkin";
+
+    /**
+     * The number of speed reading to smooth to get a somewhat accurate signal.
+     */
+    @VisibleForTesting
+    public static final int SPEED_DEFAULT_FACTOR = 25;
+    public static final String GPS = "GPS";
+
+    /**
+     * Ignore any acceleration faster than this. Will ignore any speeds that imply
+     * acceleration greater than 2g's 2g = 19.6 m/s^2 = 0.0002 m/ms^2 = 0.02
+     * m/(m*ms)
+     */
+    public static final double MAX_ACCELERATION = 0.02;
     public static final String EXTRA_RECORDING_ID = "recording_id";
 
     public static final String SETTINGS_KEY = "settings_key";
 
+    public static final double MAX_SPEED_NO_MOVEMENT = 0.22;
 }
