@@ -9,5 +9,6 @@ Unit tests can be run via gradle commands, jacoco is also enabled.
   - *gradle createDebugCoverageReport*
 
 * The use case for the app is that when the app is started the user can start/pause/stop the recording.
+   * During running the route will be shown on the map 
 * The user will be able to see during navigation a starting flag and an ending flag.
 * The user will be able to see its track after it has finished.
