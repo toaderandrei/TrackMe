@@ -1,7 +1,6 @@
 package com.ant.track.lib.stats;
 
-import java.util.LinkedList;
-import java.util.List;
+import android.util.Log;
 
 /**
  * Buffer that collects data in order to compute statistics
@@ -9,47 +8,56 @@ import java.util.List;
  */
 public class DataBufferImpl implements DataBuffer {
 
-    private boolean hasSufficientReadings = false;
-
-    private List<Double> buffer;
+    private boolean isFull = false;
+    private Double[] buffer;
     private int currentIndex = 0;
     private double max = 0;
     private double min = 0;
-
-    private int maxSize = 25;
+    private static final String TAG = DataBufferImpl.class.getCanonicalName();
 
     public DataBufferImpl(int maxSize) {
         if (maxSize < 1) {
             throw new IllegalArgumentException("Size is less than 1.");
         }
-        this.maxSize = maxSize;
-        buffer = new LinkedList<>();
+        buffer = new Double[maxSize];
     }
 
     @Override
-    public void setNext(double value) {
+    public void setNext(double value, boolean force) {
         if (value < 0) {
             throw new IllegalArgumentException("Value cannot be less than 0");
         }
-        if (value > max) {
+        if (isFull && !force) {
+            Log.d(TAG, "it is full, please free some space.");
+            return;
+        }
+        if (value >= max) {
             max = value;
         }
         if (value < min) {
             min = value;
         }
-        buffer.add(value);
+        if (currentIndex == buffer.length) {
+            currentIndex = 0;
+        }
+
+        buffer[currentIndex] = value;
         currentIndex++;
-        if (currentIndex >= maxSize) {
-            hasSufficientReadings = true;
+        if (currentIndex == buffer.length) {
+            isFull = true;
         }
     }
 
     @Override
     public double getAverage() {
-        int numEntries = hasSufficientReadings() ? buffer.size() : currentIndex;
+        int numEntries = isFull() ? buffer.length : currentIndex;
+        if (numEntries == 0) {
+            return 0;
+        }
+
         double average = 0;
         for (int k = 0; k < numEntries; k++) {
-            average += buffer.get(k);
+            average += buffer[k];
         }
         return average / numEntries;
     }
@@ -57,10 +65,13 @@ public class DataBufferImpl implements DataBuffer {
     @Override
     public double getVariance() {
 
-        int numEntries = hasSufficientReadings() ? buffer.size() : currentIndex;
+        int numEntries = isFull() ? buffer.length : currentIndex;
+        if (numEntries == 0) {
+            return 0;
+        }
         double variance = 0;
         for (int k = 0; k < numEntries; k++) {
-            variance += Math.pow(buffer.get(k), 2);
+            variance += Math.pow(buffer[k], 2);
         }
 
         return variance / numEntries;
@@ -68,9 +79,9 @@ public class DataBufferImpl implements DataBuffer {
 
     @Override
     public void reset() {
-        hasSufficientReadings = false;
+        isFull = false;
         currentIndex = 0;
-        buffer.clear();
+        buffer = null;
     }
 
     @Override
@@ -84,7 +95,7 @@ public class DataBufferImpl implements DataBuffer {
     }
 
     @Override
-    public boolean hasSufficientReadings() {
-        return hasSufficientReadings;
+    public boolean isFull() {
+        return isFull;
     }
 }

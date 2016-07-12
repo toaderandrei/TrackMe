@@ -82,11 +82,11 @@ public interface TrackMeDatabaseUtils {
     /**
      * inserts a route into the db.
      *
-     * @param route               the route to be inserted.
-     * @param mLastLocation       the last location
-     * @param lastValidRouteTrack the last valid location inserted.
+     * @param route    the route to be inserted.
+     * @param location the location to be inserted
+     * @return returns the uri of the inserted location
      */
-    void insertLocation(Route route, Location mLastLocation, Location lastValidRouteTrack);
+    Uri insertRoutePoint(Route route, Location location);
 
     /**
      * get last valid route point.
@@ -95,4 +95,12 @@ public interface TrackMeDatabaseUtils {
      * @return the last valid location.
      */
     Location getLastValidRouteTrack(long routeId);
+
+    /**
+     * gets the last valid location from the db for a specific route.
+     *
+     * @param routeId the id of the route
+     * @return the last location.
+     */
+    Location getLastValidLocation(long routeId);
 }

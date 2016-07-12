@@ -1,6 +1,7 @@
 package com.ant.track.lib.stats;
 
 import android.location.Location;
+import android.util.Log;
 
 import com.ant.track.lib.constants.Constants;
 import com.ant.track.lib.utils.LocationUtils;
@@ -12,6 +13,9 @@ import com.ant.track.lib.utils.LocationUtils;
  */
 public class RouteStatsManager {
 
+    private static final String TAG = RouteStatsManager.class.getCanonicalName();
+    public static final int DEFAULT_MULTIPLIER = 8;
+    public static final double MAXIMUM_TIME_NO_UPDATE = 0.001;
 
     /**
      * the entire route from start to stop
@@ -28,10 +32,6 @@ public class RouteStatsManager {
     private Location lastValidLocation;
 
     private DataBuffer speedBuffer = new DataBufferImpl(Constants.SPEED_DEFAULT_FACTOR);
-
-    private LocationProximitiesManager latitudeProximityManager = new LocationProximitiesManager();
-
-    private LocationProximitiesManager longitudeProximityManager = new LocationProximitiesManager();
 
     public RouteStatsManager(long time) {
         init(time);
@@ -60,24 +60,31 @@ public class RouteStatsManager {
             lastValidLocation = null;
             currentSegmentStats = new RouteStats(location.getTime());
             speedBuffer.reset();
-
             return;
         }
         //location is valid somehow.
         //we need to validate the location
         if (lastValidLocation == null || lastLocation == null) {
             lastLocation = location;
+            lastValidLocation = location;
             return;
         }
 
         updateLatitudeStats(location);
         updateLongitudeStats(location);
+        updateAltitudeStats(location);
 
         double distanceToLastMovingLocation = lastValidLocation.distanceTo(location);
         double movingTime = location.getTime() - lastValidLocation.getTime();
 
-        if ((distanceToLastMovingLocation < minRecordingDistance) ||
+        if ((distanceToLastMovingLocation < minRecordingDistance) &&
                 (!location.hasSpeed() || location.getSpeed() < Constants.MAX_SPEED_NO_MOVEMENT)) {
+            lastLocation = location;
+            return;
+        }
+
+        double timeDiff = location.getTime() - lastLocation.getTime();
+        if (timeDiff <= MAXIMUM_TIME_NO_UPDATE) {
             lastLocation = location;
             return;
         }
@@ -87,6 +94,9 @@ public class RouteStatsManager {
         if (location.hasSpeed() && lastValidLocation.hasSpeed()) {
             updateMaxSpeed(location.getTime(), location.getSpeed(), lastValidLocation.getTime(), lastValidLocation.getSpeed());
         }
+
+        lastValidLocation = location;
+        lastLocation = location;
     }
 
 
@@ -98,30 +108,41 @@ public class RouteStatsManager {
     }
 
 
-    public RouteStatsManager(RouteStatsManager other) {
-        //todo this behaves like a copy constructor
+    private void updateAltitudeStats(Location location) {
+        currentSegmentStats.updateAltitudeStats(location.getAltitude());
     }
 
     private void updateLatitudeStats(Location currentLoc) {
-        latitudeProximityManager.add(currentLoc.getLatitude());
+        currentSegmentStats.updateLatitudeStats(currentLoc.getLatitude());
     }
 
     private void updateLongitudeStats(Location currentLocation) {
-        longitudeProximityManager.add(currentLocation.getLongitude());
+        currentSegmentStats.updateLongitudeStats(currentLocation.getLongitude());
     }
 
     /**
      * updates the max speed for the current route.
      */
-    protected void updateMaxSpeed(long time, double speed, long lastTime, double lastSpeed) {
-        if (speed > 0) {
+    private void updateMaxSpeed(long time, double speed, long lastTime, double lastSpeed) {
+
+        if (speed < Constants.MAX_SPEED_NO_MOVEMENT) {
+            speedBuffer.reset();
+        } else {
 
             if (isValidSpeed(time, speed, lastTime, lastSpeed)) {
-                speedBuffer.setNext(speed);
+                if (!speedBuffer.isFull()) {
+                    speedBuffer.setNext(speed, false);
+                }
+                currentSegmentStats.setMaxSpeed(speedBuffer.getMax());
+                currentSegmentStats.setAvgSpeed(speedBuffer.getAverage());
+                currentSegmentStats.setMinSpeed(speedBuffer.getMin());
+                if (speedBuffer.isFull()) {
+                    speedBuffer.setNext(speed, true);
+                }
+
+            } else {
+                Log.d(TAG, "invalid speed");
             }
-            currentSegmentStats.setMaxSpeed(speedBuffer.getMax());
-            currentSegmentStats.setAvgSpeed(speedBuffer.getAverage());
-            currentSegmentStats.setMinSpeed(speedBuffer.getMin());
         }
     }
 
@@ -138,13 +159,6 @@ public class RouteStatsManager {
     private boolean isValidSpeed(long time, double speed, long lastTime, double lastSpeed) {
 
         /*
-        * we exclude weird readings like speed = 0;
-        */
-        if (speed == 0) {
-            return false;
-        }
-
-        /*
          * The following code will ignore unlikely readings. 128 m/s seems to be an
          * internal android error code.
          */
@@ -159,13 +173,29 @@ public class RouteStatsManager {
             return false;
         }
 
-        if (speedBuffer.hasSufficientReadings()) {
-
-            return speed >= speedBuffer.getMin() &&
-                    speed <= speedBuffer.getMax() &&
-                    speed <= speedBuffer.getAverage() &&
-                    speed <= Constants.MAX_ACCELERATION * timeDiff;
+        if (speedBuffer.isFull()) {
+            double average = speedBuffer.getAverage();
+            double speedDifAvg = Math.abs(speed - average);
+            return (speed < average * DEFAULT_MULTIPLIER &&
+                    (speedDifAvg < Constants.MAX_ACCELERATION * timeDiff) &&
+                    speedDifAvg < (speedBuffer.getMax() - speedBuffer.getMin()));
+        } else {
+            return true;
         }
-        return true;
+    }
+
+    public RouteStats getCurrentRouteStats() {
+        //make a copy and return it;
+        RouteStats routeStats = new RouteStats(currentRouteStats);
+        routeStats.merge(currentSegmentStats);
+        return routeStats;
+    }
+
+    public RouteStats getCurrentSegmentStats() {
+        return currentSegmentStats;
+    }
+
+    public double getAvgSpeed() {
+        return speedBuffer.getAverage();
     }
 }

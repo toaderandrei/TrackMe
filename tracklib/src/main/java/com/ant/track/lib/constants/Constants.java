@@ -12,7 +12,7 @@ public class Constants {
      * The number of speed reading to smooth to get a somewhat accurate signal.
      */
     @VisibleForTesting
-    public static final int SPEED_DEFAULT_FACTOR = 25;
+    public static final int SPEED_DEFAULT_FACTOR = 40;
     public static final String GPS = "GPS";
 
     /**

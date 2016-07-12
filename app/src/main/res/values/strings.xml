@@ -2,4 +2,6 @@
 
     <string name="recording_gps_accuracy_key">recording_gpsy_accuracy_key</string>
     <string name="recording_location_threshold_key">recording_location_threshold_key</string>
+    <string name="recording_distance_interval_key">recording_distance_key</string>
+    <string name="max_recording_distance_key">max_recording_distance_key</string>
 </resources>

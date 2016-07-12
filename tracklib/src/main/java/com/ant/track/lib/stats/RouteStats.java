@@ -35,11 +35,50 @@ public class RouteStats implements Parcelable {
     private List<RoutePoint> routePointList;
     private List<RouteCheckPoint> routeCheckPoints;
 
+    private LocationProximitiesManager latitudeProximityManager = new LocationProximitiesManager();
+
+    private LocationProximitiesManager longitudeProximityManager = new LocationProximitiesManager();
+
+    private LocationProximitiesManager altitudeProximityManager = new LocationProximitiesManager();
+
+
     public RouteStats(long currentTime) {
         this.startTime = currentTime;
         this.stopTime = currentTime;
     }
 
+    public RouteStats(RouteStats other) {
+        this.name = other.name;
+        this.description = other.description;
+
+        this.startTime = other.startTime;
+        this.stopTime = other.stopTime;
+
+        this.start_pointId = other.start_pointId;
+        this.stop_pointId = other.stop_pointId;
+
+        this.minSpeed = other.minSpeed;
+        this.maxSpeed = other.maxSpeed;
+        this.avgSpeed = other.avgSpeed;
+
+        this.maxAltitude = other.maxAltitude;
+        this.minAltitude = other.minAltitude;
+
+        this.totalDistance = other.totalDistance;
+        this.totalDuration = other.totalDuration;
+
+        this.maxElevation = other.maxElevation;
+        this.minElevation = other.minElevation;
+
+        this.routeCheckPoints = other.routeCheckPoints;
+        this.routePointList = other.routePointList;
+
+        this.minLatitude = other.minLatitude;
+        this.minLongitude = other.minLongitude;
+
+        this.maxLatitude = other.maxLatitude;
+        this.maxLongitude = other.maxLongitude;
+    }
 
     public RouteStats(long startTime, long stopTime) {
         this.startTime = startTime;
@@ -53,12 +92,11 @@ public class RouteStats implements Parcelable {
         stop_pointId = in.readLong();
         startTime = in.readLong();
         stopTime = in.readLong();
-        maxLongitude = in.readInt();
-        minLongitude = in.readInt();
-        maxLatitude = in.readInt();
-        minLatitude = in.readInt();
-        minAltitude = in.readInt();
-        maxAltitude = in.readInt();
+
+        latitudeProximityManager = in.readParcelable(LocationProximitiesManager.class.getClassLoader());
+        longitudeProximityManager = in.readParcelable(LocationProximitiesManager.class.getClassLoader());
+        altitudeProximityManager = in.readParcelable(LocationProximitiesManager.class.getClassLoader());
+
         totalDuration = in.readInt();
         maxSpeed = in.readDouble();
         minSpeed = in.readDouble();
@@ -78,12 +116,11 @@ public class RouteStats implements Parcelable {
         dest.writeLong(stop_pointId);
         dest.writeLong(startTime);
         dest.writeLong(stopTime);
-        dest.writeInt(maxLongitude);
-        dest.writeInt(minLongitude);
-        dest.writeInt(maxLatitude);
-        dest.writeInt(minLatitude);
-        dest.writeInt(minAltitude);
-        dest.writeInt(maxAltitude);
+
+        dest.writeParcelable(latitudeProximityManager, flags);
+        dest.writeParcelable(longitudeProximityManager, flags);
+        dest.writeParcelable(altitudeProximityManager, flags);
+
         dest.writeInt(totalDuration);
         dest.writeDouble(maxSpeed);
         dest.writeDouble(minSpeed);
@@ -159,54 +196,6 @@ public class RouteStats implements Parcelable {
 
     public void setStopTime(long stopTime) {
         this.stopTime = stopTime;
-    }
-
-    public int getMaxLongitude() {
-        return maxLongitude;
-    }
-
-    public void setMaxLongitude(int maxLongitude) {
-        this.maxLongitude = maxLongitude;
-    }
-
-    public int getMinLongitude() {
-        return minLongitude;
-    }
-
-    public void setMinLongitude(int minLongitude) {
-        this.minLongitude = minLongitude;
-    }
-
-    public int getMaxLatitude() {
-        return maxLatitude;
-    }
-
-    public void setMaxLatitude(int maxLatitude) {
-        this.maxLatitude = maxLatitude;
-    }
-
-    public int getMinLatitude() {
-        return minLatitude;
-    }
-
-    public void setMinLatitude(int minLatitude) {
-        this.minLatitude = minLatitude;
-    }
-
-    public int getMinAltitude() {
-        return minAltitude;
-    }
-
-    public void setMinAltitude(int minAltitude) {
-        this.minAltitude = minAltitude;
-    }
-
-    public int getMaxAltitude() {
-        return maxAltitude;
-    }
-
-    public void setMaxAltitude(int maxAltitude) {
-        this.maxAltitude = maxAltitude;
     }
 
     public int getTotalDuration() {
@@ -291,6 +280,42 @@ public class RouteStats implements Parcelable {
 
     }
 
+    public void updateLatitudeStats(double latitude) {
+        latitudeProximityManager.add(latitude);
+    }
+
+    public void updateLongitudeStats(double longitude) {
+        longitudeProximityManager.add(longitude);
+    }
+
+    public void updateAltitudeStats(double altitude) {
+        altitudeProximityManager.add(altitude);
+    }
+
+    public double getLongitudeMax() {
+        return longitudeProximityManager.getMax();
+    }
+
+    public double getLongitudeMin() {
+        return longitudeProximityManager.getMin();
+    }
+
+    public double getLatitudeMin() {
+        return latitudeProximityManager.getMin();
+    }
+
+    public double getLatitudeMax() {
+        return latitudeProximityManager.getMax();
+    }
+
+    public double getAltitudeMin() {
+        return altitudeProximityManager.getMin();
+    }
+
+    public double getAltitudeMax() {
+        return altitudeProximityManager.getMax();
+    }
+
     /**
      * merges the current stats with stats received
      *
@@ -298,6 +323,10 @@ public class RouteStats implements Parcelable {
      */
     public void merge(RouteStats currentSegmentStats) {
         //todo merge
+    }
+
+    public double getTotalDistance() {
+        return totalDistance;
     }
 
     public void addNewMovingTimeToStats(double movingTime) {

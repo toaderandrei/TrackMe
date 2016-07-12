@@ -5,7 +5,7 @@ package com.ant.track.lib.stats;
  */
 public interface DataBuffer {
 
-    void setNext(double value);
+    void setNext(double value, boolean force);
 
     /**
      * gets the average of values.
@@ -27,5 +27,5 @@ public interface DataBuffer {
 
     void reset();
 
-    boolean hasSufficientReadings();
+    boolean isFull();
 }

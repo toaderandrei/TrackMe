@@ -31,8 +31,13 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
     }
 
     @Override
-    public void insertLocation(Route route, Location mLastLocation, Location lastValidRouteTrack) {
+    public void insertRoutePoint(Route route, Location location ) {
 
+    }
+
+    @Override
+    public Location getLastValidLocation(long routeId) {
+        return null;
     }
 
     @Override
