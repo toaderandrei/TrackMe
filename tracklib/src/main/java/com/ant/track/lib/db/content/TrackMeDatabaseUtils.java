@@ -82,11 +82,11 @@ public interface TrackMeDatabaseUtils {
     /**
      * inserts a route into the db.
      *
-     * @param route    the route to be inserted.
+     * @param routeId  the routeId for which we insert this
      * @param location the location to be inserted
      * @return returns the uri of the inserted location
      */
-    Uri insertRoutePoint(Route route, Location location);
+    Uri insertRoutePoint(long routeId, Location location);
 
     /**
      * get last valid route point.

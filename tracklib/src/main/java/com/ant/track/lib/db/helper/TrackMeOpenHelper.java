@@ -34,7 +34,7 @@ public class TrackMeOpenHelper extends SQLiteOpenHelper {
     public static final String UNIQUE_KEY_STATEMENT = " UNIQUE (";
     // end of default queries
 
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 3;
 
     public TrackMeOpenHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);

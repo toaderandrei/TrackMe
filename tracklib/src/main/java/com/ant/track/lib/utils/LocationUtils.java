@@ -32,4 +32,20 @@ public class LocationUtils {
         return location != null && Math.abs(location.getLatitude()) <= 90
                 && Math.abs(location.getLongitude()) <= 180;
     }
+
+    public static double getLatitudeFromLatitude1E6(int latitude1E6) {
+        return latitude1E6 / 1E6;
+    }
+
+    public static int getLatitude1E6FromDouble(double latitude) {
+        return (int) (latitude * 1E6);
+    }
+
+    public static double getLongitudeFromLongitude1E6(int longitude1E6) {
+        return longitude1E6 / 1E6;
+    }
+
+    public static int getLongitude1E6FromDouble(double longitude) {
+        return (int) (longitude * 1E6);
+    }
 }

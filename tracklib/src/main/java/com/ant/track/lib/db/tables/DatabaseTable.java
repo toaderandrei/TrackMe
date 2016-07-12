@@ -37,9 +37,9 @@ public enum DatabaseTable {
             new GenericColumnImpl(TrackMeContract.RoutePointEntry.LOCATION_ALT, SqliteDataType.Float),
             new GenericColumnImpl(TrackMeContract.RoutePointEntry.LOCATION_ACCURACY, SqliteDataType.Float),
             new GenericColumnImpl(TrackMeContract.RoutePointEntry.ROUTE_ACTIVITY_MODE, SqliteDataType.String),
-            new GenericColumnImpl(TrackMeContract.RoutePointEntry.LOCATION_LAT, SqliteDataType.Float),
-            new GenericColumnImpl(TrackMeContract.RoutePointEntry.LOCATION_LONG, SqliteDataType.Float),
-            new GenericColumnImpl(TrackMeContract.RoutePointEntry.LOCATION_BEARING, SqliteDataType.Float)
+            new GenericColumnImpl(TrackMeContract.RoutePointEntry.LOCATION_LAT, SqliteDataType.Integer),
+            new GenericColumnImpl(TrackMeContract.RoutePointEntry.LOCATION_LONG, SqliteDataType.Integer),
+            new GenericColumnImpl(TrackMeContract.RoutePointEntry.LOCATION_BEARING, SqliteDataType.Integer)
     ),
 
     ROUTE_CHECK_POINT(new GenericColumnImpl(true, TrackMeContract.RouteCheckPointEntry._ID, SqliteDataType.String),
@@ -51,8 +51,8 @@ public enum DatabaseTable {
             new GenericColumnImpl(TrackMeContract.RouteCheckPointEntry.LOCATION_ALT, SqliteDataType.Float),
             new GenericColumnImpl(TrackMeContract.RouteCheckPointEntry.LOCATION_ACCURACY, SqliteDataType.Float),
             new GenericColumnImpl(TrackMeContract.RouteCheckPointEntry.ROUTE_ACTIVITY_MODE, SqliteDataType.String),
-            new GenericColumnImpl(TrackMeContract.RouteCheckPointEntry.LOCATION_LAT, SqliteDataType.Float),
-            new GenericColumnImpl(TrackMeContract.RouteCheckPointEntry.LOCATION_LONG, SqliteDataType.Float),
+            new GenericColumnImpl(TrackMeContract.RouteCheckPointEntry.LOCATION_LAT, SqliteDataType.Integer),
+            new GenericColumnImpl(TrackMeContract.RouteCheckPointEntry.LOCATION_LONG, SqliteDataType.Integer),
             new GenericColumnImpl(TrackMeContract.RouteCheckPointEntry.LOCATION_BEARING, SqliteDataType.Float),
             new GenericColumnImpl(TrackMeContract.RouteCheckPointEntry.MARKER_COLOR, SqliteDataType.String));
 

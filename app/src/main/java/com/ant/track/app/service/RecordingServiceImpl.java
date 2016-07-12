@@ -305,12 +305,12 @@ public class RecordingServiceImpl extends Service {
 
         //this can happen - in case of a tunnel longer than max distance
         if (distance > maxRecordingDistance) {
-            //we need to find a way that can show on the map and on the track
-            //that we basically had a long location or something in between.
-            //tunnel mode can happen?
+            //todo we need to find a way that can show on the map and on the track
+            //todo that we basically had a long location or something in between.
+            //todo tunnel mode can happen?
             Location pauseLocation = new Location("GPS");
             pauseLocation.setLatitude(PAUSE_LATITUDE);
-            //todo think about a better time, maybe a mix between lastvalid and current location.?
+            //todo think about a better time, maybe a mix between last valid and current location.?
             pauseLocation.setTime(location.getTime());
             insertLocation(route, pauseLocation, lastValidTrackLocation);
             insertLocation(route, location, lastValidTrackLocation);
@@ -342,7 +342,7 @@ public class RecordingServiceImpl extends Service {
 
         //insert it to the stats.
         try {
-            Uri uri = trackMeDatabaseUtils.insertRoutePoint(route, location);
+            Uri uri = trackMeDatabaseUtils.insertRoutePoint(route.getRouteId(), location);
             long id = Long.parseLong(uri.getLastPathSegment());
             routeStatsManager.addLocationToStats(location, minRecordingDistance);
             updateRecordingRoute(route, id, LocationUtils.isValidLocation(location));
@@ -355,7 +355,7 @@ public class RecordingServiceImpl extends Service {
     private void updateRecordingRoute(Route route, long lastInsertedId, boolean isValidLocation) {
         if (lastInsertedId > 0) {
             //success of insertion
-            if (route.getStartPointId() < 0) {
+            if (route.getStartPointId() <= 0) {
                 route.setStartPointId(lastInsertedId);
             }
 
