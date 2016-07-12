@@ -6,7 +6,7 @@ There is a slight difference in the way the service interacts with the UI and al
 The app will have unit tests to cover most of the parts, minimum 60%.
 Unit tests can be run via gradle commands, jacoco is also enabled. 
 - For unit tests with coverage one must run the following:
-   gradle createDebugCoverageReport
+- *gradle createDebugCoverageReport*
 
 * The use case for the app is that when the app is started the user can start/pause/stop the recording.
 * The user will be able to see during navigation a starting flag and an ending flag.
