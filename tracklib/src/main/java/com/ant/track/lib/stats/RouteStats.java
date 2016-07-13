@@ -19,19 +19,12 @@ public class RouteStats implements Parcelable {
     private long stop_pointId;
     private long startTime;
     private long stopTime;
-    private int maxLongitude;
-    private int minLongitude;
-    private int maxLatitude;
-    private int minLatitude;
-    private int minAltitude;
-    private int maxAltitude;
     private int totalDuration;
     private double maxSpeed;
     private double minSpeed;
     private double avgSpeed;
-    private float minElevation;
-    private float maxElevation;
     private double totalDistance;
+    private double totalElevationGain;
     private List<RoutePoint> routePointList;
     private List<RouteCheckPoint> routeCheckPoints;
 
@@ -39,7 +32,7 @@ public class RouteStats implements Parcelable {
 
     private LocationProximitiesManager longitudeProximityManager = new LocationProximitiesManager();
 
-    private LocationProximitiesManager altitudeProximityManager = new LocationProximitiesManager();
+    private LocationProximitiesManager elevationProximityManager = new LocationProximitiesManager();
 
 
     public RouteStats(long currentTime) {
@@ -61,28 +54,15 @@ public class RouteStats implements Parcelable {
         this.maxSpeed = other.maxSpeed;
         this.avgSpeed = other.avgSpeed;
 
-        this.maxAltitude = other.maxAltitude;
-        this.minAltitude = other.minAltitude;
-
         this.totalDistance = other.totalDistance;
         this.totalDuration = other.totalDuration;
-
-        this.maxElevation = other.maxElevation;
-        this.minElevation = other.minElevation;
 
         this.routeCheckPoints = other.routeCheckPoints;
         this.routePointList = other.routePointList;
 
-        this.minLatitude = other.minLatitude;
-        this.minLongitude = other.minLongitude;
-
-        this.maxLatitude = other.maxLatitude;
-        this.maxLongitude = other.maxLongitude;
-    }
-
-    public RouteStats(long startTime, long stopTime) {
-        this.startTime = startTime;
-        this.stopTime = stopTime;
+        this.latitudeProximityManager = other.latitudeProximityManager;
+        this.longitudeProximityManager = other.longitudeProximityManager;
+        this.elevationProximityManager = other.elevationProximityManager;
     }
 
     protected RouteStats(Parcel in) {
@@ -95,14 +75,12 @@ public class RouteStats implements Parcelable {
 
         latitudeProximityManager = in.readParcelable(LocationProximitiesManager.class.getClassLoader());
         longitudeProximityManager = in.readParcelable(LocationProximitiesManager.class.getClassLoader());
-        altitudeProximityManager = in.readParcelable(LocationProximitiesManager.class.getClassLoader());
+        elevationProximityManager = in.readParcelable(LocationProximitiesManager.class.getClassLoader());
 
         totalDuration = in.readInt();
         maxSpeed = in.readDouble();
         minSpeed = in.readDouble();
         avgSpeed = in.readDouble();
-        minElevation = in.readFloat();
-        maxElevation = in.readFloat();
         totalDistance = in.readDouble();
         routePointList = in.createTypedArrayList(RoutePoint.CREATOR);
         routeCheckPoints = in.createTypedArrayList(RouteCheckPoint.CREATOR);
@@ -119,14 +97,13 @@ public class RouteStats implements Parcelable {
 
         dest.writeParcelable(latitudeProximityManager, flags);
         dest.writeParcelable(longitudeProximityManager, flags);
-        dest.writeParcelable(altitudeProximityManager, flags);
+        dest.writeParcelable(elevationProximityManager, flags);
 
         dest.writeInt(totalDuration);
         dest.writeDouble(maxSpeed);
         dest.writeDouble(minSpeed);
         dest.writeDouble(avgSpeed);
-        dest.writeFloat(minElevation);
-        dest.writeFloat(maxElevation);
+
         dest.writeDouble(totalDistance);
         dest.writeTypedList(routePointList);
         dest.writeTypedList(routeCheckPoints);
@@ -226,22 +203,6 @@ public class RouteStats implements Parcelable {
         this.avgSpeed = avgSpeed;
     }
 
-    public float getMinElevation() {
-        return minElevation;
-    }
-
-    public void setMinElevation(float minElevation) {
-        this.minElevation = minElevation;
-    }
-
-    public float getMaxElevation() {
-        return maxElevation;
-    }
-
-    public void setMaxElevation(float maxElevation) {
-        this.maxElevation = maxElevation;
-    }
-
     public List<RouteCheckPoint> getRouteCheckPoints() {
         return routeCheckPoints;
     }
@@ -288,8 +249,8 @@ public class RouteStats implements Parcelable {
         longitudeProximityManager.add(longitude);
     }
 
-    public void updateAltitudeStats(double altitude) {
-        altitudeProximityManager.add(altitude);
+    public void updateElevation(double altitude) {
+        elevationProximityManager.add(altitude);
     }
 
     public double getLongitudeMax() {
@@ -308,12 +269,20 @@ public class RouteStats implements Parcelable {
         return latitudeProximityManager.getMax();
     }
 
-    public double getAltitudeMin() {
-        return altitudeProximityManager.getMin();
+    public double getElevationMin() {
+        return elevationProximityManager.getMin();
     }
 
-    public double getAltitudeMax() {
-        return altitudeProximityManager.getMax();
+    public double getElevationMax() {
+        return elevationProximityManager.getMax();
+    }
+
+    public void addElevationGain(double elevation) {
+        this.totalElevationGain += elevation;
+    }
+
+    public double getTotalElevationGain() {
+        return totalElevationGain;
     }
 
     /**

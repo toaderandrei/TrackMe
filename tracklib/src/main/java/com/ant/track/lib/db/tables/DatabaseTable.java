@@ -23,15 +23,17 @@ public enum DatabaseTable {
             new GenericColumnImpl(TrackMeContract.RouteEntry.TOTAL_DISTANCE, SqliteDataType.Float),
             new GenericColumnImpl(TrackMeContract.RouteEntry.MIN_LONGITUDE, SqliteDataType.Integer),
             new GenericColumnImpl(TrackMeContract.RouteEntry.MAX_LONGITUDE, SqliteDataType.Integer),
+            new GenericColumnImpl(TrackMeContract.RouteEntry.MIN_LATITUDE, SqliteDataType.Integer),
+            new GenericColumnImpl(TrackMeContract.RouteEntry.MAX_LATITUDE, SqliteDataType.Integer),
             new GenericColumnImpl(TrackMeContract.RouteEntry.NUM_ROUTE_POINTS, SqliteDataType.Integer),
             new GenericColumnImpl(TrackMeContract.RouteEntry.MAX_ELEVATION, SqliteDataType.Float),
-            new GenericColumnImpl(TrackMeContract.RouteEntry.MIN_ELEVATION, SqliteDataType.Float)
+            new GenericColumnImpl(TrackMeContract.RouteEntry.MIN_ELEVATION, SqliteDataType.Float),
+            new GenericColumnImpl(TrackMeContract.RouteEntry.ELEVATION_GAIN, SqliteDataType.Float)
     ),
 
     ROUTE_POINT(new GenericColumnImpl(true, TrackMeContract.RoutePointEntry._ID, SqliteDataType.String),
             new GenericColumnImpl(false, false, false, true, TrackMeContract.RoutePointEntry.ROUTE_ID, SqliteDataType.Integer),
             new GenericColumnImpl(TrackMeContract.RoutePointEntry.DESCRIPTION, SqliteDataType.String),
-            new GenericColumnImpl(TrackMeContract.RoutePointEntry.NAME, SqliteDataType.String),
             new GenericColumnImpl(TrackMeContract.RoutePointEntry.TIME, SqliteDataType.Integer),
             new GenericColumnImpl(TrackMeContract.RoutePointEntry.SPEED, SqliteDataType.Float),
             new GenericColumnImpl(TrackMeContract.RoutePointEntry.LOCATION_ALT, SqliteDataType.Float),
@@ -51,6 +53,8 @@ public enum DatabaseTable {
             new GenericColumnImpl(TrackMeContract.RouteCheckPointEntry.LOCATION_ALT, SqliteDataType.Float),
             new GenericColumnImpl(TrackMeContract.RouteCheckPointEntry.LOCATION_ACCURACY, SqliteDataType.Float),
             new GenericColumnImpl(TrackMeContract.RouteCheckPointEntry.ROUTE_ACTIVITY_MODE, SqliteDataType.String),
+            new GenericColumnImpl(TrackMeContract.RouteCheckPointEntry.TOTAL_TIME, SqliteDataType.Integer),
+            new GenericColumnImpl(TrackMeContract.RouteCheckPointEntry.DURATION, SqliteDataType.Float),
             new GenericColumnImpl(TrackMeContract.RouteCheckPointEntry.LOCATION_LAT, SqliteDataType.Integer),
             new GenericColumnImpl(TrackMeContract.RouteCheckPointEntry.LOCATION_LONG, SqliteDataType.Integer),
             new GenericColumnImpl(TrackMeContract.RouteCheckPointEntry.LOCATION_BEARING, SqliteDataType.Float),

@@ -48,4 +48,14 @@ public class LocationUtils {
     public static int getLongitude1E6FromDouble(double longitude) {
         return (int) (longitude * 1E6);
     }
+
+
+    public static double getElevationFromElevation1E6(int elevation1E6) {
+        return elevation1E6 / 1E6;
+    }
+
+    public static int getElevation1E6FromDouble(double elevation) {
+        return (int) (elevation * 1E6);
+    }
 }
+

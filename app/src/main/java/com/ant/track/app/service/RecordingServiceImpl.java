@@ -365,7 +365,6 @@ public class RecordingServiceImpl extends Service {
         if (isValidLocation) {
             route.setNumberOfPoints(route.getNumberOfPoints() + 1);
         }
-        //routeStatsManager.setCurrentTime();
     }
 
     private void sendLocationUpdate(Location location) {

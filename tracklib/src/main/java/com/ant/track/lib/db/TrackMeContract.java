@@ -22,7 +22,7 @@ public class TrackMeContract {
 
     public static final String PATH_ROUTE_POINT = "route_point";
 
-    public static final String PATH_ROUTE_CHECK_POINT = "route_map_point";
+    public static final String PATH_ROUTE_CHECK_POINT = "route_check_point";
 
 
     public static final class RouteEntry implements BaseColumns {
@@ -52,7 +52,13 @@ public class TrackMeContract {
 
         public static final String MAX_LONGITUDE = "max_long";
 
+        public static final String MIN_LATITUDE = "min_lat";
+
+        public static final String MAX_LATITUDE = "max_lat";
+
         public static final String NUM_ROUTE_POINTS = "num_route_points";
+
+        public static final String MIN_SPEED = "min_speed";
 
         public static final String AVG_SPEED = "avg_speed";
 
@@ -62,6 +68,8 @@ public class TrackMeContract {
         public static final String MAX_ELEVATION = "max_elevation";
 
         public static final String MIN_ELEVATION = "min_elevation";
+
+        public static final String ELEVATION_GAIN = "elevation_gain";
 
         public static Uri buildRouteUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
@@ -80,9 +88,7 @@ public class TrackMeContract {
 
         public static final String LOCATION_LAT = "location_lat";
 
-        public static final String NAME = "name";
-
-        public static final String ROUTE_ID = "repo_id";
+        public static final String ROUTE_ID = "route_id";
 
         public static final String DESCRIPTION = "description";
 
@@ -114,7 +120,7 @@ public class TrackMeContract {
 
         public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + File.separator + CONTENT_AUTHORITY + File.separator + PATH_ROUTE_POINT;
 
-        public static final String TABLE_NAME = "route_point";
+        public static final String TABLE_NAME = "route_check_point";
 
         public static final String LOCATION_LAT = "location_lat";
 

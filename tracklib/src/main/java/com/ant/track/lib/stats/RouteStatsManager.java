@@ -32,6 +32,7 @@ public class RouteStatsManager {
     private Location lastValidLocation;
 
     private DataBuffer speedBuffer = new DataBufferImpl(Constants.SPEED_DEFAULT_FACTOR);
+    private DataBuffer elevationBuffer = new DataBufferImpl(Constants.SPEED_DEFAULT_FACTOR);
 
     public RouteStatsManager(long time) {
         init(time);
@@ -72,7 +73,7 @@ public class RouteStatsManager {
 
         updateLatitudeStats(location);
         updateLongitudeStats(location);
-        updateAltitudeStats(location);
+        updateElevationStats(location);
 
         double distanceToLastMovingLocation = lastValidLocation.distanceTo(location);
         double movingTime = location.getTime() - lastValidLocation.getTime();
@@ -108,8 +109,18 @@ public class RouteStatsManager {
     }
 
 
-    private void updateAltitudeStats(Location location) {
-        currentSegmentStats.updateAltitudeStats(location.getAltitude());
+    private void updateElevationStats(Location location) {
+        double elevation = location.hasAltitude() ? location.getAltitude() : 0.0;
+
+        double oldAvgElevation = elevationBuffer.getAverage();
+        elevationBuffer.setNext(elevation, false);
+        double newAvgElevation = elevationBuffer.getAverage();
+        double diff = newAvgElevation - oldAvgElevation;
+
+        currentSegmentStats.updateElevation(elevation);
+        if (diff > 0) {
+            currentSegmentStats.addElevationGain(diff);
+        }
     }
 
     private void updateLatitudeStats(Location currentLoc) {
@@ -182,6 +193,10 @@ public class RouteStatsManager {
         } else {
             return true;
         }
+    }
+
+    public void updateTime(long time) {
+        this.currentSegmentStats.setStopTime(time);
     }
 
     public RouteStats getCurrentRouteStats() {

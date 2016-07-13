@@ -8,6 +8,7 @@ import com.ant.track.lib.application.TrackLibApplication;
 import com.ant.track.lib.db.TrackMeContract;
 import com.ant.track.lib.model.Route;
 import com.ant.track.lib.model.RoutePoint;
+import com.ant.track.lib.stats.RouteStats;
 import com.ant.track.lib.utils.LocationUtils;
 
 /**
@@ -34,37 +35,8 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
 
     @Override
     public Uri insertRoutePoint(long routeId, Location location) {
-        return TrackLibApplication.getInstance().getContentResolver().insert(TrackMeContract.RoutePointEntry.CONTENT_URI,
+        return getApp().getContentResolver().insert(TrackMeContract.RoutePointEntry.CONTENT_URI,
                 createContentValues(routeId, location));
-    }
-
-    private ContentValues createContentValues(long routeId, Location location) {
-        ContentValues contentValues = new ContentValues();
-
-        contentValues.put(TrackMeContract.RoutePointEntry.ROUTE_ID, routeId);
-        contentValues.put(TrackMeContract.RoutePointEntry.LOCATION_LAT, LocationUtils.getLatitude1E6FromDouble(location.getLatitude()));
-        contentValues.put(TrackMeContract.RoutePointEntry.LOCATION_LONG, LocationUtils.getLongitude1E6FromDouble(location.getLongitude()));
-
-        long time;
-        if (location.getTime() == 0) {
-            time = System.currentTimeMillis();
-        } else {
-            time = location.getTime();
-        }
-        contentValues.put(TrackMeContract.RoutePointEntry.TIME, time);
-
-        if (location.hasSpeed()) {
-            contentValues.put(TrackMeContract.RoutePointEntry.SPEED, location.getSpeed());
-        }
-
-        if (location.hasAccuracy()) {
-            contentValues.put(TrackMeContract.RoutePointEntry.LOCATION_ACCURACY, location.getAccuracy());
-        }
-
-        if (location.hasAltitude()) {
-            contentValues.put(TrackMeContract.RoutePointEntry.LOCATION_ALT, location.getAltitude());
-        }
-        return contentValues;
     }
 
     @Override
@@ -79,7 +51,7 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
 
     @Override
     public Uri insertRouteTrack(Route route) {
-        return null;
+        return getApp().getContentResolver().insert(TrackMeContract.RouteEntry.CONTENT_URI, createContentValues(route));
     }
 
     @Override
@@ -115,6 +87,75 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
     @Override
     public void updateRoutePoint(RoutePoint routePoint) {
 
+    }
+
+
+    private ContentValues createContentValues(long routeId, Location location) {
+        ContentValues contentValues = new ContentValues();
+
+        contentValues.put(TrackMeContract.RoutePointEntry.ROUTE_ID, routeId);
+        contentValues.put(TrackMeContract.RoutePointEntry.LOCATION_LAT, LocationUtils.getLatitude1E6FromDouble(location.getLatitude()));
+        contentValues.put(TrackMeContract.RoutePointEntry.LOCATION_LONG, LocationUtils.getLongitude1E6FromDouble(location.getLongitude()));
+
+        long time;
+        if (location.getTime() == 0) {
+            time = System.currentTimeMillis();
+        } else {
+            time = location.getTime();
+        }
+        contentValues.put(TrackMeContract.RoutePointEntry.TIME, time);
+
+        if (location.hasSpeed()) {
+            contentValues.put(TrackMeContract.RoutePointEntry.SPEED, location.getSpeed());
+        }
+
+        if (location.hasAccuracy()) {
+            contentValues.put(TrackMeContract.RoutePointEntry.LOCATION_ACCURACY, location.getAccuracy());
+        }
+
+        if (location.hasAltitude()) {
+            contentValues.put(TrackMeContract.RoutePointEntry.LOCATION_ALT, location.getAltitude());
+        }
+
+        if (location.hasBearing()) {
+            contentValues.put(TrackMeContract.RoutePointEntry.LOCATION_BEARING, location.getBearing());
+        }
+
+        return contentValues;
+    }
+
+    private ContentValues createContentValues(Route route) {
+        ContentValues contentValues = new ContentValues();
+        RouteStats routeStats = route.getRouteStats();
+        if (route.getRouteId() >= 0) {
+            contentValues.put(TrackMeContract.RouteEntry._ID, route.getRouteId());
+        }
+
+        contentValues.put(TrackMeContract.RouteEntry.TOTAL_TIME, routeStats.getTotalDuration());
+        //speed part
+        contentValues.put(TrackMeContract.RouteEntry.AVG_SPEED, routeStats.getAvgSpeed());
+        contentValues.put(TrackMeContract.RouteEntry.MIN_SPEED, routeStats.getMinSpeed());
+        contentValues.put(TrackMeContract.RouteEntry.MAX_SPEED, routeStats.getMaxSpeed());
+        contentValues.put(TrackMeContract.RouteEntry.MIN_LONGITUDE, LocationUtils.getLongitude1E6FromDouble(routeStats.getLongitudeMin()));
+        contentValues.put(TrackMeContract.RouteEntry.MAX_LONGITUDE, LocationUtils.getLongitude1E6FromDouble(routeStats.getLongitudeMax()));
+
+        contentValues.put(TrackMeContract.RouteEntry.MIN_LATITUDE, LocationUtils.getLatitude1E6FromDouble(routeStats.getLatitudeMin()));
+        contentValues.put(TrackMeContract.RouteEntry.MAX_LATITUDE, LocationUtils.getLatitude1E6FromDouble(routeStats.getLatitudeMax()));
+        contentValues.put(TrackMeContract.RouteEntry.MIN_ELEVATION, LocationUtils.getElevation1E6FromDouble(routeStats.getElevationMin()));
+        contentValues.put(TrackMeContract.RouteEntry.MAX_ELEVATION, LocationUtils.getElevation1E6FromDouble(routeStats.getElevationMax()));
+        contentValues.put(TrackMeContract.RouteEntry.ELEVATION_GAIN, routeStats.getTotalElevationGain());
+
+        contentValues.put(TrackMeContract.RouteEntry.NAME, routeStats.getName());
+        contentValues.put(TrackMeContract.RouteEntry.DESCRIPTION, routeStats.getDescription());
+        contentValues.put(TrackMeContract.RouteEntry.NUM_ROUTE_POINTS, route.getNumberOfPoints());
+        contentValues.put(TrackMeContract.RouteEntry.TOTAL_DISTANCE, routeStats.getTotalDistance());
+        contentValues.put(TrackMeContract.RouteEntry.TOTAL_TIME, routeStats.getTotalDuration());
+        contentValues.put(TrackMeContract.RouteEntry.START_POINT_ID, route.getStartPointId());
+        contentValues.put(TrackMeContract.RouteEntry.STOP_POINT_ID, route.getStopPointId());
+        contentValues.put(TrackMeContract.RouteEntry.START_TIME, routeStats.getStartTime());
+        contentValues.put(TrackMeContract.RouteEntry.STOP_TIME, routeStats.getStopTime());
+
+        return contentValues;
     }
 
     private TrackLibApplication getApp() {
