@@ -25,8 +25,6 @@ public class RouteStats implements Parcelable {
     private double avgSpeed;
     private double totalDistance;
     private double totalElevationGain;
-    private List<RoutePoint> routePointList;
-    private List<RouteCheckPoint> routeCheckPoints;
 
     private LocationProximitiesManager latitudeProximityManager = new LocationProximitiesManager();
 
@@ -58,9 +56,6 @@ public class RouteStats implements Parcelable {
         this.totalDistance = other.totalDistance;
         this.totalDuration = other.totalDuration;
 
-        this.routeCheckPoints = other.routeCheckPoints;
-        this.routePointList = other.routePointList;
-
         this.latitudeProximityManager = other.latitudeProximityManager;
         this.longitudeProximityManager = other.longitudeProximityManager;
         this.elevationProximityManager = other.elevationProximityManager;
@@ -74,17 +69,17 @@ public class RouteStats implements Parcelable {
         startTime = in.readLong();
         stopTime = in.readLong();
 
+        maxSpeed = in.readDouble();
+        minSpeed = in.readDouble();
+        avgSpeed = in.readDouble();
+
         latitudeProximityManager = in.readParcelable(LocationProximitiesManager.class.getClassLoader());
         longitudeProximityManager = in.readParcelable(LocationProximitiesManager.class.getClassLoader());
         elevationProximityManager = in.readParcelable(LocationProximitiesManager.class.getClassLoader());
 
         totalDuration = in.readInt();
-        maxSpeed = in.readDouble();
-        minSpeed = in.readDouble();
-        avgSpeed = in.readDouble();
+
         totalDistance = in.readDouble();
-        routePointList = in.createTypedArrayList(RoutePoint.CREATOR);
-        routeCheckPoints = in.createTypedArrayList(RouteCheckPoint.CREATOR);
     }
 
     @Override
@@ -96,18 +91,17 @@ public class RouteStats implements Parcelable {
         dest.writeLong(startTime);
         dest.writeLong(stopTime);
 
+        dest.writeDouble(maxSpeed);
+        dest.writeDouble(minSpeed);
+        dest.writeDouble(avgSpeed);
+
         dest.writeParcelable(latitudeProximityManager, flags);
         dest.writeParcelable(longitudeProximityManager, flags);
         dest.writeParcelable(elevationProximityManager, flags);
 
         dest.writeInt(totalDuration);
-        dest.writeDouble(maxSpeed);
-        dest.writeDouble(minSpeed);
-        dest.writeDouble(avgSpeed);
 
         dest.writeDouble(totalDistance);
-        dest.writeTypedList(routePointList);
-        dest.writeTypedList(routeCheckPoints);
     }
 
     @Override
@@ -202,39 +196,6 @@ public class RouteStats implements Parcelable {
 
     public void setAvgSpeed(double avgSpeed) {
         this.avgSpeed = avgSpeed;
-    }
-
-    public List<RouteCheckPoint> getRouteCheckPoints() {
-        return routeCheckPoints;
-    }
-
-    public void setRouteCheckPoints(List<RouteCheckPoint> routeCheckPoints) {
-        this.routeCheckPoints = routeCheckPoints;
-    }
-
-    public List<RoutePoint> getRoutePointList() {
-        return routePointList;
-    }
-
-    public void setRoutePointList(List<RoutePoint> routePointList) {
-        this.routePointList = routePointList;
-    }
-
-    public void addRoutePoint(final RoutePoint routePoint) {
-        if (routePointList == null || routePointList.isEmpty()) {
-            routePointList = new ArrayList<>();
-        }
-
-        if (routeCheckPoints == null || routeCheckPoints.isEmpty()) {
-            routePointList = new ArrayList<>();
-        }
-
-        if (routePoint != null) {
-            routePointList.add(routePoint);
-        }
-        if (routePoint instanceof RouteCheckPoint) {
-            routeCheckPoints.add((RouteCheckPoint) routePoint);
-        }
     }
 
     public void addNewDistanceToStats(final double distance) {

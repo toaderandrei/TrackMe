@@ -2,6 +2,7 @@ package com.ant.track.lib.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.VisibleForTesting;
 
 /**
  * A specific point on the map. This point is used together with a marker on
@@ -10,6 +11,10 @@ import android.os.Parcelable;
 public class RouteCheckPoint extends RoutePoint implements Parcelable {
 
     private String markerColor;
+
+    @VisibleForTesting
+    public RouteCheckPoint() {
+    }
 
     public RouteCheckPoint(String name,
                            String description,
@@ -31,6 +36,7 @@ public class RouteCheckPoint extends RoutePoint implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        super.writeToParcel(dest, flags);
         dest.writeString(markerColor);
     }
 

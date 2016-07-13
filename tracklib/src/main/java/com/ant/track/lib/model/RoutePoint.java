@@ -2,6 +2,7 @@ package com.ant.track.lib.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.VisibleForTesting;
 
 /**
  * Point that is part of a route. This type of point is not shown on the
@@ -18,6 +19,12 @@ public class RoutePoint implements Parcelable {
     private float location_bearing;
     private long time;
     private String activityMode;
+
+
+    @VisibleForTesting
+    public RoutePoint(){
+
+    }
 
     public RoutePoint(String name,
                       String description,

@@ -11,8 +11,8 @@ public class DataBufferImpl implements DataBuffer {
     private boolean isFull = false;
     private Double[] buffer;
     private int currentIndex = 0;
-    private double max = 0;
-    private double min = 0;
+    private double max = Double.MIN_VALUE;
+    private double min = Double.MAX_VALUE;
     private static final String TAG = DataBufferImpl.class.getCanonicalName();
 
     public DataBufferImpl(int maxSize) {
