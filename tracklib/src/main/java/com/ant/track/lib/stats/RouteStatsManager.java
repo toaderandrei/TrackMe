@@ -197,7 +197,7 @@ public class RouteStatsManager {
     }
 
     public void updateTime(long time) {
-        this.currentSegmentStats.updateTotalTime(time - currentSegmentStats.getStartTime());
+        this.currentSegmentStats.setTotalTime(time - currentSegmentStats.getStartTime());
         this.currentSegmentStats.setStopTime(time);
     }
 

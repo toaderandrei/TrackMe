@@ -203,7 +203,6 @@ public class RouteStatsManagerTest extends AndroidJUnitRunner {
         assertEquals(0.0, manager.getAvgSpeed());
     }
 
-
     @Test
     public void testAddSpeedZeroAfterGood() {
 
@@ -211,6 +210,26 @@ public class RouteStatsManagerTest extends AndroidJUnitRunner {
         manager.addLocationToStats(loc1, 100);
         //we have one location still nothing
         assertEquals(0.0, manager.getAvgSpeed());
+    }
+
+    @Test
+    public void testTotalTime() {
+        Location loc1 = DEFAULT_LINZ_LOC;
+        long time = System.currentTimeMillis();
+        long time2 = time + 100;
+        long time3 = time + 200;
+        manager = new RouteStatsManager(time);
+        loc1.setTime(time2);
+
+        manager.addLocationToStats(loc1, 100);
+        Location loc2 = DEFAULT_LINZ_LOC_2;
+        loc2.setTime(time3);
+        manager.addLocationToStats(loc2, 200);
+        assertEquals(200, manager.getCurrentSegmentStats().getTotalTime());
+        //check for stop time and start time
+        assertEquals(time, manager.getCurrentSegmentStats().getStartTime());
+        //stop time
+        assertEquals(time + 200, manager.getCurrentSegmentStats().getStopTime());
     }
 
 

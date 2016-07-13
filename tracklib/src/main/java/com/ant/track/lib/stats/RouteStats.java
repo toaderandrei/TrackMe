@@ -307,8 +307,8 @@ public class RouteStats implements Parcelable {
         return totalTime;
     }
 
-    public void updateTotalTime(long time) {
-        this.totalTime += time;
+    public void setTotalTime(long time) {
+        this.totalTime = time;
     }
 }
 
