@@ -47,6 +47,7 @@ public class RouteStatsManager {
 
     public void addLocationToStats(Location location, double minRecordingDistance) {
 
+        updateTime(location.getTime());
         if (!LocationUtils.isValidLocation(location)) {
             //pause location - update the current stats and add them
             //to the big route
@@ -196,6 +197,7 @@ public class RouteStatsManager {
     }
 
     public void updateTime(long time) {
+        this.currentSegmentStats.updateTotalTime(time - currentSegmentStats.getStartTime());
         this.currentSegmentStats.setStopTime(time);
     }
 

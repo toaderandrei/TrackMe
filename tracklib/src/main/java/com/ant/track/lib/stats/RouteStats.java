@@ -33,6 +33,7 @@ public class RouteStats implements Parcelable {
     private LocationProximitiesManager longitudeProximityManager = new LocationProximitiesManager();
 
     private LocationProximitiesManager elevationProximityManager = new LocationProximitiesManager();
+    private long totalTime;
 
 
     public RouteStats(long currentTime) {
@@ -300,6 +301,14 @@ public class RouteStats implements Parcelable {
 
     public void addNewMovingTimeToStats(double movingTime) {
         this.totalDuration += movingTime;
+    }
+
+    public long getTotalTime() {
+        return totalTime;
+    }
+
+    public void updateTotalTime(long time) {
+        this.totalTime += time;
     }
 }
 
