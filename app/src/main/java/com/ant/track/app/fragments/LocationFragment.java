@@ -18,7 +18,7 @@ import com.ant.track.app.activities.TrackStateListener;
 import com.ant.track.app.helper.GoogleAskToEnableLocationService;
 import com.ant.track.app.helper.GoogleLocationServicesUtils;
 import com.ant.track.app.location.GPSLiveTrackerLocationManager;
-import com.ant.track.lib.models.User;
+import com.ant.track.lib.models.U;
 import com.ant.track.lib.publisher.ContentPublisherImpl;
 import com.ant.track.lib.publisher.NotifyListener;
 import com.google.android.gms.common.api.Status;
@@ -357,7 +357,7 @@ public class LocationFragment extends Fragment implements NotifyListener {
      * @param user for which to show the notification.
      */
     @Override
-    public void notifyUI(final User user) {
+    public void notifyUI(final U user) {
         Location locFromServer = user.getUserAddress().getLocation();
         if (locFromServer != null) {
             this.currentLocation = locFromServer;

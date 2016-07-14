@@ -6,31 +6,31 @@ import android.os.Parcelable;
 /**
  * Created by Toader on 6/4/2015.
  */
-public class User implements Parcelable {
+public class U implements Parcelable {
 
 
-    public static final Creator<User> CREATOR
-            = new Creator<User>() {
-        public User createFromParcel(Parcel in) {
-            return new User(in);
+    public static final Creator<U> CREATOR
+            = new Creator<U>() {
+        public U createFromParcel(Parcel in) {
+            return new U(in);
         }
 
-        public User[] newArray(int size) {
-            return new User[size];
+        public U[] newArray(int size) {
+            return new U[size];
         }
     };
     String user_id;
     String auth_token;
     UserAddress userAddress;
 
-    public User(String _user_id, String _auth_token, UserAddress userAddress) {
+    public U(String _user_id, String _auth_token, UserAddress userAddress) {
         this.user_id = _user_id;
         this.auth_token = _auth_token;
         this.userAddress = userAddress;
     }
 
 
-    private User(Parcel in) {
+    private U(Parcel in) {
         user_id = in.readString();
         auth_token = in.readString();
         userAddress = UserAddress.CREATOR.createFromParcel(in);

@@ -1,6 +1,6 @@
 package com.ant.track.lib.publisher;
 
-import com.ant.track.lib.models.User;
+import com.ant.track.lib.model.Route;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -10,12 +10,12 @@ import java.util.List;
  * Content publisher that is used as an observer in case
  * an update occurs.
  */
-public class ContentPublisherImpl implements ContentPublisher<User, NotifyListener> {
+public class ContentPublisherImpl implements ContentPublisher<NotifyListener> {
 
-    private static ContentPublisher instance = null;
-    private List<NotifyListener> listeners = new ArrayList<>();
+    private static ContentPublisherImpl instance = null;
+    private final List<NotifyListener> listeners = new ArrayList<>();
 
-    public static ContentPublisher getInstance() {
+    public static ContentPublisherImpl getInstance() {
         if (instance == null) {
             instance = new ContentPublisherImpl();
         }
@@ -47,13 +47,13 @@ public class ContentPublisherImpl implements ContentPublisher<User, NotifyListen
     }
 
     @Override
-    public void notifyListeners(User user) {
+    public void notifyListeners(Route route) {
         if (listeners.isEmpty()) {
             return;
         }
         for (NotifyListener listener : listeners) {
             if (listener != null) {
-                listener.notifyUI(user);
+                listener.notifyUI(route);
             }
         }
     }

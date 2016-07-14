@@ -1,11 +1,11 @@
 package com.ant.track.lib.publisher;
 
-import com.ant.track.lib.models.User;
+import com.ant.track.lib.model.Route;
 
 /**
- * Created by Toader on 6/4/2015.
+ * listener used to notify listeners
  */
 public interface NotifyListener {
 
-    void notifyUI(User user);
+    void notifyUI(Route route);
 }

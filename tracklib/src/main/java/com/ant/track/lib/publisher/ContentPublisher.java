@@ -1,9 +1,11 @@
 package com.ant.track.lib.publisher;
 
+import com.ant.track.lib.model.Route;
+
 /**
  * interface for the content publisher.
  */
-public interface ContentPublisher<U, T> {
+public interface ContentPublisher<T> {
     /**
      * register listener
      *
@@ -21,7 +23,7 @@ public interface ContentPublisher<U, T> {
     /**
      * notify listeners.
      *
-     * @param
+     * @param route to be notified about
      */
-    void notifyListeners(U data);
+    void notifyListeners(Route route);
 }
