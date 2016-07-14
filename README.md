@@ -8,7 +8,7 @@ Unit tests can be run via gradle commands, jacoco is also enabled.
 - For unit tests with coverage one must run the following:
   - *gradle createDebugCoverageReport*
 
-I must state that the latter for now only builds all the android tests not the unit tests from the
+I must state that the latter task it only builds all the android tests, and not the unit tests from the
 tests package.
 
 * The use case for the app is that when the app is started the user can start/pause/stop the recording.
