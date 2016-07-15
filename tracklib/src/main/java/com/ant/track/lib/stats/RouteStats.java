@@ -3,26 +3,19 @@ package com.ant.track.lib.stats;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import com.ant.track.lib.model.RouteCheckPoint;
-import com.ant.track.lib.model.RoutePoint;
-
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Route stats during tracking.
  */
 public class RouteStats implements Parcelable {
-    private String name;
-    private String description;
+
     private long start_pointId;
     private long stop_pointId;
     private long startTime;
     private long stopTime;
     private int totalDuration;
-    private double maxSpeed;
-    private double minSpeed;
-    private double avgSpeed;
+    private double maxSpeed = Double.MIN_VALUE;
+    private double minSpeed = Double.MAX_VALUE;
+    private double avgSpeed = Double.MAX_VALUE;
     private double totalDistance;
     private double totalElevationGain;
 
@@ -40,8 +33,6 @@ public class RouteStats implements Parcelable {
     }
 
     public RouteStats(RouteStats other) {
-        this.name = other.name;
-        this.description = other.description;
 
         this.startTime = other.startTime;
         this.stopTime = other.stopTime;
@@ -62,8 +53,6 @@ public class RouteStats implements Parcelable {
     }
 
     protected RouteStats(Parcel in) {
-        name = in.readString();
-        description = in.readString();
         start_pointId = in.readLong();
         stop_pointId = in.readLong();
         startTime = in.readLong();
@@ -84,8 +73,6 @@ public class RouteStats implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(name);
-        dest.writeString(description);
         dest.writeLong(start_pointId);
         dest.writeLong(stop_pointId);
         dest.writeLong(startTime);
@@ -120,23 +107,6 @@ public class RouteStats implements Parcelable {
             return new RouteStats[size];
         }
     };
-
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
 
     public long getStart_pointId() {
         return start_pointId;

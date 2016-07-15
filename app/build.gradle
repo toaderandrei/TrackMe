@@ -1,4 +1,6 @@
 apply plugin: 'com.android.application'
+apply from: '../jaccoco.gradle'
+
 
 android {
     compileSdkVersion 24
@@ -10,8 +12,15 @@ android {
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
     }
+
     buildTypes {
+        debug {
+            testCoverageEnabled true
+        }
+
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -34,4 +43,18 @@ dependencies {
     compile 'com.google.android.gms:play-services-location:9.2.0'
     compile 'com.squareup.okhttp:okhttp-urlconnection:2.2.0'
     compile project(path: ':tracklib')
+
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.mockito:mockito-core:1.10.19'
+    androidTestCompile 'com.google.dexmaker:dexmaker:1.2'
+    androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.2'
+    androidTestCompile 'org.mockito:mockito-core:1.10.19'
+
+    androidTestCompile 'junit:junit:4.12'
+    androidTestCompile 'com.android.support:support-annotations:24.0.0'
+    androidTestCompile 'com.android.support.test:runner:0.4.1'
+    androidTestCompile 'com.android.support.test:rules:0.4.1'
+    androidTestCompile('com.android.support.test:runner:0.3') {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    }
 }

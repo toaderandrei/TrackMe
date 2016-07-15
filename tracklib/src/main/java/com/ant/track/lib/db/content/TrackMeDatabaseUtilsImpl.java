@@ -145,8 +145,7 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
         contentValues.put(TrackMeContract.RouteEntry.MAX_ELEVATION, LocationUtils.getElevation1E6FromDouble(routeStats.getElevationMax()));
         contentValues.put(TrackMeContract.RouteEntry.ELEVATION_GAIN, routeStats.getTotalElevationGain());
 
-        contentValues.put(TrackMeContract.RouteEntry.NAME, routeStats.getName());
-        contentValues.put(TrackMeContract.RouteEntry.DESCRIPTION, routeStats.getDescription());
+        contentValues.put(TrackMeContract.RouteEntry.NAME, route.getRouteName());
         contentValues.put(TrackMeContract.RouteEntry.NUM_ROUTE_POINTS, route.getNumberOfPoints());
         contentValues.put(TrackMeContract.RouteEntry.TOTAL_DISTANCE, routeStats.getTotalDistance());
         contentValues.put(TrackMeContract.RouteEntry.TOTAL_TIME, routeStats.getTotalDuration());

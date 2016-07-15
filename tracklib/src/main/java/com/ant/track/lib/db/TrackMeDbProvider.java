@@ -9,6 +9,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.ant.track.lib.application.TrackLibApplication;
 import com.ant.track.lib.db.helper.TrackMeOpenHelper;
@@ -18,15 +19,6 @@ import com.ant.track.lib.db.helper.TrackMeOpenHelper;
  */
 public class TrackMeDbProvider extends ContentProvider {
 
-    private static final int ROUTE = 100;
-    private static final int ROUTE_ID = 101;
-
-    private static final int ROUTE_POINT = 200;
-    private static final int ROUTE_POINT_ID = 201;
-
-    private static final int ROUTE_CHECK_POINT = 300;
-    private static final int ROUTE_CHECK_POINT_ID = 301;
-
     private static final String PATH_SEPARATOR_PROVIDER = "/#";
 
     private TrackMeOpenHelper trackMeOpenHelper;
@@ -34,19 +26,18 @@ public class TrackMeDbProvider extends ContentProvider {
     private static UriMatcher buildUriMatcher() {
 
         final UriMatcher matcher = new UriMatcher(UriMatcher.NO_MATCH);
+        //com.ant.track
         final String authority = TrackMeContract.CONTENT_AUTHORITY;
 
-        matcher.addURI(authority, TrackMeContract.PATH_ROUTE, UriType.ROUTE.ordinal());
-        matcher.addURI(authority, TrackMeContract.PATH_ROUTE + PATH_SEPARATOR_PROVIDER, UriType.ROUTE_ID.ordinal());
+        //com.ant.track/route/0
+        matcher.addURI(authority, TrackMeContract.RouteEntry.TABLE_NAME, UriType.ROUTE.ordinal());
+        matcher.addURI(authority, TrackMeContract.RouteEntry.TABLE_NAME + PATH_SEPARATOR_PROVIDER, UriType.ROUTE_ID.ordinal());
 
-        matcher.addURI(authority, TrackMeContract.PATH_ROUTE_POINT, UriType.ROUTE_POINT.ordinal());
-        matcher.addURI(authority, TrackMeContract.PATH_ROUTE_POINT + PATH_SEPARATOR_PROVIDER, UriType.ROUTE_POINT_ID.ordinal());
+        matcher.addURI(authority, TrackMeContract.RoutePointEntry.TABLE_NAME, UriType.ROUTE_POINT.ordinal());
+        matcher.addURI(authority, TrackMeContract.RoutePointEntry.TABLE_NAME + PATH_SEPARATOR_PROVIDER, UriType.ROUTE_POINT_ID.ordinal());
 
-        matcher.addURI(authority, TrackMeContract.PATH_ROUTE, UriType.ROUTE.ordinal());
-        matcher.addURI(authority, TrackMeContract.PATH_ROUTE + PATH_SEPARATOR_PROVIDER, UriType.ROUTE.ordinal());
-
-        matcher.addURI(authority, TrackMeContract.PATH_ROUTE_CHECK_POINT, UriType.ROUTE_CHECK_POINT.ordinal());
-        matcher.addURI(authority, TrackMeContract.PATH_ROUTE_CHECK_POINT + PATH_SEPARATOR_PROVIDER, UriType.ROUTE_CHECK_POINT_ID.ordinal());
+        matcher.addURI(authority, TrackMeContract.RouteCheckPointEntry.TABLE_NAME, UriType.ROUTE_CHECK_POINT.ordinal());
+        matcher.addURI(authority, TrackMeContract.RouteCheckPointEntry.TABLE_NAME + PATH_SEPARATOR_PROVIDER, UriType.ROUTE_CHECK_POINT_ID.ordinal());
 
         return matcher;
     }
@@ -59,20 +50,31 @@ public class TrackMeDbProvider extends ContentProvider {
         return true;
     }
 
+
+    private UriType getUriType(Uri url) {
+        int id = sUriMatcher.match(url);
+        return UriType.values()[id];
+    }
+
     @Nullable
     @Override
     public String getType(Uri uri) {
         // Use the Uri Matcher to determine what kind of URI this is.
-        final int match = sUriMatcher.match(uri);
+        final UriType match = getUriType(uri);
 
         switch (match) {
-            // Student: Uncomment and fill out these two cases
             case ROUTE:
                 return TrackMeContract.RouteEntry.CONTENT_TYPE;
+            case ROUTE_ID:
+                return TrackMeContract.RouteEntry.CONTENT_ITEMTYPE;
             case ROUTE_POINT:
                 return TrackMeContract.RoutePointEntry.CONTENT_TYPE;
+            case ROUTE_POINT_ID:
+                return TrackMeContract.RoutePointEntry.CONTENT_ITEMTYPE;
             case ROUTE_CHECK_POINT:
                 return TrackMeContract.RouteCheckPointEntry.CONTENT_TYPE;
+            case ROUTE_CHECK_POINT_ID:
+                return TrackMeContract.RouteCheckPointEntry.CONTENT_ITEMTYPE;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -83,7 +85,7 @@ public class TrackMeDbProvider extends ContentProvider {
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
         Cursor queryCursor;
 
-        int match = sUriMatcher.match(uri);
+        UriType match = getUriType(uri);
         switch (match) {
             case ROUTE: {
                 queryCursor = trackMeOpenHelper.getReadableDatabase().query(TrackMeContract.RouteEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
@@ -108,37 +110,48 @@ public class TrackMeDbProvider extends ContentProvider {
     @Override
     public Uri insert(Uri uri, ContentValues values) {
         final SQLiteDatabase db = trackMeOpenHelper.getWritableDatabase();
-        final int match = sUriMatcher.match(uri);
+        final UriType match = getUriType(uri);
         Uri returnUri;
+        try {
+            db.beginTransaction();
+            switch (match) {
+                case ROUTE: {
+                    boolean hasStartTime = values.containsKey(TrackMeContract.RouteEntry.START_TIME);
+                    boolean hasStartId = values.containsKey(TrackMeContract.RouteEntry.START_POINT_ID);
+                    if (!hasStartTime || !hasStartId) {
+                        throw new IllegalArgumentException(TrackMeProviderExceptions.MISSING_IMPORTANT_INFORMATION);
+                    }
 
-        switch (match) {
-            case ROUTE: {
-                long _id = db.insert(TrackMeContract.RouteEntry.TABLE_NAME, null, values);
-                if (_id > 0) {
-                    returnUri = TrackMeContract.RouteEntry.buildRouteUri(_id);
-                } else
-                    throw new android.database.SQLException("Failed to insert row into " + uri);
-                break;
-            }
-            case ROUTE_POINT: {
-                long _id = db.insert(TrackMeContract.RoutePointEntry.TABLE_NAME, null, values);
-                if (_id > 0) {
-                    returnUri = TrackMeContract.RoutePointEntry.buildRoutePointUri(_id);
-                } else
-                    throw new android.database.SQLException("Failed to insert row into " + uri);
-                break;
-            }
-            case ROUTE_CHECK_POINT: {
-                long _id = db.insert(TrackMeContract.RouteCheckPointEntry.TABLE_NAME, null, values);
-                if (_id > 0) {
-                    returnUri = TrackMeContract.RouteCheckPointEntry.buildRouteCheckPointUri(_id);
-                } else {
-                    throw new android.database.SQLException("failed to insert row into: " + uri);
+                    long _id = db.insert(TrackMeContract.RouteEntry.TABLE_NAME, TrackMeContract.RouteEntry._ID, values);
+                    if (_id >= 0) {
+                        returnUri = TrackMeContract.RouteEntry.buildRouteUri(_id);
+                    } else
+                        throw new android.database.SQLException("Failed to insert row into " + uri);
+                    break;
                 }
-                break;
+                case ROUTE_POINT: {
+                    long _id = db.insert(TrackMeContract.RoutePointEntry.TABLE_NAME, null, values);
+                    if (_id > 0) {
+                        returnUri = TrackMeContract.RoutePointEntry.buildRoutePointUri(_id);
+                    } else
+                        throw new android.database.SQLException("Failed to insert row into " + uri);
+                    break;
+                }
+                case ROUTE_CHECK_POINT: {
+                    long _id = db.insert(TrackMeContract.RouteCheckPointEntry.TABLE_NAME, null, values);
+                    if (_id > 0) {
+                        returnUri = TrackMeContract.RouteCheckPointEntry.buildRouteCheckPointUri(_id);
+                    } else {
+                        throw new android.database.SQLException("failed to insert row into: " + uri);
+                    }
+                    break;
+                }
+                default:
+                    throw new UnsupportedOperationException("Unknown uri: " + uri);
             }
-            default:
-                throw new UnsupportedOperationException("Unknown uri: " + uri);
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
         }
         notifyChange(returnUri);
         return returnUri;
@@ -147,7 +160,7 @@ public class TrackMeDbProvider extends ContentProvider {
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
         final SQLiteDatabase db = trackMeOpenHelper.getWritableDatabase();
-        final int match = sUriMatcher.match(uri);
+        final UriType match = getUriType(uri);
         int rowsDeleted;
         switch (match) {
             case ROUTE: {
@@ -174,7 +187,7 @@ public class TrackMeDbProvider extends ContentProvider {
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
         final SQLiteDatabase db = trackMeOpenHelper.getWritableDatabase();
-        final int match = sUriMatcher.match(uri);
+        final UriType match = getUriType(uri);
         int rowsDeleted;
         switch (match) {
             case ROUTE: {
@@ -201,7 +214,7 @@ public class TrackMeDbProvider extends ContentProvider {
     @Override
     public int bulkInsert(Uri uri, ContentValues[] values) {
         final SQLiteDatabase db = trackMeOpenHelper.getWritableDatabase();
-        final int match = sUriMatcher.match(uri);
+        final UriType match = getUriType(uri);
         switch (match) {
             case ROUTE: {
                 db.beginTransaction();

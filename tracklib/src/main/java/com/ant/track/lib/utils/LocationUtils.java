@@ -57,5 +57,23 @@ public class LocationUtils {
     public static int getElevation1E6FromDouble(double elevation) {
         return (int) (elevation * 1E6);
     }
+
+    public static boolean isValidLatitude(double latitude) {
+        if (Math.abs(latitude) <= 90) {
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean isValidLongitude(double longitude) {
+        if (Math.abs(longitude) <= 180) {
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean isValidElevation(double elevationMax) {
+        return elevationMax < Double.POSITIVE_INFINITY && elevationMax > Double.NEGATIVE_INFINITY;
+    }
 }
 

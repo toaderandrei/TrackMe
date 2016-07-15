@@ -1,4 +1,4 @@
-package com.ant.track.lib;
+package com.ant.track.lib.publisher;
 
 import android.support.test.runner.AndroidJUnit4;
 

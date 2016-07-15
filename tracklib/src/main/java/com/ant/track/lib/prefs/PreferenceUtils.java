@@ -1,4 +1,4 @@
-package com.ant.track.lib;
+package com.ant.track.lib.prefs;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -15,7 +15,6 @@ public class PreferenceUtils {
     public static final int RECORDING_GPS_ACCURACY_DEFAUL = 5;
     public static final int RECORDING_DISTANCE_DEFAULT = 15;
     public static final int DEFAULT_MAX_RECORDING_DISTANCE = 200;
-
 
     private PreferenceUtils() {
 
@@ -40,7 +39,6 @@ public class PreferenceUtils {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.SETTINGS_KEY, Context.MODE_PRIVATE);
         return sharedPreferences.getInt(getKey(context, keyId), value);
     }
-
 
     public static void setBoolean(Context context, int keyId, boolean value) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.SETTINGS_KEY, Context.MODE_PRIVATE);

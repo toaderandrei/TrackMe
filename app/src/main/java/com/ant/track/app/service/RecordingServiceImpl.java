@@ -31,7 +31,7 @@ import com.ant.track.app.location.LocationListenerRestrictionsImpl;
 import com.ant.track.app.location.RecordingInterval;
 import com.ant.track.app.provider.IDataProvider;
 import com.ant.track.app.service.utils.UnitConversions;
-import com.ant.track.lib.PreferenceUtils;
+import com.ant.track.lib.prefs.PreferenceUtils;
 import com.ant.track.lib.constants.Constants;
 import com.ant.track.lib.db.content.TrackMeDatabaseUtils;
 import com.ant.track.lib.db.content.TrackMeDatabaseUtilsImpl;

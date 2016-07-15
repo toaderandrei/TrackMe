@@ -16,21 +16,23 @@ public class TrackMeContract {
 
     public static final String CONTENT_AUTHORITY = "com.ant.track";
 
+    public static final String VND_AUTHORITY = "vnd.ant.track";
+
     public static final Uri BASE_CONTENT_URI = Uri.parse(CONTENT_STRING + CONTENT_AUTHORITY);
-
-    public static final String PATH_ROUTE = "route";
-
-    public static final String PATH_ROUTE_POINT = "route_point";
-
-    public static final String PATH_ROUTE_CHECK_POINT = "route_check_point";
 
 
     public static final class RouteEntry implements BaseColumns {
-        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_ROUTE).build();
-
-        public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + File.pathSeparator + CONTENT_AUTHORITY + File.pathSeparator + PATH_ROUTE;
 
         public static final String TABLE_NAME = "route";
+
+        //content://com.ant.track/routes
+        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(TABLE_NAME).build();
+
+        //vnd.android.cursor.dir/vnd.ant.track
+        public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + File.separator + VND_AUTHORITY;
+
+        //vnd.android.cursor.item/vnd.ant.track
+        public static final String CONTENT_ITEMTYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + File.separator + VND_AUTHORITY;
 
         public static final String NAME = "name";
 
@@ -78,13 +80,14 @@ public class TrackMeContract {
 
     public static final class RoutePointEntry implements BaseColumns {
 
-        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_ROUTE_POINT).build();
-
-        public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + File.separator + CONTENT_AUTHORITY + File.separator + PATH_ROUTE_POINT;
-
-        public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + File.separator + CONTENT_AUTHORITY + File.separator + PATH_ROUTE_POINT;
-
         public static final String TABLE_NAME = "route_point";
+
+        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(TABLE_NAME).build();
+
+        public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + File.separator + VND_AUTHORITY + File.separator + TABLE_NAME;
+
+        public static final String CONTENT_ITEMTYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + File.separator + VND_AUTHORITY + File.separator + TABLE_NAME;
+
 
         public static final String LOCATION_LAT = "location_lat";
 
@@ -114,13 +117,13 @@ public class TrackMeContract {
 
     public static final class RouteCheckPointEntry implements BaseColumns {
 
-        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_ROUTE_POINT).build();
-
-        public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + File.separator + CONTENT_AUTHORITY + File.separator + PATH_ROUTE_POINT;
-
-        public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + File.separator + CONTENT_AUTHORITY + File.separator + PATH_ROUTE_POINT;
-
         public static final String TABLE_NAME = "route_check_point";
+
+        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(TABLE_NAME).build();
+
+        public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + File.separator + VND_AUTHORITY + File.separator + TABLE_NAME;
+
+        public static final String CONTENT_ITEMTYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + File.separator + VND_AUTHORITY + File.separator + TABLE_NAME;
 
         public static final String LOCATION_LAT = "location_lat";
 
