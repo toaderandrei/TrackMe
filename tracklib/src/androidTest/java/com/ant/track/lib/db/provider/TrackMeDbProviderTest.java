@@ -162,8 +162,6 @@ public class TrackMeDbProviderTest extends BaseProviderTest {
         contentValues = TestDbUtils.getRoutePointContentValues(routePoint);
         int updated = cp.update(TrackMeContract.RoutePointEntry.CONTENT_URI, contentValues, selection, selectionArgs);
         assertTrue(updated > 0);
-
-
         Uri insertUriToQuery = TrackMeContract.RoutePointEntry.buildRoutePointUri(insertedUri);
         String[] projection = new String[]{TrackMeContract.RouteEntry._ID, TrackMeContract.RoutePointEntry.SPEED};
         selection = null;
@@ -265,7 +263,6 @@ public class TrackMeDbProviderTest extends BaseProviderTest {
         assertTrue("created ok", insertedUri > 0);
 
         Uri uri = TrackMeContract.RouteEntry.buildRouteUri(insertedUri);
-
         String selection = null;
         String[] selectionArgs = null;
         routeStats.setTotalTime(DEFAULT_TOTAL_TIME);
@@ -315,7 +312,6 @@ public class TrackMeDbProviderTest extends BaseProviderTest {
         ContentProvider cp = getProvider();
         RoutePoint routePoint = TestUtils.createRoutePoint(DEFAULT_LONG_ID, now);
         ContentValues contentValues = TestDbUtils.getRoutePointContentValues(routePoint);
-
         long insertedUri = ContentUris.parseId(cp.insert(TrackMeContract.RoutePointEntry.CONTENT_URI, contentValues));
         assertTrue("created ok", insertedUri > 0);
 
@@ -336,7 +332,6 @@ public class TrackMeDbProviderTest extends BaseProviderTest {
         long now = System.currentTimeMillis();
         ContentProvider cp = getProvider();
         RouteStats routeStats = TestUtils.createRouteStats(now);
-
         ContentValues contentValues = TestDbUtils.getRouteContentValues(24, "route22", routeStats);
         cp.insert(TrackMeContract.RouteEntry.CONTENT_URI, contentValues);
         try {
@@ -353,12 +348,8 @@ public class TrackMeDbProviderTest extends BaseProviderTest {
         long now = System.currentTimeMillis();
         ContentProvider cp = getProvider();
         RouteStats routeStats = TestUtils.createRouteStats(now);
-
-
         ContentValues contentValues = TestDbUtils.getRouteContentValues(24, DEFAULT_ROUTE_22, routeStats);
-
         RouteStats routeStats2 = TestUtils.createRouteStats(System.currentTimeMillis());
-
         ContentValues contentValues2 = TestDbUtils.getRouteContentValues(25, DEFAULT_ROUTE_33, routeStats2);
         ContentValues[] values = new ContentValues[2];
         values[0] = contentValues;
