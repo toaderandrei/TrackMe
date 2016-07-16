@@ -9,18 +9,19 @@ import org.junit.Test;
 import static junit.framework.Assert.assertEquals;
 
 /**
- * Test class for RoutePoint.
- */
-public class RoutePointTest extends BaseTest {
+ * Test class for Route
+ * */
+public class RouteTest extends BaseTest{
 
 
-    private static final double DEFAULT_SPEED = 10.0;
+    private static final String DEFAULT_ROUTE = "default_route";
+    public static final int NUMBER_OF_POINTS = 20;
 
-    private RoutePoint test;
+    private Route test;
 
     @Override
     protected void init() {
-        test = new RoutePoint();
+        test = new Route();
     }
 
     @Override
@@ -34,16 +35,16 @@ public class RoutePointTest extends BaseTest {
 
         // Obtain a Parcel object and write the parcelable object to it:
         Parcel parcel = Parcel.obtain();
-        test.setSpeed(DEFAULT_SPEED);
-        test.setTime(now);
+        test.setRouteName(DEFAULT_ROUTE);
+        test.setNumberOfPoints(NUMBER_OF_POINTS);
         test.writeToParcel(parcel, 0);
         // After you're done with writing, you need to reset the parcel for reading:
         parcel.setDataPosition(0);
 
         // Reconstruct object from parcel and asserts:
-        RoutePoint createdFromParcel = RoutePoint.CREATOR.createFromParcel(parcel);
+        Route createdFromParcel = Route.CREATOR.createFromParcel(parcel);
         //assertEquals(test, createdFromParcel);
-        assertEquals(now, createdFromParcel.getTime());
-        assertEquals(DEFAULT_SPEED, createdFromParcel.getSpeed());
+        assertEquals(NUMBER_OF_POINTS, createdFromParcel.getNumberOfPoints());
+        assertEquals(DEFAULT_ROUTE, createdFromParcel.getRouteName());
     }
 }

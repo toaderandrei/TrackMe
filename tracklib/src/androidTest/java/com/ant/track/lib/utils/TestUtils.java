@@ -1,5 +1,6 @@
 package com.ant.track.lib.utils;
 
+import com.ant.track.lib.model.RoutePoint;
 import com.ant.track.lib.stats.RouteStats;
 
 /**
@@ -10,6 +11,7 @@ public final class TestUtils {
     private static final double DEFAULT_AVG_SPEED = 10.0d;
     private static final double DEFAULT_MIN_SPEED = 2.0d;
     private static final long DEFAULT_TOTAL_TIME = 20000;
+    private static final String DEFAULT_STRING = "DEFAULT_ROUTE_POINT_TITLE";
 
     public static RouteStats createRouteStats(long now,
                                               long start,
@@ -36,4 +38,18 @@ public final class TestUtils {
         return routeStats;
     }
 
+    public static RoutePoint createRoutePoint(long now) {
+        RoutePoint routePoint = new RoutePoint();
+        routePoint.setTime(now);
+        routePoint.setSpeed(DEFAULT_AVG_SPEED);
+        return routePoint;
+    }
+
+    public static RoutePoint createRoutePoint(long id, long now) {
+        RoutePoint routePoint = new RoutePoint();
+        routePoint.setId(id);
+        routePoint.setTime(now);
+        routePoint.setSpeed(DEFAULT_AVG_SPEED);
+        return routePoint;
+    }
 }

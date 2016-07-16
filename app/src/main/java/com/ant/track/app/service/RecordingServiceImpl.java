@@ -31,11 +31,11 @@ import com.ant.track.app.location.LocationListenerRestrictionsImpl;
 import com.ant.track.app.location.RecordingInterval;
 import com.ant.track.app.provider.IDataProvider;
 import com.ant.track.app.service.utils.UnitConversions;
-import com.ant.track.lib.prefs.PreferenceUtils;
 import com.ant.track.lib.constants.Constants;
 import com.ant.track.lib.db.content.TrackMeDatabaseUtils;
 import com.ant.track.lib.db.content.TrackMeDatabaseUtilsImpl;
 import com.ant.track.lib.model.Route;
+import com.ant.track.lib.prefs.PreferenceUtils;
 import com.ant.track.lib.stats.RouteStatsManager;
 import com.ant.track.lib.utils.LocationUtils;
 import com.google.android.gms.location.LocationListener;
@@ -76,7 +76,6 @@ public class RecordingServiceImpl extends Service {
     private int minRecordingDistance;
     private int maxRecordingDistance;
     private AtomicBoolean isIdle = new AtomicBoolean(false);
-
     //location listener policy
     //Battery life
     private static final long DEFAULT_BATTERY_MIN_INTERVAL = 30 * ONE_SECOND;
@@ -168,7 +167,6 @@ public class RecordingServiceImpl extends Service {
                 }
                 //
             }
-
         }
     };
 

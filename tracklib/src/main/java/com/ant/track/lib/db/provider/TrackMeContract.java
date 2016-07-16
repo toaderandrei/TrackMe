@@ -1,4 +1,4 @@
-package com.ant.track.lib.db;
+package com.ant.track.lib.db.provider;
 
 import android.content.ContentResolver;
 import android.content.ContentUris;
@@ -88,12 +88,9 @@ public class TrackMeContract {
 
         public static final String CONTENT_ITEMTYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + File.separator + VND_AUTHORITY + File.separator + TABLE_NAME;
 
-
         public static final String LOCATION_LAT = "location_lat";
 
         public static final String ROUTE_ID = "route_id";
-
-        public static final String DESCRIPTION = "description";
 
         public static final String LOCATION_ACCURACY = "location_accuracy";
 

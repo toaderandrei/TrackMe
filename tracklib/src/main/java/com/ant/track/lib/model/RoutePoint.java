@@ -10,9 +10,8 @@ import android.support.annotation.VisibleForTesting;
  */
 public class RoutePoint implements Parcelable {
 
-    private String name;
-    private String description;
-    private float speed;
+    private long _id;
+    private double speed;
     private float location_lat;
     private float location_alt;
     private float location_long;
@@ -22,20 +21,19 @@ public class RoutePoint implements Parcelable {
 
 
     @VisibleForTesting
-    public RoutePoint(){
+    public RoutePoint() {
 
     }
 
-    public RoutePoint(String name,
-                      String description,
+    public RoutePoint(long id,
                       float speed,
                       float location_alt,
                       float location_bearing,
                       float location_lat,
                       float location_long,
                       String activityMode) {
-        this.name = name;
-        this.description = description;
+        this._id = id;
+
         this.speed = speed;
         this.location_alt = location_alt;
         this.location_bearing = location_bearing;
@@ -45,9 +43,9 @@ public class RoutePoint implements Parcelable {
     }
 
     protected RoutePoint(Parcel in) {
-        name = in.readString();
-        description = in.readString();
-        speed = in.readFloat();
+        _id = in.readLong();
+
+        speed = in.readDouble();
         location_lat = in.readFloat();
         location_alt = in.readFloat();
         location_long = in.readFloat();
@@ -58,9 +56,9 @@ public class RoutePoint implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(name);
-        dest.writeString(description);
-        dest.writeFloat(speed);
+        dest.writeLong(_id);
+
+        dest.writeDouble(speed);
         dest.writeFloat(location_lat);
         dest.writeFloat(location_alt);
         dest.writeFloat(location_long);
@@ -86,27 +84,11 @@ public class RoutePoint implements Parcelable {
         }
     };
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public float getSpeed() {
+    public double getSpeed() {
         return speed;
     }
 
-    public void setSpeed(float speed) {
+    public void setSpeed(double speed) {
         this.speed = speed;
     }
 
@@ -156,5 +138,13 @@ public class RoutePoint implements Parcelable {
 
     public void setActivityMode(String activityMode) {
         this.activityMode = activityMode;
+    }
+
+    public void setId(long id) {
+        this._id = id;
+    }
+
+    public long getId() {
+        return _id;
     }
 }

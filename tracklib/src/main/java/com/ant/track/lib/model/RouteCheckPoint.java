@@ -11,12 +11,15 @@ import android.support.annotation.VisibleForTesting;
 public class RouteCheckPoint extends RoutePoint implements Parcelable {
 
     private String markerColor;
+    private String name;
+    private String description;
 
     @VisibleForTesting
     public RouteCheckPoint() {
     }
 
-    public RouteCheckPoint(String name,
+    public RouteCheckPoint(long id,
+                           String name,
                            String description,
                            float speed,
                            float location_alt,
@@ -25,7 +28,9 @@ public class RouteCheckPoint extends RoutePoint implements Parcelable {
                            float location_long,
                            String activityMode,
                            String markerColor) {
-        super(name, description, speed, location_alt, location_bearing, location_lat, location_long, activityMode);
+        super(id, speed, location_alt, location_bearing, location_lat, location_long, activityMode);
+        this.name = name;
+        this.description = description;
         this.markerColor = markerColor;
     }
 
@@ -37,6 +42,8 @@ public class RouteCheckPoint extends RoutePoint implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         super.writeToParcel(dest, flags);
+        dest.writeString(name);
+        dest.writeString(description);
         dest.writeString(markerColor);
     }
 
@@ -56,4 +63,29 @@ public class RouteCheckPoint extends RoutePoint implements Parcelable {
             return new RouteCheckPoint[size];
         }
     };
+
+    public String getMarkerColor() {
+        return markerColor;
+    }
+
+    public void setMarkerColor(String markerColor) {
+        this.markerColor = markerColor;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
 }

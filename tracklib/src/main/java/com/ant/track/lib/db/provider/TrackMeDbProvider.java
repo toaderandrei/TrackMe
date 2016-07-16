@@ -1,4 +1,4 @@
-package com.ant.track.lib.db;
+package com.ant.track.lib.db.provider;
 
 import android.annotation.TargetApi;
 import android.content.ContentProvider;
@@ -7,11 +7,14 @@ import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.support.annotation.Nullable;
-import android.util.Log;
+import android.text.TextUtils;
 
 import com.ant.track.lib.application.TrackLibApplication;
+import com.ant.track.lib.db.DatabaseConstants;
+import com.ant.track.lib.db.exceptions.TrackMeProviderExceptions;
 import com.ant.track.lib.db.helper.TrackMeOpenHelper;
 
 /**
@@ -86,24 +89,51 @@ public class TrackMeDbProvider extends ContentProvider {
         Cursor queryCursor;
 
         UriType match = getUriType(uri);
+        SQLiteQueryBuilder queryBuilder = new SQLiteQueryBuilder();
+        String sort;
         switch (match) {
             case ROUTE: {
-                queryCursor = trackMeOpenHelper.getReadableDatabase().query(TrackMeContract.RouteEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
+                queryBuilder.setTables(TrackMeContract.RouteEntry.TABLE_NAME);
+                sort = sortOrder == null ? DatabaseConstants.DEFAULT_ORDER_COLUMN : sortOrder;
                 break;
             }
+            case ROUTE_ID:
+                queryBuilder.setTables(TrackMeContract.RouteEntry.TABLE_NAME);
+                queryBuilder.appendWhere("_id = " + uri.getPathSegments().get(1));
+                sort = sortOrder == null ? DatabaseConstants.DEFAULT_ORDER_COLUMN : sortOrder;
+                break;
             case ROUTE_POINT: {
-                queryCursor = trackMeOpenHelper.getReadableDatabase().query(TrackMeContract.RoutePointEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
+                sort = sortOrder == null ? DatabaseConstants.DEFAULT_ORDER_COLUMN : sortOrder;
+                queryBuilder.setTables(TrackMeContract.RoutePointEntry.TABLE_NAME);
                 break;
             }
+            case ROUTE_POINT_ID:
+                queryBuilder.setTables(TrackMeContract.RoutePointEntry.TABLE_NAME);
+                queryBuilder.appendWhere("_id = " + uri.getPathSegments().get(1));
+                sort = sortOrder == null ? DatabaseConstants.DEFAULT_ORDER_COLUMN : sortOrder;
+                break;
             case ROUTE_CHECK_POINT: {
-                queryCursor = trackMeOpenHelper.getReadableDatabase().query(TrackMeContract.RouteCheckPointEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
+                queryBuilder.setTables(TrackMeContract.RouteCheckPointEntry.TABLE_NAME);
+                sort = sortOrder == null ? DatabaseConstants.DEFAULT_ORDER_COLUMN : sortOrder;
                 break;
             }
+            case ROUTE_CHECK_POINT_ID:
+                queryBuilder.setTables(TrackMeContract.RouteCheckPointEntry.TABLE_NAME);
+                queryBuilder.appendWhere("_id = " + uri.getPathSegments().get(1));
+                sort = sortOrder == null ? DatabaseConstants.DEFAULT_ORDER_COLUMN : sortOrder;
+                break;
+
             default:
                 throw new UnsupportedOperationException("Query for data failed!");
         }
+
+        queryCursor = queryBuilder.query(getDb(), projection, selection, selectionArgs, null, null, sort);
         queryCursor.setNotificationUri(getContentResolver(), uri);
         return queryCursor;
+    }
+
+    private SQLiteDatabase getDb() {
+        return trackMeOpenHelper.getReadableDatabase();
     }
 
     @Nullable
@@ -188,27 +218,52 @@ public class TrackMeDbProvider extends ContentProvider {
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
         final SQLiteDatabase db = trackMeOpenHelper.getWritableDatabase();
         final UriType match = getUriType(uri);
-        int rowsDeleted;
+        int rowsUpdated;
         switch (match) {
             case ROUTE: {
-                rowsDeleted = db.update(TrackMeContract.RouteEntry.TABLE_NAME, values, selection, selectionArgs);
+                rowsUpdated = db.update(TrackMeContract.RouteEntry.TABLE_NAME, values, selection, selectionArgs);
+                break;
+            }
+            case ROUTE_ID: {
+                String query = TrackMeContract.RouteEntry._ID + "=" + uri.getPathSegments().get(1);
+                if (!TextUtils.isEmpty(selection)) {
+                    query += " AND (" + selection + " )";
+                }
+                rowsUpdated = db.update(TrackMeContract.RouteEntry.TABLE_NAME, values, query, selectionArgs);
                 break;
             }
             case ROUTE_POINT: {
-                rowsDeleted = db.update(TrackMeContract.RoutePointEntry.TABLE_NAME, values, selection, selectionArgs);
+                rowsUpdated = db.update(TrackMeContract.RoutePointEntry.TABLE_NAME, values, selection, selectionArgs);
+                break;
+            }
+
+            case ROUTE_POINT_ID: {
+                String query = TrackMeContract.RoutePointEntry._ID + "=" + uri.getPathSegments().get(1);
+                if (!TextUtils.isEmpty(selection)) {
+                    query += " AND (" + selection + " )";
+                }
+                rowsUpdated = db.update(TrackMeContract.RoutePointEntry.TABLE_NAME, values, query, selectionArgs);
                 break;
             }
             case ROUTE_CHECK_POINT: {
-                rowsDeleted = db.update(TrackMeContract.RouteCheckPointEntry.TABLE_NAME, values, selection, selectionArgs);
+                rowsUpdated = db.update(TrackMeContract.RouteCheckPointEntry.TABLE_NAME, values, selection, selectionArgs);
+                break;
+            }
+            case ROUTE_CHECK_POINT_ID: {
+                String query = TrackMeContract.RouteCheckPointEntry._ID + "=" + uri.getPathSegments().get(1);
+                if (!TextUtils.isEmpty(selection)) {
+                    query += " AND (" + selection + " )";
+                }
+                rowsUpdated = db.update(TrackMeContract.RouteCheckPointEntry.TABLE_NAME, values, query, selectionArgs);
                 break;
             }
             default:
                 throw new UnsupportedOperationException("Unknown uri when trying to delete");
         }
-        if (rowsDeleted != 0) {
+        if (rowsUpdated != 0) {
             notifyChange(uri);
         }
-        return rowsDeleted;
+        return rowsUpdated;
     }
 
     @Override

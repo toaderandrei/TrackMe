@@ -5,7 +5,7 @@ import android.location.Location;
 import android.net.Uri;
 
 import com.ant.track.lib.application.TrackLibApplication;
-import com.ant.track.lib.db.TrackMeContract;
+import com.ant.track.lib.db.provider.TrackMeContract;
 import com.ant.track.lib.model.Route;
 import com.ant.track.lib.model.RoutePoint;
 import com.ant.track.lib.stats.RouteStats;

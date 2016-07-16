@@ -1,6 +1,6 @@
 package com.ant.track.lib.db.tables;
 
-import com.ant.track.lib.db.TrackMeContract;
+import com.ant.track.lib.db.provider.TrackMeContract;
 import com.ant.track.lib.db.columns.GenericColumn;
 import com.ant.track.lib.db.columns.GenericColumnImpl;
 import com.ant.track.lib.db.type.SqliteDataType;
@@ -34,7 +34,6 @@ public enum DatabaseTable {
 
     ROUTE_POINT(new GenericColumnImpl(true, TrackMeContract.RoutePointEntry._ID, SqliteDataType.Integer),
             new GenericColumnImpl(false, false, false, true, TrackMeContract.RoutePointEntry.ROUTE_ID, SqliteDataType.Integer),
-            new GenericColumnImpl(TrackMeContract.RoutePointEntry.DESCRIPTION, SqliteDataType.String),
             new GenericColumnImpl(TrackMeContract.RoutePointEntry.TIME, SqliteDataType.Integer),
             new GenericColumnImpl(TrackMeContract.RoutePointEntry.SPEED, SqliteDataType.Float),
             new GenericColumnImpl(TrackMeContract.RoutePointEntry.LOCATION_ALT, SqliteDataType.Float),

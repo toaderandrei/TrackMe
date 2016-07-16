@@ -75,5 +75,9 @@ public class LocationUtils {
     public static boolean isValidElevation(double elevationMax) {
         return elevationMax < Double.POSITIVE_INFINITY && elevationMax > Double.NEGATIVE_INFINITY;
     }
+
+    public static boolean isValidAltitude(float location_alt) {
+        return location_alt < Double.POSITIVE_INFINITY && location_alt > Double.NEGATIVE_INFINITY;
+    }
 }
 

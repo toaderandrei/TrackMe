@@ -8,7 +8,7 @@
         android:supportsRtl="true">
 
         <provider
-            android:name=".db.TrackMeDbProvider"
+            android:name=".db.provider.TrackMeDbProvider"
             android:authorities="@string/content_authority"
             android:exported="false"
             android:syncable="true" />

@@ -1,10 +1,10 @@
-package com.ant.track.lib.db;
+package com.ant.track.lib.db.helper;
 
 import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.ant.track.lib.base.BaseTest;
-import com.ant.track.lib.db.helper.TrackMeOpenHelper;
+import com.ant.track.lib.db.provider.TrackMeContract;
 import com.ant.track.lib.stats.RouteStats;
 import com.ant.track.lib.utils.TestDbUtils;
 import com.ant.track.lib.utils.TestUtils;

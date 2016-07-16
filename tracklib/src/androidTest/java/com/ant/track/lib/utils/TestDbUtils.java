@@ -2,8 +2,9 @@ package com.ant.track.lib.utils;
 
 import android.content.ContentValues;
 
-import com.ant.track.lib.db.TrackMeContract;
+import com.ant.track.lib.db.provider.TrackMeContract;
 import com.ant.track.lib.model.Route;
+import com.ant.track.lib.model.RoutePoint;
 import com.ant.track.lib.stats.RouteStats;
 
 /**
@@ -95,5 +96,28 @@ public class TestDbUtils {
         routeStats.setStopTime(stop);
         routeStats.setStartTime(start);
         return routeStats;
+    }
+
+    public static ContentValues getRoutePointContentValues(RoutePoint routePoint) {
+        ContentValues contentValues = new ContentValues();
+        if (routePoint.getId() != -1) {
+            contentValues.put(TrackMeContract.RoutePointEntry._ID, routePoint.getId());
+        }
+        if (SpeedUtils.isSpeedValid(routePoint.getSpeed())) {
+            contentValues.put(TrackMeContract.RoutePointEntry.SPEED, routePoint.getSpeed());
+        }
+        if (LocationUtils.isValidLatitude(routePoint.getLocation_lat())) {
+            contentValues.put(TrackMeContract.RoutePointEntry.LOCATION_LAT, routePoint.getLocation_lat());
+        }
+
+        if (LocationUtils.isValidLongitude(routePoint.getLocation_long())) {
+            contentValues.put(TrackMeContract.RoutePointEntry.LOCATION_LAT, routePoint.getLocation_lat());
+        }
+
+        if (LocationUtils.isValidAltitude(routePoint.getLocation_alt())) {
+            contentValues.put(TrackMeContract.RoutePointEntry.LOCATION_LAT, routePoint.getLocation_alt());
+        }
+
+        return contentValues;
     }
 }

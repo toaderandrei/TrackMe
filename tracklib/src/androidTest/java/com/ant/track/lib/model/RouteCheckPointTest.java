@@ -13,7 +13,7 @@ import static junit.framework.Assert.assertEquals;
  */
 public class RouteCheckPointTest extends BaseTest {
 
-    private static final float DEFAULT_SPEED = 10.0f;
+    private static final double DEFAULT_SPEED = 10.0;
 
     private RouteCheckPoint test;
 

@@ -1,4 +1,4 @@
-package com.ant.track.lib.db;
+package com.ant.track.lib.db.exceptions;
 
 /**
  * Exception part of the TrackmeProvider.

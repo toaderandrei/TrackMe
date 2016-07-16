@@ -1,13 +1,11 @@
 package com.ant.track.lib.base;
 
-import android.support.test.runner.AndroidJUnit4;
 import android.test.ProviderTestCase2;
 
-import com.ant.track.lib.db.TrackMeDbProvider;
+import com.ant.track.lib.db.provider.TrackMeDbProvider;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.runner.RunWith;
 
 /**
  * base test class for provider.
