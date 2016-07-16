@@ -53,7 +53,7 @@ public class LocationProximitiesManager implements Parcelable {
         parcel.writeDouble(max);
     }
 
-    public boolean add(double data) {
+    public boolean update(double data) {
         boolean updated = false;
         if (data < min) {
             min = data;
@@ -77,4 +77,8 @@ public class LocationProximitiesManager implements Parcelable {
         return max;
     }
 
+    public void setMinMax(double minLat, double maxLat) {
+        this.min = minLat;
+        this.max = maxLat;
+    }
 }

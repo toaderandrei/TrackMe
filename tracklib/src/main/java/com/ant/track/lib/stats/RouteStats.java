@@ -8,16 +8,15 @@ import android.os.Parcelable;
  */
 public class RouteStats implements Parcelable {
 
-    private long start_pointId;
-    private long stop_pointId;
-    private long startTime;
-    private long stopTime;
-    private int totalDuration;
+    private long startTime = -1L;
+    private long stopTime = -1L;
+    private long totalDuration;
     private double maxSpeed = Double.MIN_VALUE;
     private double minSpeed = Double.MAX_VALUE;
     private double avgSpeed = Double.MAX_VALUE;
     private double totalDistance;
     private double totalElevationGain;
+    private long totalMovingTime;
 
     private LocationProximitiesManager latitudeProximityManager = new LocationProximitiesManager();
 
@@ -26,6 +25,9 @@ public class RouteStats implements Parcelable {
     private LocationProximitiesManager elevationProximityManager = new LocationProximitiesManager();
     private long totalTime;
 
+    public RouteStats() {
+
+    }
 
     public RouteStats(long currentTime) {
         this.startTime = currentTime;
@@ -36,9 +38,7 @@ public class RouteStats implements Parcelable {
 
         this.startTime = other.startTime;
         this.stopTime = other.stopTime;
-
-        this.start_pointId = other.start_pointId;
-        this.stop_pointId = other.stop_pointId;
+        this.totalMovingTime = other.getMovingTime();
 
         this.minSpeed = other.minSpeed;
         this.maxSpeed = other.maxSpeed;
@@ -53,11 +53,11 @@ public class RouteStats implements Parcelable {
     }
 
     protected RouteStats(Parcel in) {
-        start_pointId = in.readLong();
-        stop_pointId = in.readLong();
+
         startTime = in.readLong();
         stopTime = in.readLong();
 
+        totalMovingTime = in.readLong();
         maxSpeed = in.readDouble();
         minSpeed = in.readDouble();
         avgSpeed = in.readDouble();
@@ -66,17 +66,17 @@ public class RouteStats implements Parcelable {
         longitudeProximityManager = in.readParcelable(LocationProximitiesManager.class.getClassLoader());
         elevationProximityManager = in.readParcelable(LocationProximitiesManager.class.getClassLoader());
 
-        totalDuration = in.readInt();
+        totalDuration = in.readLong();
 
         totalDistance = in.readDouble();
     }
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeLong(start_pointId);
-        dest.writeLong(stop_pointId);
+
         dest.writeLong(startTime);
         dest.writeLong(stopTime);
+        dest.writeLong(totalMovingTime);
 
         dest.writeDouble(maxSpeed);
         dest.writeDouble(minSpeed);
@@ -86,7 +86,7 @@ public class RouteStats implements Parcelable {
         dest.writeParcelable(longitudeProximityManager, flags);
         dest.writeParcelable(elevationProximityManager, flags);
 
-        dest.writeInt(totalDuration);
+        dest.writeLong(totalDuration);
 
         dest.writeDouble(totalDistance);
     }
@@ -108,22 +108,6 @@ public class RouteStats implements Parcelable {
         }
     };
 
-    public long getStart_pointId() {
-        return start_pointId;
-    }
-
-    public void setStart_pointId(long start_pointId) {
-        this.start_pointId = start_pointId;
-    }
-
-    public long getStop_pointId() {
-        return stop_pointId;
-    }
-
-    public void setStop_pointId(long stop_pointId) {
-        this.stop_pointId = stop_pointId;
-    }
-
     public long getStartTime() {
         return startTime;
     }
@@ -140,7 +124,7 @@ public class RouteStats implements Parcelable {
         this.stopTime = stopTime;
     }
 
-    public int getTotalDuration() {
+    public long getTotalDuration() {
         return totalDuration;
     }
 
@@ -174,15 +158,27 @@ public class RouteStats implements Parcelable {
     }
 
     public void updateLatitudeStats(double latitude) {
-        latitudeProximityManager.add(latitude);
+        latitudeProximityManager.update(latitude);
+    }
+
+    public void updateMinMaxLatitudeStats(double minLat, double maxLat) {
+        latitudeProximityManager.setMinMax(minLat, maxLat);
+    }
+
+    public void updateMinMaxLongStats(double mingLong, double maxLong) {
+        longitudeProximityManager.setMinMax(mingLong, maxLong);
     }
 
     public void updateLongitudeStats(double longitude) {
-        longitudeProximityManager.add(longitude);
+        longitudeProximityManager.update(longitude);
     }
 
     public void updateElevation(double altitude) {
-        elevationProximityManager.add(altitude);
+        elevationProximityManager.update(altitude);
+    }
+
+    public void updateMinMaxElevation(double minElev, double maxElev) {
+        elevationProximityManager.setMinMax(minElev, maxElev);
     }
 
     public double getLongitudeMax() {
@@ -230,6 +226,10 @@ public class RouteStats implements Parcelable {
         return totalDistance;
     }
 
+    public void setTotalDistance(double totalDistance) {
+        this.totalDistance = totalDistance;
+    }
+
     public void addNewMovingTimeToStats(double movingTime) {
         this.totalDuration += movingTime;
     }
@@ -240,6 +240,14 @@ public class RouteStats implements Parcelable {
 
     public void setTotalTime(long time) {
         this.totalTime = time;
+    }
+
+    public void setTotalMovingTime(long movingTime) {
+        this.totalMovingTime = movingTime;
+    }
+
+    public long getMovingTime() {
+        return totalMovingTime;
     }
 }
 

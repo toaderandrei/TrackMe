@@ -34,7 +34,7 @@ public class TrackMeOpenHelper extends SQLiteOpenHelper {
     public static final String UNIQUE_KEY_STATEMENT = " UNIQUE (";
     // end of default queries
 
-    private static final int DATABASE_VERSION = 17;
+    private static final int DATABASE_VERSION = 19;
     public static final String COMMA_STRING = ",";
     public static final String EMPTY_STRING = "";
     public static final String TAB_STRING = "\n";
@@ -95,7 +95,7 @@ public class TrackMeOpenHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * creates a list of all the drop table queries and add them
+     * creates a list of all the drop table queries and update them
      * to a list so we can delete them in a simple way.
      *
      * @return array list containing the drop table queries.

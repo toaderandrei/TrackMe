@@ -24,7 +24,7 @@ public class RouteStatsManager {
     /**
      * Current route stats, from start to any pause.
      * Once the route was paused it will end this route
-     * and add it to the main route stats.
+     * and update it to the main route stats.
      */
     private RouteStats currentSegmentStats;
 
@@ -49,7 +49,7 @@ public class RouteStatsManager {
 
         updateTime(location.getTime());
         if (!LocationUtils.isValidLocation(location)) {
-            //pause location - update the current stats and add them
+            //pause location - update the current stats and update them
             //to the big route
             if (isPausedLocation(location)) {
                 if (lastLocation != null && lastValidLocation != null && lastValidLocation != lastLocation) {

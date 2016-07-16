@@ -48,6 +48,8 @@ public class TrackMeContract {
 
         public static final String TOTAL_TIME = "total_time";
 
+        public static final String TOTAL_MOVING_TIME = "total_moving_time";
+
         public static final String TOTAL_DISTANCE = "total_distance";
 
         public static final String MIN_LONGITUDE = "min_long";

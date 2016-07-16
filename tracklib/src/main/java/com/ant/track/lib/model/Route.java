@@ -11,8 +11,9 @@ import com.ant.track.lib.stats.RouteStats;
  */
 public class Route implements Parcelable {
 
-    private RouteStats routeStats;
+    private RouteStats routeStats = new RouteStats();
     private String routeName;
+    private String description = "";
     private long routeId;
     private long startPointId;
     private long stopPointId;
@@ -27,6 +28,7 @@ public class Route implements Parcelable {
 
     protected Route(Parcel in) {
         routeName = in.readString();
+        description = in.readString();
         routeId = in.readLong();
         startPointId = in.readLong();
         stopPointId = in.readLong();
@@ -37,6 +39,7 @@ public class Route implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(routeName);
+        dest.writeString(description);
         dest.writeLong(routeId);
         dest.writeLong(startPointId);
         dest.writeLong(stopPointId);
@@ -107,5 +110,13 @@ public class Route implements Parcelable {
 
     public void setNumberOfPoints(int numberOfPoints) {
         this.numberOfPoints = numberOfPoints;
+    }
+
+    public void setDescription(String desc) {
+        this.description = desc;
+    }
+
+    public String getDescription() {
+        return description;
     }
 }

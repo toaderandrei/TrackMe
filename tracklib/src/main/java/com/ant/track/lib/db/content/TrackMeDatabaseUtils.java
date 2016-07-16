@@ -24,7 +24,7 @@ public interface TrackMeDatabaseUtils {
      *
      * @param id of the route to be deleted.
      */
-    void deleteRouteTrack(int id);
+    void deleteRouteTrack(long id);
 
     /**
      * updates a route from the database.

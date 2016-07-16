@@ -303,12 +303,11 @@ public class RecordingServiceImpl extends Service {
 
         //this can happen - in case of a tunnel longer than max distance
         if (distance > maxRecordingDistance) {
-            //todo we need to find a way that can show on the map and on the track
-            //todo that we basically had a long location or something in between.
+            //todo we need to find a way that can show on the map and on the track that we basically had a long location or something in between.
             //todo tunnel mode can happen?
             Location pauseLocation = new Location("GPS");
             pauseLocation.setLatitude(PAUSE_LATITUDE);
-            //todo think about a better time, maybe a mix between last valid and current location.?
+            //todo think about a better time, maybe a mix between last valid and current location?
             pauseLocation.setTime(location.getTime());
             insertLocation(route, pauseLocation, lastValidTrackLocation);
             insertLocation(route, location, lastValidTrackLocation);
@@ -319,8 +318,7 @@ public class RecordingServiceImpl extends Service {
             isIdle.set(false);
         } else if (!isIdle.get() && location.hasSpeed() && location.getSpeed() <= Constants.MAX_SPEED_NO_MOVEMENT) {
             //looks that it is idle
-            //todo think if it makes sense to insert the location when it is inside the recording distance(min)
-            //todo and also if the speed it is less the min movement.
+            //todo think if it makes sense to insert the location when it is inside the recording distance(min and also if the speed it is less the min movement.
             isIdle.set(true);
         } else if (isIdle.get() && location.hasSpeed() && location.getSpeed() > Constants.MAX_SPEED_NO_MOVEMENT) {
             isIdle.set(false);

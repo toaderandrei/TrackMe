@@ -132,7 +132,7 @@ public class RouteStatsManagerTest extends AndroidJUnitRunner {
         assertEquals(loc2.getLatitude(), manager.getCurrentSegmentStats().getLatitudeMin());
         assertEquals(loc2.getLatitude(), manager.getCurrentSegmentStats().getLatitudeMax());
         assertEquals(loc2.getLongitude(), manager.getCurrentSegmentStats().getLongitudeMin());
-        //we now add a third one
+        //we now update a third one
         Location loc3 = DEFAULT_LINZ_LOC_3;
         loc3.setTime(loc2.getTime() + 100 * SMALL_TIME_DIFF);
         manager.addLocationToStats(loc3, 1000);

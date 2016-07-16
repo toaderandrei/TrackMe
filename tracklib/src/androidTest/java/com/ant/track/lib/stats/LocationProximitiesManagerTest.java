@@ -36,15 +36,15 @@ public class LocationProximitiesManagerTest {
 
     @Test
     public void testDefault() {
-        locationProximitiesManager.add(DEFAULT_DOUBLE);
+        locationProximitiesManager.update(DEFAULT_DOUBLE);
         assertEquals(DEFAULT_DOUBLE, locationProximitiesManager.getMax());
         assertEquals(DEFAULT_DOUBLE, locationProximitiesManager.getMin());
     }
 
     @Test
     public void testMinMax() {
-        locationProximitiesManager.add(DEFAULT_DOUBLE);
-        locationProximitiesManager.add(DEFAULT_DOUBLE_2);
+        locationProximitiesManager.update(DEFAULT_DOUBLE);
+        locationProximitiesManager.update(DEFAULT_DOUBLE_2);
         assertEquals(DEFAULT_DOUBLE_2, locationProximitiesManager.getMax());
         assertEquals(DEFAULT_DOUBLE, locationProximitiesManager.getMin());
     }
@@ -54,8 +54,8 @@ public class LocationProximitiesManagerTest {
         LocationProximitiesManager test = new LocationProximitiesManager();
         // Obtain a Parcel object and write the parcelable object to it:
         Parcel parcel = Parcel.obtain();
-        test.add(DEFAULT_MAX);
-        test.add(DEFAULT_MIN);
+        test.update(DEFAULT_MAX);
+        test.update(DEFAULT_MIN);
         test.writeToParcel(parcel, 0);
         // After you're done with writing, you need to reset the parcel for reading:
         parcel.setDataPosition(0);

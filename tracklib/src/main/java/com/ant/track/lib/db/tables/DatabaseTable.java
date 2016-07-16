@@ -1,8 +1,8 @@
 package com.ant.track.lib.db.tables;
 
-import com.ant.track.lib.db.provider.TrackMeContract;
 import com.ant.track.lib.db.columns.GenericColumn;
 import com.ant.track.lib.db.columns.GenericColumnImpl;
+import com.ant.track.lib.db.provider.TrackMeContract;
 import com.ant.track.lib.db.type.SqliteDataType;
 
 /**
@@ -18,6 +18,7 @@ public enum DatabaseTable {
             new GenericColumnImpl(TrackMeContract.RouteEntry.STOP_POINT_ID, SqliteDataType.Integer),
             new GenericColumnImpl(TrackMeContract.RouteEntry.START_TIME, SqliteDataType.Integer),
             new GenericColumnImpl(TrackMeContract.RouteEntry.STOP_TIME, SqliteDataType.Integer),
+            new GenericColumnImpl(TrackMeContract.RouteEntry.TOTAL_MOVING_TIME, SqliteDataType.Integer),
             new GenericColumnImpl(TrackMeContract.RouteEntry.AVG_SPEED, SqliteDataType.Double),
             new GenericColumnImpl(TrackMeContract.RouteEntry.MIN_SPEED, SqliteDataType.Double),
             new GenericColumnImpl(TrackMeContract.RouteEntry.MAX_SPEED, SqliteDataType.Double),
