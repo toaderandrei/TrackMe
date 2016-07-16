@@ -82,10 +82,8 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
     @Override
     public void deleteRouteTrack(long id) {
         deleteAllRoutePoints(id);
-
-        String where = getWhereCloseForRouteId();
+        String where = getWhereCloseForRoute();
         String[] selectionArgs = new String[]{String.valueOf(id)};
-
         getContentResolver().delete(TrackMeContract.RouteEntry.CONTENT_URI, where, selectionArgs);
     }
 
@@ -105,8 +103,18 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
     }
 
     @Override
-    public void deleteRoutePoint(int id) {
+    public void deleteRoutePoint(long id) {
+        String where = getWhereCloseForRoutePoint();
+        String[] args = new String[]{String.valueOf(id)};
+        getContentResolver().delete(TrackMeContract.RoutePointEntry.CONTENT_URI, where, args);
+    }
 
+
+    @Override
+    public void deleteRouteCheckPoint(long id) {
+        String where = getWhereCloseForRouteCheckPoint();
+        String[] args = new String[]{String.valueOf(id)};
+        getContentResolver().delete(TrackMeContract.RouteCheckPointEntry.CONTENT_URI, where, args);
     }
 
     @Override
@@ -213,11 +221,11 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
 
     private void deleteAllRoutePoints(long id) {
         //delete route points first
-        String where = TrackMeContract.RoutePointEntry.ROUTE_ID + " = ";
+        String where = TrackMeContract.RoutePointEntry.ROUTE_ID + " =?";
         String[] selectArgs = new String[]{String.valueOf(id)};
         getContentResolver().delete(TrackMeContract.RoutePointEntry.CONTENT_URI, where, selectArgs);
         //route check point
-        where = TrackMeContract.RouteCheckPointEntry.ROUTE_ID + " = ";
+        where = TrackMeContract.RouteCheckPointEntry.ROUTE_ID + " =?";
         selectArgs = new String[]{String.valueOf(id)};
         getContentResolver().delete(TrackMeContract.RouteCheckPointEntry.CONTENT_URI, where, selectArgs);
 
@@ -334,9 +342,20 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
     }
 
     @NonNull
-    private String getWhereCloseForRouteId() {
-        return TrackMeContract.RouteEntry._ID + " = ";
+    private String getWhereCloseForRoute() {
+        return TrackMeContract.RouteEntry._ID + " =?";
     }
+
+    @NonNull
+    private String getWhereCloseForRoutePoint() {
+        return TrackMeContract.RoutePointEntry._ID + " =?";
+    }
+
+    @NonNull
+    private String getWhereCloseForRouteCheckPoint() {
+        return TrackMeContract.RouteCheckPointEntry._ID + " =?";
+    }
+
 
     //====================================end of private methods===============================================//
 

@@ -50,11 +50,17 @@ public interface TrackMeDatabaseUtils {
     void insertRoutePoint(RoutePoint routePoint);
 
     /**
-     * delets a routepoint based on its id.
+     * deletes a routepoint based on its id.
      *
      * @param id the id of the route point to be deleted.
      */
-    void deleteRoutePoint(int id);
+    void deleteRoutePoint(long id);
+
+    /**
+     * deletes a route check point by id.
+     * @param id the id of the routecheckpoint.
+     */
+    void deleteRouteCheckPoint(long id);
 
     /**
      * Updates a route point based on its id and the new values.
