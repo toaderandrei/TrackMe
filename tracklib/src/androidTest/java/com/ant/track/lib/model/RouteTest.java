@@ -3,6 +3,7 @@ package com.ant.track.lib.model;
 import android.os.Parcel;
 
 import com.ant.track.lib.base.BaseTest;
+import com.ant.track.lib.stats.RouteStats;
 
 import org.junit.Test;
 
@@ -32,9 +33,10 @@ public class RouteTest extends BaseTest{
     @Test
     public void testParcelable() {
         long now = System.currentTimeMillis();
-
         // Obtain a Parcel object and write the parcelable object to it:
         Parcel parcel = Parcel.obtain();
+        RouteStats routeStats = new RouteStats(now);
+        test.setRouteStats(routeStats);
         test.setRouteName(DEFAULT_ROUTE);
         test.setNumberOfPoints(NUMBER_OF_POINTS);
         test.writeToParcel(parcel, 0);
