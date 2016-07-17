@@ -3,6 +3,7 @@ package com.ant.track.lib.model;
 import android.os.Parcel;
 
 import com.ant.track.lib.base.BaseTest;
+import com.ant.track.lib.utils.LocationUtilsTest;
 
 import org.junit.Test;
 
@@ -13,7 +14,7 @@ import static junit.framework.Assert.assertEquals;
  */
 public class RouteCheckPointTest extends BaseTest {
 
-    private static final double DEFAULT_SPEED = 10.0;
+    private static final float DEFAULT_SPEED = 10.0f;
 
     private RouteCheckPoint test;
 
@@ -33,6 +34,7 @@ public class RouteCheckPointTest extends BaseTest {
 
         // Obtain a Parcel object and write the parcelable object to it:
         Parcel parcel = Parcel.obtain();
+        test.setLocation(LocationUtilsTest.getRandomLocation());
         test.setSpeed(DEFAULT_SPEED);
         test.setTime(now);
         test.writeToParcel(parcel, 0);

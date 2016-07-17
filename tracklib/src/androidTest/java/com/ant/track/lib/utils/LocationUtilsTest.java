@@ -32,6 +32,7 @@ public class LocationUtilsTest {
         return speed;
     }
 
+
     public static float getCurrentTime() {
         return System.currentTimeMillis();
     }

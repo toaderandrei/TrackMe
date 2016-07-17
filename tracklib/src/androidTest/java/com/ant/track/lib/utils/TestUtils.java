@@ -1,5 +1,7 @@
 package com.ant.track.lib.utils;
 
+import android.location.Location;
+
 import com.ant.track.lib.model.RoutePoint;
 import com.ant.track.lib.stats.RouteStats;
 
@@ -8,8 +10,8 @@ import com.ant.track.lib.stats.RouteStats;
  */
 public final class TestUtils {
 
-    private static final double DEFAULT_AVG_SPEED = 10.0d;
-    private static final double DEFAULT_MIN_SPEED = 2.0d;
+    private static final float DEFAULT_AVG_SPEED = 10.0f;
+    private static final float DEFAULT_MIN_SPEED = 2.0f;
     private static final long DEFAULT_TOTAL_TIME = 20000;
     private static final String DEFAULT_STRING = "DEFAULT_ROUTE_POINT_TITLE";
 
@@ -46,7 +48,9 @@ public final class TestUtils {
     }
 
     public static RoutePoint createRoutePoint(long id, long now) {
+        Location location = LocationUtilsTest.getRandomLocation();
         RoutePoint routePoint = new RoutePoint();
+        routePoint.setLocation(location);
         routePoint.setId(id);
         routePoint.setTime(now);
         routePoint.setSpeed(DEFAULT_AVG_SPEED);

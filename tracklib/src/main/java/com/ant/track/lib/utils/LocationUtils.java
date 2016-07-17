@@ -2,6 +2,8 @@ package com.ant.track.lib.utils;
 
 import android.location.Location;
 
+import com.ant.track.lib.constants.Constants;
+
 /**
  * Location utils
  */
@@ -29,8 +31,8 @@ public class LocationUtils {
      * @return true if the location is a valid location.
      */
     public static boolean isValidLocation(Location location) {
-        return location != null && Math.abs(location.getLatitude()) <= 90
-                && Math.abs(location.getLongitude()) <= 180;
+        return location != null && Math.abs(location.getLatitude()) <= Constants.MAX_LATITUDE
+                && Math.abs(location.getLongitude()) <= Constants.MAX_LONGITUDE;
     }
 
     public static double getLatitudeFromLatitude1E6(int latitude1E6) {
@@ -59,14 +61,14 @@ public class LocationUtils {
     }
 
     public static boolean isValidLatitude(double latitude) {
-        if (Math.abs(latitude) <= 90) {
+        if (Math.abs(latitude) <= Constants.MAX_LATITUDE) {
             return true;
         }
         return false;
     }
 
     public static boolean isValidLongitude(double longitude) {
-        if (Math.abs(longitude) <= 180) {
+        if (Math.abs(longitude) <= Constants.MAX_LONGITUDE) {
             return true;
         }
         return false;
@@ -76,7 +78,7 @@ public class LocationUtils {
         return elevationMax < Double.POSITIVE_INFINITY && elevationMax > Double.NEGATIVE_INFINITY;
     }
 
-    public static boolean isValidAltitude(float location_alt) {
+    public static boolean isValidAltitude(double location_alt) {
         return location_alt < Double.POSITIVE_INFINITY && location_alt > Double.NEGATIVE_INFINITY;
     }
 }

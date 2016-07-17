@@ -27,7 +27,7 @@ public class TrackMeDbProviderTest extends BaseProviderTest {
     public static final String DEFAULT_ROUTE_22 = "route22";
     private static final String DEFAULT_ROUTE_33 = "route33";
     private static final long DEFAULT_TOTAL_TIME = 8000;
-    private static final double DEFAULT_SPEED = 12;
+    private static final float DEFAULT_SPEED = 12.0f;
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
@@ -171,7 +171,7 @@ public class TrackMeDbProviderTest extends BaseProviderTest {
 
         assertNotNull(cursor);
         assertTrue(cursor.moveToFirst());
-        double speed = cursor.getDouble(cursor.getColumnIndex(TrackMeContract.RoutePointEntry.SPEED));
+        float speed = cursor.getFloat(cursor.getColumnIndex(TrackMeContract.RoutePointEntry.SPEED));
         assertEquals(DEFAULT_SPEED, speed);
     }
 
@@ -301,7 +301,7 @@ public class TrackMeDbProviderTest extends BaseProviderTest {
         //check the values
         assertNotNull(cursor);
         assertTrue(cursor.moveToFirst());
-        double speed = cursor.getDouble(cursor.getColumnIndex(TrackMeContract.RoutePointEntry.SPEED));
+        float speed = cursor.getFloat(cursor.getColumnIndex(TrackMeContract.RoutePointEntry.SPEED));
         assertEquals(DEFAULT_SPEED, speed);
     }
 

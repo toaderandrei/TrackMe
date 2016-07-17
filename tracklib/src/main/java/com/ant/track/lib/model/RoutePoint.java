@@ -1,5 +1,6 @@
 package com.ant.track.lib.model;
 
+import android.location.Location;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.VisibleForTesting;
@@ -11,14 +12,8 @@ import android.support.annotation.VisibleForTesting;
 public class RoutePoint implements Parcelable {
 
     private long _id;
-    private double speed;
-    private float location_lat;
-    private float location_alt;
-    private float location_long;
-    private float location_bearing;
-    private long time;
+    private Location location;
     private String activityMode;
-
 
     @VisibleForTesting
     public RoutePoint() {
@@ -26,44 +21,23 @@ public class RoutePoint implements Parcelable {
     }
 
     public RoutePoint(long id,
-                      float speed,
-                      float location_alt,
-                      float location_bearing,
-                      float location_lat,
-                      float location_long,
+                      Location location,
                       String activityMode) {
         this._id = id;
-
-        this.speed = speed;
-        this.location_alt = location_alt;
-        this.location_bearing = location_bearing;
-        this.location_long = location_long;
-        this.location_lat = location_lat;
+        this.location = location;
         this.activityMode = activityMode;
     }
 
     protected RoutePoint(Parcel in) {
         _id = in.readLong();
-
-        speed = in.readDouble();
-        location_lat = in.readFloat();
-        location_alt = in.readFloat();
-        location_long = in.readFloat();
-        location_bearing = in.readFloat();
-        time = in.readLong();
+        location = in.readParcelable(Location.class.getClassLoader());
         activityMode = in.readString();
     }
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeLong(_id);
-
-        dest.writeDouble(speed);
-        dest.writeFloat(location_lat);
-        dest.writeFloat(location_alt);
-        dest.writeFloat(location_long);
-        dest.writeFloat(location_bearing);
-        dest.writeLong(time);
+        dest.writeParcelable(location, flags);
         dest.writeString(activityMode);
     }
 
@@ -84,52 +58,73 @@ public class RoutePoint implements Parcelable {
         }
     };
 
-    public double getSpeed() {
-        return speed;
+    public float getSpeed() {
+        if (!hasLocation()) {
+            return -1f;
+        }
+        return location.getSpeed();
     }
 
-    public void setSpeed(double speed) {
-        this.speed = speed;
+    public void setSpeed(float speed) {
+        if (!hasLocation()) {
+            return;
+        }
+        this.location.setSpeed(speed);
     }
 
-    public float getLocation_lat() {
-        return location_lat;
+    public double getLatitude() {
+        if (!hasLocation()) {
+            return Double.NEGATIVE_INFINITY;
+        }
+        return location.getLatitude();
     }
 
-    public void setLocation_lat(float location_lat) {
-        this.location_lat = location_lat;
+    public void setLocation_lat(double location_lat) {
+        if (!hasLocation()) {
+            return;
+        }
+        this.location.setLatitude(location_lat);
     }
 
-    public float getLocation_alt() {
-        return location_alt;
+    public double getAltitude() {
+        if (!hasLocation()) {
+            return Double.NEGATIVE_INFINITY;
+        }
+        return location.getAltitude();
     }
 
     public void setLocation_alt(float location_alt) {
-        this.location_alt = location_alt;
+        this.location.setAltitude(location_alt);
     }
 
-    public float getLocation_long() {
-        return location_long;
+    public double getLongitude() {
+        if (!hasLocation()) {
+            return Double.NEGATIVE_INFINITY;
+        }
+        return location.getLongitude();
     }
 
-    public void setLocation_long(float location_long) {
-        this.location_long = location_long;
+    public void setLocation_long(double location_long) {
+        this.location.setLongitude(location_long);
     }
 
     public float getLocationBearing() {
-        return location_bearing;
+        return location.getBearing();
     }
 
     public void setLocationBearing(float location_bearing) {
-        this.location_bearing = location_bearing;
+        this.location.setBearing(location_bearing);
     }
 
     public long getTime() {
-        return time;
+        return location.getTime();
     }
 
     public void setTime(long time) {
-        this.time = time;
+        if (!hasLocation()) {
+            return;
+        }
+        this.location.setTime(time);
     }
 
     public String getActivityMode() {
@@ -146,5 +141,55 @@ public class RoutePoint implements Parcelable {
 
     public long getId() {
         return _id;
+    }
+
+    public boolean hasSpeed() {
+        if (!hasLocation()) {
+            return false;
+        }
+        return location.hasSpeed();
+    }
+
+    public boolean hasAccuracy() {
+        if (!hasLocation()) {
+            return false;
+        }
+        return location.hasAccuracy();
+    }
+
+    public float getAccuracy() {
+        if (!hasLocation()) {
+            return -1f;
+        }
+        return location.getAccuracy();
+    }
+
+    public boolean hasAltitude() {
+        if (!hasLocation()) {
+            return false;
+        }
+        return location.hasAltitude();
+    }
+
+    public boolean hasBearing() {
+        if (!hasLocation()) {
+            return false;
+        }
+        return location.hasBearing();
+    }
+
+    private boolean hasLocation() {
+        return location != null;
+    }
+
+    public float getBearing() {
+        if (!hasLocation()) {
+            return Float.NEGATIVE_INFINITY;
+        }
+        return location.getBearing();
+    }
+
+    public void setLocation(Location location) {
+        this.location = location;
     }
 }

@@ -8,6 +8,8 @@ import android.support.annotation.VisibleForTesting;
 public class Constants {
 
 
+    public static final int MAX_LONGITUDE = 180;
+    public static final int MAX_LATITUDE = 90;
     /**
      * The number of speed reading to smooth to get a somewhat accurate signal.
      */

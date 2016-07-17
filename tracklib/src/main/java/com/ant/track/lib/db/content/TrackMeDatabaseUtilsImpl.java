@@ -8,9 +8,11 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 
 import com.ant.track.lib.application.TrackLibApplication;
+import com.ant.track.lib.constants.Constants;
 import com.ant.track.lib.db.DatabaseConstants;
 import com.ant.track.lib.db.provider.TrackMeContract;
 import com.ant.track.lib.model.Route;
+import com.ant.track.lib.model.RouteCheckPoint;
 import com.ant.track.lib.model.RoutePoint;
 import com.ant.track.lib.stats.RouteStats;
 import com.ant.track.lib.utils.LocationUtils;
@@ -18,10 +20,21 @@ import com.ant.track.lib.utils.SpeedUtils;
 
 /**
  * Track me database utility class. It deals with insertion, deletion,
- * updating and deleting of data from db.
+ * updating and deleting of data from db. It is used for assembling data
+ * from db rows and vice-versa. The code is based on the MyTracks app.
+ * Some things have been changed some are the same.
  */
 public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
 
+    public static final String PARAM_SELECT_MAX = "=(select max(";
+    public static final String PARAM_FROM = ") from ";
+    public static final String PARAM_WHERE = " WHERE ";
+    public static final String PARAM_AND = "=? AND ";
+    public static final String PARAM_LESS_OR_EQUAL = "<=";
+    public static final String PARAM_COMMA_CLOSE = ")";
+    public static final String PARAM_SELECT_MIN = "=(select min(";
+    public static final String PARAM_EQUAL_QUESTION_MARK = "=?)";
+    public static final String PARAM_EQUAL_STRING = " =?";
     private static TrackMeDatabaseUtils instance;
 
     public static TrackMeDatabaseUtils getInstance() {
@@ -43,7 +56,6 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
         Route route = null;
         Cursor cursor = null;
         try {
-
             cursor = getRouteCursor(routeId);
             if (cursor != null && cursor.moveToFirst()) {
                 route = createRouteFromCursor(cursor);
@@ -60,19 +72,97 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
 
     @Override
     public Uri insertRoutePoint(long routeId, Location location) {
-        return getApp().getContentResolver().insert(TrackMeContract.RoutePointEntry.CONTENT_URI,
-                createContentValues(routeId, location));
+        RoutePoint routePoint = new RoutePoint();
+        routePoint.setLocation(location);
+
+        return insertRoutePoint(routePoint);
     }
 
     @Override
-    public Location getLastValidLocation(long routeId) {
-        return null;
+    public long getFirstRoutePointId(long trackId) {
+        if (trackId < 0) {
+            return -1L;
+        }
+        Cursor cursor = null;
+        try {
+            String selection = TrackMeContract.RoutePointEntry._ID + PARAM_SELECT_MIN + TrackMeContract.RoutePointEntry._ID
+                    + PARAM_FROM + TrackMeContract.RoutePointEntry.TABLE_NAME + PARAM_WHERE + TrackMeContract.RoutePointEntry.ROUTE_ID
+                    + PARAM_EQUAL_QUESTION_MARK;
+            String[] selectionArgs = new String[]{Long.toString(trackId)};
+            cursor = getRoutePointCursor(new String[]{TrackMeContract.RoutePointEntry._ID},
+                    selection,
+                    selectionArgs,
+                    TrackMeContract.RoutePointEntry._ID);
+            if (cursor != null && cursor.moveToFirst()) {
+                return cursor.getLong(cursor.getColumnIndexOrThrow(TrackMeContract.RoutePointEntry._ID));
+            }
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+        return -1L;
     }
 
     @Override
-    public Location getLastValidRouteTrack(long routeId) {
+    public long getLastValidPointId(long routeId) {
+        if (routeId < 0) {
+            return -1L;
+        }
+        Cursor cursor = null;
+        try {
+            String selection = TrackMeContract.RoutePointEntry._ID + PARAM_SELECT_MAX + TrackMeContract.RoutePointEntry._ID
+                    + TrackMeContract.RoutePointEntry.TABLE_NAME + TrackMeContract.RoutePointEntry.TABLE_NAME + PARAM_WHERE + TrackMeContract.RoutePointEntry.ROUTE_ID
+                    + PARAM_EQUAL_QUESTION_MARK;
+            String[] selectionArgs = new String[]{Long.toString(routeId)};
+            cursor = getRoutePointCursor(new String[]{TrackMeContract.RoutePointEntry._ID},
+                    selection,
+                    selectionArgs,
+                    TrackMeContract.RoutePointEntry._ID);
+            if (cursor != null && cursor.moveToFirst()) {
+                return cursor.getLong(cursor.getColumnIndexOrThrow(TrackMeContract.RoutePointEntry._ID));
+            }
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+        return -1L;
+    }
+
+    private Cursor getRoutePointCursor(String[] strings, String selection, String[] selectionArgs, String sortOrder) {
+        return getContentResolver().query(TrackMeContract.RoutePointEntry.CONTENT_URI, strings, selection, selectionArgs, sortOrder);
+    }
+
+
+    @Override
+    public Location getFirstValidRoutePointForRoute(long routeid) {
+        if (routeid < 0) {
+            return null;
+        }
+        String selection = TrackMeContract.RoutePointEntry._ID + PARAM_SELECT_MIN + TrackMeContract.RoutePointEntry._ID + PARAM_FROM
+                + TrackMeContract.RoutePointEntry.TABLE_NAME + PARAM_WHERE + TrackMeContract.RoutePointEntry.ROUTE_ID + PARAM_AND
+                + TrackMeContract.RoutePointEntry.LOCATION_LAT + PARAM_LESS_OR_EQUAL + Constants.MAX_LATITUDE + PARAM_COMMA_CLOSE;
+        String[] selectionArgs = new String[]{Long.toString(routeid)};
+        return findTrackPointBy(selection, selectionArgs);
+    }
+
+    @Override
+    public Location getLastValidLoctionForRoute(long routeId) {
+        if (routeId < 0) {
+            return null;
+        }
+        String selection = TrackMeContract.RoutePointEntry._ID + PARAM_SELECT_MAX + TrackMeContract.RoutePointEntry._ID + PARAM_FROM
+                + TrackMeContract.RoutePointEntry.TABLE_NAME + PARAM_WHERE + TrackMeContract.RoutePointEntry.ROUTE_ID + PARAM_AND
+                + TrackMeContract.RoutePointEntry.LOCATION_LAT + PARAM_LESS_OR_EQUAL + Constants.MAX_LATITUDE + PARAM_COMMA_CLOSE;
+        String[] selectionArgs = new String[]{Long.toString(routeId)};
+        return findTrackPointBy(selection, selectionArgs);
+    }
+
+    private Location findTrackPointBy(String selection, String[] selectionArgs) {
         return null;
     }
+
 
     @Override
     public Uri insertRouteTrack(Route route) {
@@ -88,18 +178,30 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
     }
 
     @Override
-    public void updateRouteTrack(Route route) {
-
+    public int updateRouteTrack(Route route) {
+        String where = TrackMeContract.RouteEntry._ID + PARAM_EQUAL_STRING;
+        String[] args = new String[]{String.valueOf(route.getRouteId())};
+        ContentValues values = createContentValues(route);
+        return getContentResolver().update(TrackMeContract.RouteEntry.CONTENT_URI, values, where, args);
     }
 
     @Override
-    public void updateRouteTrack(int id, ContentValues values) {
-
+    public int updateRouteTrack(long id, ContentValues values) {
+        String where = TrackMeContract.RouteEntry._ID + PARAM_EQUAL_STRING;
+        String[] args = new String[]{String.valueOf(id)};
+        return getContentResolver().update(TrackMeContract.RouteEntry.CONTENT_URI, values, where, args);
     }
 
     @Override
-    public void insertRoutePoint(RoutePoint routePoint) {
+    public Uri insertRoutePoint(RoutePoint routePoint) {
+        return getApp().getContentResolver().insert(TrackMeContract.RoutePointEntry.CONTENT_URI,
+                createContentValues(routePoint));
+    }
 
+    @Override
+    public Uri insertRouteCheckPoint(RouteCheckPoint routeCheckPoint) {
+        return getApp().getContentResolver().insert(TrackMeContract.RoutePointEntry.CONTENT_URI,
+                createContentValues(routeCheckPoint));
     }
 
     @Override
@@ -118,48 +220,99 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
     }
 
     @Override
-    public void updateRoutePoint(int id, ContentValues values) {
-
+    public int updateRoutePointById(long id, ContentValues values) {
+        String where = getWhereCloseForRouteCheckPoint();
+        String[] args = new String[]{String.valueOf(id)};
+        return getContentResolver().update(TrackMeContract.RoutePointEntry.CONTENT_URI, values, where, args);
     }
 
     @Override
-    public void updateRoutePoint(RoutePoint routePoint) {
-
+    public int updateRoutePoint(RoutePoint routePoint) {
+        String where = TrackMeContract.RouteEntry._ID + " =?";
+        String[] args = new String[]{String.valueOf(routePoint.getId())};
+        ContentValues values = createContentValues(routePoint);
+        return getContentResolver().update(TrackMeContract.RouteEntry.CONTENT_URI, values, where, args);
     }
 
     //====================================end of public methods==================================================//
 
     //====================================private methods========================================================//
 
-    private ContentValues createContentValues(long routeId, Location location) {
+    private ContentValues createContentValues(RoutePoint routePoint) {
         ContentValues contentValues = new ContentValues();
 
-        contentValues.put(TrackMeContract.RoutePointEntry.ROUTE_ID, routeId);
-        contentValues.put(TrackMeContract.RoutePointEntry.LOCATION_LAT, LocationUtils.getLatitude1E6FromDouble(location.getLatitude()));
-        contentValues.put(TrackMeContract.RoutePointEntry.LOCATION_LONG, LocationUtils.getLongitude1E6FromDouble(location.getLongitude()));
+        contentValues.put(TrackMeContract.RoutePointEntry.ROUTE_ID, routePoint.getId());
+        if (LocationUtils.isValidLatitude(routePoint.getLatitude())) {
+            contentValues.put(TrackMeContract.RoutePointEntry.LOCATION_LAT, LocationUtils.getLatitude1E6FromDouble(routePoint.getLatitude()));
+        }
+        if (LocationUtils.isValidLongitude(routePoint.getLongitude())) {
+            contentValues.put(TrackMeContract.RoutePointEntry.LOCATION_LONG, LocationUtils.getLongitude1E6FromDouble(routePoint.getLongitude()));
+        }
 
         long time;
-        if (location.getTime() == 0) {
+        if (routePoint.getTime() == 0) {
             time = System.currentTimeMillis();
         } else {
-            time = location.getTime();
+            time = routePoint.getTime();
         }
         contentValues.put(TrackMeContract.RoutePointEntry.TIME, time);
 
-        if (location.hasSpeed()) {
-            contentValues.put(TrackMeContract.RoutePointEntry.SPEED, location.getSpeed());
+        if (routePoint.hasSpeed()) {
+            contentValues.put(TrackMeContract.RoutePointEntry.SPEED, routePoint.getSpeed());
         }
 
-        if (location.hasAccuracy()) {
-            contentValues.put(TrackMeContract.RoutePointEntry.LOCATION_ACCURACY, location.getAccuracy());
+        if (routePoint.hasAccuracy()) {
+            contentValues.put(TrackMeContract.RoutePointEntry.LOCATION_ACCURACY, routePoint.getAccuracy());
         }
 
-        if (location.hasAltitude()) {
-            contentValues.put(TrackMeContract.RoutePointEntry.LOCATION_ALT, location.getAltitude());
+        if (routePoint.hasAltitude()) {
+            contentValues.put(TrackMeContract.RoutePointEntry.LOCATION_ALT, routePoint.getAltitude());
         }
 
-        if (location.hasBearing()) {
-            contentValues.put(TrackMeContract.RoutePointEntry.LOCATION_BEARING, location.getBearing());
+        if (routePoint.hasBearing()) {
+            contentValues.put(TrackMeContract.RoutePointEntry.LOCATION_BEARING, routePoint.getBearing());
+        }
+
+        return contentValues;
+    }
+
+
+    private ContentValues createContentValues(RouteCheckPoint routeCheckPoint) {
+        ContentValues contentValues = new ContentValues();
+
+        contentValues.put(TrackMeContract.RouteCheckPointEntry.NAME, routeCheckPoint.getName());
+        contentValues.put(TrackMeContract.RouteCheckPointEntry.DESCRIPTION, routeCheckPoint.getDescription());
+        contentValues.put(TrackMeContract.RouteCheckPointEntry.MARKER_COLOR, routeCheckPoint.getMarkerColor());
+        contentValues.put(TrackMeContract.RoutePointEntry.ROUTE_ID, routeCheckPoint.getId());
+        if (LocationUtils.isValidLatitude(routeCheckPoint.getLatitude())) {
+            contentValues.put(TrackMeContract.RouteCheckPointEntry.LOCATION_LAT, LocationUtils.getLatitude1E6FromDouble(routeCheckPoint.getLatitude()));
+        }
+        if (LocationUtils.isValidLongitude(routeCheckPoint.getLongitude())) {
+            contentValues.put(TrackMeContract.RouteCheckPointEntry.LOCATION_LONG, LocationUtils.getLongitude1E6FromDouble(routeCheckPoint.getLongitude()));
+        }
+
+        long time;
+        if (routeCheckPoint.getTime() == 0) {
+            time = System.currentTimeMillis();
+        } else {
+            time = routeCheckPoint.getTime();
+        }
+        contentValues.put(TrackMeContract.RouteCheckPointEntry.TIME, time);
+
+        if (routeCheckPoint.hasSpeed()) {
+            contentValues.put(TrackMeContract.RouteCheckPointEntry.SPEED, routeCheckPoint.getSpeed());
+        }
+
+        if (routeCheckPoint.hasAccuracy()) {
+            contentValues.put(TrackMeContract.RouteCheckPointEntry.LOCATION_ACCURACY, routeCheckPoint.getAccuracy());
+        }
+
+        if (routeCheckPoint.hasAltitude()) {
+            contentValues.put(TrackMeContract.RouteCheckPointEntry.LOCATION_ALT, routeCheckPoint.getAltitude());
+        }
+
+        if (routeCheckPoint.hasBearing()) {
+            contentValues.put(TrackMeContract.RouteCheckPointEntry.LOCATION_BEARING, routeCheckPoint.getBearing());
         }
 
         return contentValues;
@@ -221,11 +374,11 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
 
     private void deleteAllRoutePoints(long id) {
         //delete route points first
-        String where = TrackMeContract.RoutePointEntry.ROUTE_ID + " =?";
+        String where = TrackMeContract.RoutePointEntry.ROUTE_ID + PARAM_EQUAL_STRING;
         String[] selectArgs = new String[]{String.valueOf(id)};
         getContentResolver().delete(TrackMeContract.RoutePointEntry.CONTENT_URI, where, selectArgs);
         //route check point
-        where = TrackMeContract.RouteCheckPointEntry.ROUTE_ID + " =?";
+        where = TrackMeContract.RouteCheckPointEntry.ROUTE_ID + PARAM_EQUAL_STRING;
         selectArgs = new String[]{String.valueOf(id)};
         getContentResolver().delete(TrackMeContract.RouteCheckPointEntry.CONTENT_URI, where, selectArgs);
 
@@ -343,17 +496,17 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
 
     @NonNull
     private String getWhereCloseForRoute() {
-        return TrackMeContract.RouteEntry._ID + " =?";
+        return TrackMeContract.RouteEntry._ID + PARAM_EQUAL_STRING;
     }
 
     @NonNull
     private String getWhereCloseForRoutePoint() {
-        return TrackMeContract.RoutePointEntry._ID + " =?";
+        return TrackMeContract.RoutePointEntry._ID + PARAM_EQUAL_STRING;
     }
 
     @NonNull
     private String getWhereCloseForRouteCheckPoint() {
-        return TrackMeContract.RouteCheckPointEntry._ID + " =?";
+        return TrackMeContract.RouteCheckPointEntry._ID + PARAM_EQUAL_STRING;
     }
 
 

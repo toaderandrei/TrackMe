@@ -1,5 +1,6 @@
 package com.ant.track.lib.model;
 
+import android.location.Location;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.VisibleForTesting;
@@ -21,14 +22,10 @@ public class RouteCheckPoint extends RoutePoint implements Parcelable {
     public RouteCheckPoint(long id,
                            String name,
                            String description,
-                           float speed,
-                           float location_alt,
-                           float location_bearing,
-                           float location_lat,
-                           float location_long,
+                           Location location,
                            String activityMode,
                            String markerColor) {
-        super(id, speed, location_alt, location_bearing, location_lat, location_long, activityMode);
+        super(id, location, activityMode);
         this.name = name;
         this.description = description;
         this.markerColor = markerColor;

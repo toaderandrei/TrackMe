@@ -106,16 +106,16 @@ public class TestDbUtils {
         if (SpeedUtils.isSpeedValid(routePoint.getSpeed())) {
             contentValues.put(TrackMeContract.RoutePointEntry.SPEED, routePoint.getSpeed());
         }
-        if (LocationUtils.isValidLatitude(routePoint.getLocation_lat())) {
-            contentValues.put(TrackMeContract.RoutePointEntry.LOCATION_LAT, routePoint.getLocation_lat());
+        if (LocationUtils.isValidLatitude(routePoint.getLatitude())) {
+            contentValues.put(TrackMeContract.RoutePointEntry.LOCATION_LAT, routePoint.getLatitude());
         }
 
-        if (LocationUtils.isValidLongitude(routePoint.getLocation_long())) {
-            contentValues.put(TrackMeContract.RoutePointEntry.LOCATION_LAT, routePoint.getLocation_lat());
+        if (LocationUtils.isValidLongitude(routePoint.getLongitude())) {
+            contentValues.put(TrackMeContract.RoutePointEntry.LOCATION_LAT, routePoint.getLatitude());
         }
 
-        if (LocationUtils.isValidAltitude(routePoint.getLocation_alt())) {
-            contentValues.put(TrackMeContract.RoutePointEntry.LOCATION_LAT, routePoint.getLocation_alt());
+        if (LocationUtils.isValidAltitude(routePoint.getAltitude())) {
+            contentValues.put(TrackMeContract.RoutePointEntry.LOCATION_LAT, routePoint.getAltitude());
         }
 
         return contentValues;

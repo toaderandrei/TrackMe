@@ -94,17 +94,17 @@ public class TrackMeContract {
 
         public static final String ROUTE_ID = "route_id";
 
-        public static final String LOCATION_ACCURACY = "location_accuracy";
-
         public static final String ROUTE_ACTIVITY_MODE = "route_activity_mode";
 
         public static final String LOCATION_LONG = "location_long";
 
         public static final String LOCATION_ALT = "location_alt";
 
-        public static final String TIME = "time";
+        public static final String LOCATION_ACCURACY = "accuracy";
 
-        public static final String LOCATION_BEARING = "location_bearing";
+        public static final String LOCATION_BEARING = "bearing";
+
+        public static final String TIME = "time";
 
         public static final String SPEED = "speed";
 
@@ -140,13 +140,13 @@ public class TrackMeContract {
 
         public static final String LOCATION_ALT = "location_alt";
 
+        public static final String LOCATION_BEARING = "location_bearing";
+
         public static final String TIME = "time";
 
         public static final String DURATION = "duration";
 
         public static final String TOTAL_TIME = "total_time";
-
-        public static final String LOCATION_BEARING = "location_bearing";
 
         public static final String SPEED = "speed";
 

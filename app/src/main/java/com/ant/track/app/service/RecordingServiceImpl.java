@@ -280,7 +280,7 @@ public class RecordingServiceImpl extends Service {
             Log.d(TAG, "Ignore onLocationChangedAsync. Poor accuracy.");
             return;
         }
-        Location lastValidTrackLocation = getLastValidTrackLocation();
+        Location lastValidTrackLocation = getLastValidLocationForRoute();
         long idleTime = 0;
         if (lastValidTrackLocation != null && location.getTime() > lastValidTrackLocation.getTime()) {
             idleTime = location.getTime() - lastValidTrackLocation.getTime();
@@ -299,7 +299,7 @@ public class RecordingServiceImpl extends Service {
             return;
         }
 
-        double distance = location.distanceTo(getLastValidRouteTrack(routeId));
+        double distance = location.distanceTo(getLastValidLocationForRoute(routeId));
 
         //this can happen - in case of a tunnel longer than max distance
         if (distance > maxRecordingDistance) {
@@ -465,7 +465,7 @@ public class RecordingServiceImpl extends Service {
         Route route = trackMeDatabaseUtils.getRouteById(routeId);
 
         if (route != null) {
-            insertLocation(route, mLastLocation, getLastValidRouteTrack(route.getRouteId()));
+            insertLocation(route, mLastLocation, getLastValidLocationForRoute(route.getRouteId()));
         }
 
         stopRecordingService(false);
@@ -626,8 +626,8 @@ public class RecordingServiceImpl extends Service {
     }
 
 
-    protected Location getLastValidTrackLocation() {
-        return trackMeDatabaseUtils.getLastValidLocation(routeId);
+    protected Location getLastValidLocationForRoute() {
+        return trackMeDatabaseUtils.getLastValidLoctionForRoute(routeId);
     }
 
     @Override
@@ -647,8 +647,8 @@ public class RecordingServiceImpl extends Service {
         super.onDestroy();
     }
 
-    private Location getLastValidRouteTrack(long routeId) {
-        return trackMeDatabaseUtils.getLastValidRouteTrack(routeId);
+    private Location getLastValidLocationForRoute(long routeId) {
+        return trackMeDatabaseUtils.getLastValidLoctionForRoute(routeId);
     }
 
     private boolean isPaused() {

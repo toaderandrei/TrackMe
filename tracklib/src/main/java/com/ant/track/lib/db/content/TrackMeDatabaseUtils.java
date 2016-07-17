@@ -5,6 +5,7 @@ import android.location.Location;
 import android.net.Uri;
 
 import com.ant.track.lib.model.Route;
+import com.ant.track.lib.model.RouteCheckPoint;
 import com.ant.track.lib.model.RoutePoint;
 
 /**
@@ -12,6 +13,38 @@ import com.ant.track.lib.model.RoutePoint;
  * of database objects and vice-versa.
  */
 public interface TrackMeDatabaseUtils {
+    /**
+     * gets the id of the first route point.
+     *
+     * @param trackId the route id.
+     * @return the id of the route point.
+     */
+    long getFirstRoutePointId(long trackId);
+
+    /**
+     * gets the last valid route point id.
+     *
+     * @param routeId the id of the route.
+     * @return the id
+     */
+    long getLastValidPointId(long routeId);
+
+    /**
+     * gets the first location for route.
+     *
+     * @param routeid the id of the route.
+     * @return the first valid location.
+     */
+    Location getFirstValidRoutePointForRoute(long routeid);
+
+    /**
+     * gets the last valid location for route.
+     *
+     * @param routeId the id of the route.
+     * @return the last valid location.
+     */
+    Location getLastValidLoctionForRoute(long routeId);
+
     /**
      * inserts a new route into the database
      *
@@ -31,7 +64,7 @@ public interface TrackMeDatabaseUtils {
      *
      * @param route to be updated
      */
-    void updateRouteTrack(Route route);
+    int updateRouteTrack(Route route);
 
     /**
      * updates a route from the db based on its id
@@ -39,15 +72,26 @@ public interface TrackMeDatabaseUtils {
      *
      * @param id     the id of the route to be updated
      * @param values the values used for update
+     * @return an integer, which, if bigger than 0 means, the update was successful, otherwise
+     * not.
      */
-    void updateRouteTrack(int id, ContentValues values);
+    int updateRouteTrack(long id, ContentValues values);
+
+    /**
+     * Inserts a routepoint into the db.
+     *
+     * @param routeCheckPoint the new point to be inserted.
+     * @return the uri of the inserted value.
+     */
+    Uri insertRouteCheckPoint(RouteCheckPoint routeCheckPoint);
 
     /**
      * Inserts a routepoint into the db.
      *
      * @param routePoint the new point to be inserted.
+     * @return the uri of the inserted value.
      */
-    void insertRoutePoint(RoutePoint routePoint);
+    Uri insertRoutePoint(RoutePoint routePoint);
 
     /**
      * deletes a routepoint based on its id.
@@ -58,6 +102,7 @@ public interface TrackMeDatabaseUtils {
 
     /**
      * deletes a route check point by id.
+     *
      * @param id the id of the routecheckpoint.
      */
     void deleteRouteCheckPoint(long id);
@@ -68,14 +113,15 @@ public interface TrackMeDatabaseUtils {
      * @param id     the id of the routepoint
      * @param values the new values.
      */
-    void updateRoutePoint(int id, ContentValues values);
+    int updateRoutePointById(long id, ContentValues values);
 
     /**
      * updates a routepoint from the database.
      *
      * @param routePoint the routepoint to be updated.
+     * @return a positive number if the update was successful, otherwise a negative number.
      */
-    void updateRoutePoint(RoutePoint routePoint);
+    int updateRoutePoint(RoutePoint routePoint);
 
     /**
      * gets a route by id.
@@ -85,28 +131,5 @@ public interface TrackMeDatabaseUtils {
      */
     Route getRouteById(long routeId);
 
-    /**
-     * inserts a route into the db.
-     *
-     * @param routeId  the routeId for which we insert this
-     * @param location the location to be inserted
-     * @return returns the uri of the inserted location
-     */
     Uri insertRoutePoint(long routeId, Location location);
-
-    /**
-     * get last valid route point.
-     *
-     * @param routeId the id of the route.
-     * @return the last valid location.
-     */
-    Location getLastValidRouteTrack(long routeId);
-
-    /**
-     * gets the last valid location from the db for a specific route.
-     *
-     * @param routeId the id of the route
-     * @return the last location.
-     */
-    Location getLastValidLocation(long routeId);
 }
