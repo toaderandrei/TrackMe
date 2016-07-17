@@ -8907,3 +8907,12 @@
 /tracklib/build/tmp/expandedArchives/classes.jar_9oiw7pdhkg4hckyw351arucur/com/ant/track/lib/db/provider/TrackMeDbProvider$1.class
 /tracklib/build/tmp/expandedArchives/classes.jar_9oiw7pdhkg4hckyw351arucur/com/ant/track/lib/db/provider/TrackMeDbProvider$UriType.class
 /tracklib/build/tmp/expandedArchives/classes.jar_9oiw7pdhkg4hckyw351arucur/com/ant/track/lib/db/provider/TrackMeDbProvider.class
+/tracklib/build/intermediates/classes/release/com/ant/track/lib/db/DatabaseConstants.class
+/tracklib/build/intermediates/classes/release/com/ant/track/lib/db/exceptions/TrackMeProviderExceptions.class
+/tracklib/build/intermediates/classes/release/com/ant/track/lib/db/provider/TrackMeContract$RouteCheckPointEntry.class
+/tracklib/build/intermediates/classes/release/com/ant/track/lib/db/provider/TrackMeContract$RouteEntry.class
+/tracklib/build/intermediates/classes/release/com/ant/track/lib/db/provider/TrackMeContract$RoutePointEntry.class
+/tracklib/build/intermediates/classes/release/com/ant/track/lib/db/provider/TrackMeContract.class
+/tracklib/build/intermediates/classes/release/com/ant/track/lib/db/provider/TrackMeDbProvider$1.class
+/tracklib/build/intermediates/classes/release/com/ant/track/lib/db/provider/TrackMeDbProvider$UriType.class
+/tracklib/build/intermediates/classes/release/com/ant/track/lib/db/provider/TrackMeDbProvider.class
