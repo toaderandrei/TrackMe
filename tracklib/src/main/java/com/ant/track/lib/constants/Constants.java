@@ -10,6 +10,11 @@ public class Constants {
 
     public static final int MAX_LONGITUDE = 180;
     public static final int MAX_LATITUDE = 90;
+
+    public static double PAUSE_LATITUDE = 100.0d;
+
+    public static double PAUSE_LONGITUDE = 200.0d;
+
     /**
      * The number of speed reading to smooth to get a somewhat accurate signal.
      */

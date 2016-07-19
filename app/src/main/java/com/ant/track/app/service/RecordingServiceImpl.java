@@ -5,6 +5,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Handler;
@@ -35,6 +36,9 @@ import com.ant.track.lib.constants.Constants;
 import com.ant.track.lib.db.content.TrackMeDatabaseUtils;
 import com.ant.track.lib.db.content.TrackMeDatabaseUtilsImpl;
 import com.ant.track.lib.model.Route;
+import com.ant.track.lib.model.RouteCheckPoint;
+import com.ant.track.lib.model.RoutePoint;
+import com.ant.track.lib.model.RouteTrackCreator;
 import com.ant.track.lib.prefs.PreferenceUtils;
 import com.ant.track.lib.stats.RouteStatsManager;
 import com.ant.track.lib.utils.LocationUtils;
@@ -50,8 +54,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class RecordingServiceImpl extends Service {
 
     private long routeId;
-    private static double PAUSE_LATITUDE = 100.0d;
-
     private static final long ONE_MINUTE = (long) (UnitConversions.MIN_TO_S * UnitConversions.S_TO_MS);
     // 1 second in milliseconds
     private static final long ONE_SECOND = (long) UnitConversions.S_TO_MS;
@@ -346,6 +348,7 @@ public class RecordingServiceImpl extends Service {
             sendErrorLocationUpdate(new ErrorLocation(exc, location));
         }
         sendLocationUpdate(location);
+        showNotification();
     }
 
     private void updateRecordingRoute(Route route, long lastInsertedId, boolean isValidLocation) {
@@ -439,7 +442,40 @@ public class RecordingServiceImpl extends Service {
         PreferenceUtils.setRouteId(this, R.string.route_id_key, insertedRouteId);
         route.setRouteId(insertedRouteId);
         routeId = insertedRouteId;
+        trackMeDatabaseUtils.updateRouteTrack(route);
+        insertRoutePoint(RouteTrackCreator.DEFAULT_ROUTE_TRACK_BUILDER);
+        insertRouteCheckPoint(RouteTrackCreator.DEFAULT_ROUTE_TRACK_BUILDER);
         updateRecordingState(routeId, RecordingState.STARTED);
+    }
+
+    private long insertRoutePoint(RouteTrackCreator routeTrackCreator) {
+
+        if (!isRecording || isPaused()) {
+            return -1L;
+        }
+
+        Location location = trackMeDatabaseUtils.getLastValidLoctionForRoute(routeId);
+        if (!LocationUtils.isValidLocation(location)) {
+            location = routeTrackCreator.getLocation();
+        }
+        RoutePoint routePoint = new RoutePoint(routeId, location, null);
+        Uri uri = trackMeDatabaseUtils.insertRoutePoint(routePoint);
+        return Long.parseLong(uri.getLastPathSegment());
+    }
+
+    private long insertRouteCheckPoint(RouteTrackCreator routeTrackCreator) {
+
+        if (!isRecording || isPaused()) {
+            return -1L;
+        }
+
+        Location location = trackMeDatabaseUtils.getLastValidLoctionForRoute(routeId);
+        if (!LocationUtils.isValidLocation(location)) {
+            location = routeTrackCreator.getLocation();
+        }
+        RouteCheckPoint routePoint = new RouteCheckPoint(routeId, routeTrackCreator.getName(), routeTrackCreator.getDescription(), location, null, String.valueOf(Color.BLUE));
+        Uri uri = trackMeDatabaseUtils.insertRoutePoint(routePoint);
+        return Long.parseLong(uri.getLastPathSegment());
     }
 
     private void resumeTracking() {
@@ -506,11 +542,16 @@ public class RecordingServiceImpl extends Service {
      * Shows the notification.
      */
     private void showNotification() {
-        Intent intent = IntentUtils.newIntentWithAction(IntentUtils.MAIN_ACTIVITY_ACTION).putExtra(Constants.EXTRA_RECORDING_ID, isRecording);
-        PendingIntent pendingIntent = TaskStackBuilder.create(this).addParentStack(MainActivity.class).addNextIntent(intent).getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-        startForegroundService(pendingIntent, R.string.tracking_record_notification);
-        sendMessageToListeners(RecordingServiceConstants.MSG_SHOW_NOTIFICATIONS);
-        // Not recording
+        if (isRecording) {
+            if (!isPaused()) {
+                Intent intent = IntentUtils.newIntentWithAction(IntentUtils.MAIN_ACTIVITY_ACTION).putExtra(Constants.EXTRA_RECORDING_ID, isRecording);
+                PendingIntent pendingIntent = TaskStackBuilder.create(this).addParentStack(MainActivity.class).addNextIntent(intent).getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+                startForegroundService(pendingIntent, R.string.tracking_record_notification);
+                sendMessageToListeners(RecordingServiceConstants.MSG_SHOW_NOTIFICATIONS);
+            } else {
+                stopForegroundService();
+            }
+        }
     }
 
     private void stopNotifications() {
