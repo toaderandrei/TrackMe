@@ -308,7 +308,7 @@ public class RecordingServiceImpl extends Service {
             //todo we need to find a way that can show on the map and on the track that we basically had a long location or something in between.
             //todo tunnel mode can happen?
             Location pauseLocation = new Location("GPS");
-            pauseLocation.setLatitude(PAUSE_LATITUDE);
+            pauseLocation.setLatitude(Constants.PAUSE_LATITUDE);
             //todo think about a better time, maybe a mix between last valid and current location?
             pauseLocation.setTime(location.getTime());
             insertLocation(route, pauseLocation, lastValidTrackLocation);
