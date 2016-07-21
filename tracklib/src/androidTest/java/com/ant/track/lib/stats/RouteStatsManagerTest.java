@@ -63,7 +63,7 @@ public class RouteStatsManagerTest extends AndroidJUnitRunner {
     @Test
     public void testAddPausedLocation() {
         Location location = new Location("GPS");
-        location.setLatitude(LocationUtils.PAUSE_LATITUDE);
+        location.setLatitude(LocationUtils.PAUSE_RESUME_LATITUDE);
         manager.addLocationToStats(location, 0.1);
         assertEquals(0.0, manager.getAvgSpeed());
     }
@@ -107,8 +107,8 @@ public class RouteStatsManagerTest extends AndroidJUnitRunner {
         assertTrue(manager.getAvgSpeed() > 0);
         double distance = manager.getCurrentSegmentStats().getTotalDistance();
         Location loc3 = DEFAULT_LINZ_LOC_3;
-        loc3.setLatitude(LocationUtils.PAUSE_LATITUDE);
-        loc3.setLongitude(LocationUtils.PAUSE_LONGITUDE);
+        loc3.setLatitude(LocationUtils.PAUSE_RESUME_LATITUDE);
+        loc3.setLongitude(LocationUtils.RESUME_LONGITUDE);
 
         loc3.setTime(loc2.getTime() + 100 * SMALL_TIME_DIFF);
         manager.addLocationToStats(loc3, 1000);

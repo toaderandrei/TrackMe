@@ -30,6 +30,11 @@ public interface TrackMeDatabaseUtils {
     long getLastValidPointId(long routeId);
 
     /**
+     * gets the last route check point.
+     */
+    RouteCheckPoint getLastCheckPoint(long routeIdd);
+
+    /**
      * gets the first location for route.
      *
      * @param routeid the id of the route.
@@ -43,7 +48,7 @@ public interface TrackMeDatabaseUtils {
      * @param routeId the id of the route.
      * @return the last valid location.
      */
-    Location getLastValidLoctionForRoute(long routeId);
+    Location getLastValidLocationForRoute(long routeId);
 
     /**
      * inserts a new route into the database

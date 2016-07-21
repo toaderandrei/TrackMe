@@ -15,6 +15,7 @@ public class RouteCheckPoint extends RoutePoint implements Parcelable {
     private String name;
     private String description;
 
+
     @VisibleForTesting
     public RouteCheckPoint() {
     }

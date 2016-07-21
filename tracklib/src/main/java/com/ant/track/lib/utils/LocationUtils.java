@@ -17,9 +17,12 @@ public class LocationUtils {
     public static final int RECORDING_GPS_ACCURACY_POOR = 200;
 
 
-    public static final double PAUSE_LATITUDE = 100;
+    public static final double PAUSE_RESUME_LATITUDE = 100;
 
-    public static final double PAUSE_LONGITUDE = 200;
+    public static final double RESUME_LONGITUDE = 200;
+
+
+    public static final double PAUSE_LONGITUDE = 300;
 
     /**
      * Checks if a given location is a valid (i.e. physically possible) location

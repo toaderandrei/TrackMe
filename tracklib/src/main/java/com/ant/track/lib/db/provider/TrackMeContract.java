@@ -144,10 +144,6 @@ public class TrackMeContract {
 
         public static final String TIME = "time";
 
-        public static final String DURATION = "duration";
-
-        public static final String TOTAL_TIME = "total_time";
-
         public static final String SPEED = "speed";
 
         public static final String MARKER_COLOR = "marker_color";

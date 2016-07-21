@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.location.Location;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.ant.track.lib.application.TrackLibApplication;
 import com.ant.track.lib.constants.Constants;
@@ -36,6 +37,7 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
     public static final String PARAM_EQUAL_QUESTION_MARK = "=?)";
     public static final String PARAM_EQUAL_STRING = " =?";
     private static TrackMeDatabaseUtils instance;
+    private static final String TAG = TrackMeDatabaseUtilsImpl.class.getCanonicalName();
 
     public static TrackMeDatabaseUtils getInstance() {
         if (instance == null) {
@@ -130,6 +132,25 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
         return -1L;
     }
 
+    @Override
+    public RouteCheckPoint getLastCheckPoint(long routeId) {
+        if (routeId < 0) {
+            return null;
+        }
+        Cursor cursor;
+
+        try {
+            String selection = TrackMeContract.RouteCheckPointEntry.ROUTE_ID + PARAM_EQUAL_STRING;
+            String[] args = new String[]{String.valueOf(routeId)};
+            cursor = getContentResolver().query(TrackMeContract.RouteCheckPointEntry.CONTENT_URI, null, selection, args, DatabaseConstants.DEFAULT_ORDER_COLUMN);
+            return createRouteCheckPointFromCursor(cursor);
+        } catch (Exception exc) {
+            Log.e(TAG, "exception:" + exc);
+        }
+        return null;
+
+    }
+
     private Cursor getRoutePointCursor(String[] strings, String selection, String[] selectionArgs, String sortOrder) {
         return getContentResolver().query(TrackMeContract.RoutePointEntry.CONTENT_URI, strings, selection, selectionArgs, sortOrder);
     }
@@ -148,7 +169,7 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
     }
 
     @Override
-    public Location getLastValidLoctionForRoute(long routeId) {
+    public Location getLastValidLocationForRoute(long routeId) {
         if (routeId < 0) {
             return null;
         }
@@ -383,6 +404,67 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
         getContentResolver().delete(TrackMeContract.RouteCheckPointEntry.CONTENT_URI, where, selectArgs);
 
     }
+
+    private RouteCheckPoint createRouteCheckPointFromCursor(Cursor cursor) {
+        int idxId = cursor.getColumnIndexOrThrow(TrackMeContract.RouteCheckPointEntry._ID);
+        int idxName = cursor.getColumnIndexOrThrow(TrackMeContract.RouteCheckPointEntry.NAME);
+        int idxDescription = cursor.getColumnIndexOrThrow(TrackMeContract.RouteCheckPointEntry.DESCRIPTION);
+        int idxRouteId = cursor.getColumnIndexOrThrow(TrackMeContract.RouteCheckPointEntry.ROUTE_ID);
+        int idxSpeed = cursor.getColumnIndexOrThrow(TrackMeContract.RouteCheckPointEntry.SPEED);
+        int idxTime = cursor.getColumnIndexOrThrow(TrackMeContract.RouteCheckPointEntry.TIME);
+
+        int idxLocAccuracy = cursor.getColumnIndexOrThrow(TrackMeContract.RouteCheckPointEntry.LOCATION_ACCURACY);
+        int idxLocLatitude = cursor.getColumnIndexOrThrow(TrackMeContract.RouteCheckPointEntry.LOCATION_LAT);
+        int idxLocLongitude = cursor.getColumnIndexOrThrow(TrackMeContract.RouteCheckPointEntry.LOCATION_LONG);
+        int idxLocBearing = cursor.getColumnIndexOrThrow(TrackMeContract.RouteCheckPointEntry.LOCATION_BEARING);
+        int idxLocAlt = cursor.getColumnIndexOrThrow(TrackMeContract.RouteCheckPointEntry.LOCATION_ALT);
+        int idxMarkerColor = cursor.getColumnIndexOrThrow(TrackMeContract.RouteCheckPointEntry.MARKER_COLOR);
+
+        RouteCheckPoint routeCheckPoint = new RouteCheckPoint();
+        if (!isNull(cursor, idxId)) {
+            routeCheckPoint.setId(cursor.getLong(idxId));
+        }
+        //name
+        if (!isNull(cursor, idxName)) {
+            routeCheckPoint.setName(cursor.getString(idxName));
+        }
+        //desc
+        if (!isNull(cursor, idxDescription)) {
+            routeCheckPoint.setDescription(cursor.getString(idxDescription));
+        }
+        //stats
+        if (!isNull(cursor, idxSpeed)) {
+            routeCheckPoint.setSpeed(cursor.getFloat(idxSpeed));
+        }
+        if (!isNull(cursor, idxTime)) {
+            routeCheckPoint.setTime(cursor.getLong(idxTime));
+        }
+
+        if (!isNull(cursor, idxLocAccuracy)) {
+            routeCheckPoint.setLocationBearing(cursor.getFloat(idxLocBearing));
+        }
+
+        if (!isNull(cursor, idxLocAlt)) {
+            routeCheckPoint.setLocation_alt(cursor.getFloat(idxLocAlt));
+        }
+
+        if (!isNull(cursor, idxLocLatitude) &&
+                !isNull(cursor, idxLocLongitude)) {
+            routeCheckPoint.setLocation_lat(LocationUtils.getLatitudeFromLatitude1E6(cursor.getInt(idxLocLatitude)));
+            routeCheckPoint.setLocation_long(LocationUtils.getLatitudeFromLatitude1E6(cursor.getInt(idxLocLongitude)));
+        }
+
+        if (!isNull(cursor, idxMarkerColor)) {
+            routeCheckPoint.setLocationBearing(cursor.getInt(idxMarkerColor));
+        }
+
+        if (!isNull(cursor, idxRouteId)) {
+            routeCheckPoint.setRouteId(cursor.getLong(idxLocBearing));
+        }
+        return routeCheckPoint;
+
+    }
+
 
     private Route createRouteFromCursor(Cursor cursor) {
         int idxId = cursor.getColumnIndexOrThrow(TrackMeContract.RouteEntry._ID);

@@ -12,6 +12,7 @@ import android.support.annotation.VisibleForTesting;
 public class RoutePoint implements Parcelable {
 
     private long _id;
+    private long routeId;
     private Location location;
     private String activityMode;
 
@@ -21,15 +22,18 @@ public class RoutePoint implements Parcelable {
     }
 
     public RoutePoint(long id,
+                      long routeId,
                       Location location,
                       String activityMode) {
         this._id = id;
+        this.routeId = routeId;
         this.location = location;
         this.activityMode = activityMode;
     }
 
     protected RoutePoint(Parcel in) {
         _id = in.readLong();
+        in.readLong();
         location = in.readParcelable(Location.class.getClassLoader());
         activityMode = in.readString();
     }
@@ -37,6 +41,7 @@ public class RoutePoint implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeLong(_id);
+        dest.writeLong(routeId);
         dest.writeParcelable(location, flags);
         dest.writeString(activityMode);
     }
@@ -176,6 +181,14 @@ public class RoutePoint implements Parcelable {
             return false;
         }
         return location.hasBearing();
+    }
+
+    public long getRouteId() {
+        return routeId;
+    }
+
+    public void setRouteId(long routeid) {
+        this.routeId = routeid;
     }
 
     private boolean hasLocation() {

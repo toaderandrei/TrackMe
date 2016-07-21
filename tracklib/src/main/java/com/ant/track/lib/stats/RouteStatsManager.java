@@ -42,7 +42,7 @@ public class RouteStatsManager {
         currentRouteStats = new RouteStats(time);
         currentSegmentStats = new RouteStats(time);
         lastLocation = new Location(Constants.GPS);
-        lastLocation.setLatitude(LocationUtils.PAUSE_LATITUDE);
+        lastLocation.setLatitude(LocationUtils.PAUSE_RESUME_LATITUDE);
     }
 
     public void addLocationToStats(Location location, double minRecordingDistance) {
@@ -103,7 +103,7 @@ public class RouteStatsManager {
 
 
     private boolean isPausedLocation(Location location) {
-        if (location.getLatitude() == LocationUtils.PAUSE_LATITUDE || location.getLongitude() == LocationUtils.PAUSE_LONGITUDE) {
+        if (location.getLatitude() == LocationUtils.PAUSE_RESUME_LATITUDE || location.getLongitude() == LocationUtils.RESUME_LONGITUDE) {
             return true;
         }
         return false;
