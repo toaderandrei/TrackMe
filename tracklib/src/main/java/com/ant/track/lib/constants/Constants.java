@@ -8,6 +8,11 @@ import android.support.annotation.VisibleForTesting;
 public class Constants {
 
 
+    /**
+     * The settings file name.
+     */
+    public static final String SETTINGS_NAME = "SettingsActivity";
+
     public static final int MAX_LONGITUDE = 180;
     public static final int MAX_LATITUDE = 90;
 

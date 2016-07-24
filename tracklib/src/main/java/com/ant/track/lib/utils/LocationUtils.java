@@ -1,6 +1,7 @@
 package com.ant.track.lib.utils;
 
 import android.location.Location;
+import android.location.LocationManager;
 
 import com.ant.track.lib.constants.Constants;
 
@@ -83,6 +84,10 @@ public class LocationUtils {
 
     public static boolean isValidAltitude(double location_alt) {
         return location_alt < Double.POSITIVE_INFINITY && location_alt > Double.NEGATIVE_INFINITY;
+    }
+
+    public static Location createLocation() {
+        return new Location(LocationManager.GPS_PROVIDER);
     }
 }
 

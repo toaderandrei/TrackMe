@@ -1,4 +1,4 @@
-package com.ant.track.lib.db.content;
+package com.ant.track.lib.db.content.factory;
 
 import android.content.ContentValues;
 import android.location.Location;
@@ -7,6 +7,8 @@ import android.net.Uri;
 import com.ant.track.lib.model.Route;
 import com.ant.track.lib.model.RouteCheckPoint;
 import com.ant.track.lib.model.RoutePoint;
+
+import java.util.List;
 
 /**
  * utility class used for creating route objects out
@@ -29,10 +31,12 @@ public interface TrackMeDatabaseUtils {
      */
     long getLastValidPointId(long routeId);
 
+    RoutePoint getLastRoutePoint(long routeId);
+
     /**
      * gets the last route check point.
      */
-    RouteCheckPoint getLastCheckPoint(long routeIdd);
+    RouteCheckPoint getLastRouteCheckPoint(long routeIdd);
 
     /**
      * gets the first location for route.
@@ -136,5 +140,14 @@ public interface TrackMeDatabaseUtils {
      */
     Route getRouteById(long routeId);
 
+    List<Route> getAllRoutes();
+
+    List<RoutePoint> getAllRoutePointIds(long routeId);
+
+    List<RoutePoint> getAllRoutePointIds(long routeId, boolean descending);
+
     Uri insertRoutePoint(long routeId, Location location);
+
+    LocationIterator getRoutePointsIterator(long routeId,
+                                            long startTrackPointId);
 }

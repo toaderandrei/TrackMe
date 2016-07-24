@@ -35,13 +35,15 @@ import com.ant.track.app.location.RecordingInterval;
 import com.ant.track.app.provider.IDataProvider;
 import com.ant.track.app.service.utils.UnitConversions;
 import com.ant.track.lib.constants.Constants;
-import com.ant.track.lib.db.content.TrackMeDatabaseUtils;
-import com.ant.track.lib.db.content.TrackMeDatabaseUtilsImpl;
+import com.ant.track.lib.db.content.factory.LocationIterator;
+import com.ant.track.lib.db.content.factory.TrackMeDatabaseUtils;
+import com.ant.track.lib.db.content.factory.TrackMeDatabaseUtilsImpl;
 import com.ant.track.lib.model.Route;
 import com.ant.track.lib.model.RouteCheckPoint;
 import com.ant.track.lib.model.RoutePoint;
 import com.ant.track.lib.model.RouteTrackCreator;
 import com.ant.track.lib.prefs.PreferenceUtils;
+import com.ant.track.lib.stats.RouteStats;
 import com.ant.track.lib.stats.RouteStatsManager;
 import com.ant.track.lib.utils.LocationUtils;
 import com.google.android.gms.location.LocationListener;
@@ -192,7 +194,7 @@ public class RecordingServiceImpl extends Service {
         //this is useful in case a service restart occurs - which happens
         Route route = TrackMeDatabaseUtilsImpl.getInstance().getRouteById(routeId);
         if (route != null) {
-            restartRoute();
+            restartRoute(route);
         } else {
             if (isRecording()) {
                 //cannot be paused - just started
@@ -210,8 +212,28 @@ public class RecordingServiceImpl extends Service {
         PreferenceUtils.setString(this, R.string.recording_state_key, recordingState.getState());
     }
 
-    private void restartRoute() {
-        //todo restart the route from the last point - last id inserted.
+    private void restartRoute(Route route) {
+        //first get the stats from route.
+        RouteStats routeStats = route.getRouteStats();
+        RouteStatsManager routeStatsManager = new RouteStatsManager(routeStats.getStartTime());
+
+        //try to add all the locations using a location iterator and the start time
+        LocationIterator locationIterator = null;
+        try {
+            locationIterator = trackMeDatabaseUtils.getRoutePointsIterator(route.getRouteId(), -1L);
+
+            while (locationIterator.hasNext()) {
+                Location location = locationIterator.next();
+                routeStatsManager.addLocationToStats(location, minRecordingDistance);
+            }
+        } catch (RuntimeException e) {
+            Log.e(TAG, "RuntimeException", e);
+        } finally {
+            if (locationIterator != null) {
+                locationIterator.close();
+            }
+        }
+        startRecording();
     }
 
     private SharedPreferences getSharedPrefs() {

@@ -1,4 +1,4 @@
-package com.ant.track.lib.db.content;
+package com.ant.track.lib.db.content.factory;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -19,6 +19,11 @@ import com.ant.track.lib.stats.RouteStats;
 import com.ant.track.lib.utils.LocationUtils;
 import com.ant.track.lib.utils.SpeedUtils;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.NoSuchElementException;
+
 /**
  * Track me database utility class. It deals with insertion, deletion,
  * updating and deleting of data from db. It is used for assembling data
@@ -36,7 +41,12 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
     public static final String PARAM_SELECT_MIN = "=(select min(";
     public static final String PARAM_EQUAL_QUESTION_MARK = "=?)";
     public static final String PARAM_EQUAL_STRING = " =?";
+    public static final String QUERY_AND = " AND ";
+    public static final String QUERY_DESCENDING = " DESCENDING";
+    private static final String QUERY_ASCENDING = " ASC";
     private static TrackMeDatabaseUtils instance;
+    private int defaultCursorBatchSize = 2000;
+
     private static final String TAG = TrackMeDatabaseUtilsImpl.class.getCanonicalName();
 
     public static TrackMeDatabaseUtils getInstance() {
@@ -73,6 +83,36 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
     }
 
     @Override
+    public List<Route> getAllRoutes() {
+        ArrayList<Route> routeList = new ArrayList<>();
+        Cursor cursor = null;
+        try {
+            cursor = getRouteCursor(null);
+            if (cursor != null && cursor.moveToFirst()) {
+                routeList.ensureCapacity(cursor.getCount());
+                do {
+                    routeList.add(createRouteFromCursor(cursor));
+                } while (cursor.moveToNext());
+            }
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+        return routeList;
+    }
+
+    @Override
+    public List<RoutePoint> getAllRoutePointIds(long routeId) {
+        return getAllRoutePointIdsInternal(routeId, null);
+    }
+
+    @Override
+    public List<RoutePoint> getAllRoutePointIds(long routeId, boolean descending) {
+        return getAllRoutePointIds(routeId, descending);
+    }
+
+    @Override
     public Uri insertRoutePoint(long routeId, Location location) {
         RoutePoint routePoint = new RoutePoint();
         routePoint.setLocation(location);
@@ -81,8 +121,8 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
     }
 
     @Override
-    public long getFirstRoutePointId(long trackId) {
-        if (trackId < 0) {
+    public long getFirstRoutePointId(long routeId) {
+        if (routeId < 0) {
             return -1L;
         }
         Cursor cursor = null;
@@ -90,8 +130,8 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
             String selection = TrackMeContract.RoutePointEntry._ID + PARAM_SELECT_MIN + TrackMeContract.RoutePointEntry._ID
                     + PARAM_FROM + TrackMeContract.RoutePointEntry.TABLE_NAME + PARAM_WHERE + TrackMeContract.RoutePointEntry.ROUTE_ID
                     + PARAM_EQUAL_QUESTION_MARK;
-            String[] selectionArgs = new String[]{Long.toString(trackId)};
-            cursor = getRoutePointCursor(new String[]{TrackMeContract.RoutePointEntry._ID},
+            String[] selectionArgs = new String[]{Long.toString(routeId)};
+            cursor = getRoutePointCursorById(new String[]{TrackMeContract.RoutePointEntry._ID},
                     selection,
                     selectionArgs,
                     TrackMeContract.RoutePointEntry._ID);
@@ -117,7 +157,7 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
                     + TrackMeContract.RoutePointEntry.TABLE_NAME + TrackMeContract.RoutePointEntry.TABLE_NAME + PARAM_WHERE + TrackMeContract.RoutePointEntry.ROUTE_ID
                     + PARAM_EQUAL_QUESTION_MARK;
             String[] selectionArgs = new String[]{Long.toString(routeId)};
-            cursor = getRoutePointCursor(new String[]{TrackMeContract.RoutePointEntry._ID},
+            cursor = getRoutePointCursorById(new String[]{TrackMeContract.RoutePointEntry._ID},
                     selection,
                     selectionArgs,
                     TrackMeContract.RoutePointEntry._ID);
@@ -133,7 +173,28 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
     }
 
     @Override
-    public RouteCheckPoint getLastCheckPoint(long routeId) {
+    public RoutePoint getLastRoutePoint(long routeId) {
+        if (routeId < 0) {
+            return null;
+        }
+        Cursor cursor;
+
+        try {
+            String selection = TrackMeContract.RoutePointEntry.ROUTE_ID + PARAM_EQUAL_STRING;
+            String[] args = new String[]{String.valueOf(routeId)};
+
+            cursor = getContentResolver().query(TrackMeContract.RoutePointEntry.CONTENT_URI, null, selection, args, null);
+            return createRoutePointFromCursor(cursor);
+        } catch (Exception exc) {
+            Log.e(TAG, "exception:" + exc);
+        }
+        return null;
+
+    }
+
+
+    @Override
+    public RouteCheckPoint getLastRouteCheckPoint(long routeId) {
         if (routeId < 0) {
             return null;
         }
@@ -142,17 +203,15 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
         try {
             String selection = TrackMeContract.RouteCheckPointEntry.ROUTE_ID + PARAM_EQUAL_STRING;
             String[] args = new String[]{String.valueOf(routeId)};
-            cursor = getContentResolver().query(TrackMeContract.RouteCheckPointEntry.CONTENT_URI, null, selection, args, DatabaseConstants.DEFAULT_ORDER_COLUMN);
+            String sortOrder = DatabaseConstants.DEFAULT_ORDER_COLUMN;
+            sortOrder += QUERY_DESCENDING;
+            cursor = getContentResolver().query(TrackMeContract.RouteCheckPointEntry.CONTENT_URI, null, selection, args, sortOrder);
             return createRouteCheckPointFromCursor(cursor);
         } catch (Exception exc) {
             Log.e(TAG, "exception:" + exc);
         }
         return null;
 
-    }
-
-    private Cursor getRoutePointCursor(String[] strings, String selection, String[] selectionArgs, String sortOrder) {
-        return getContentResolver().query(TrackMeContract.RoutePointEntry.CONTENT_URI, strings, selection, selectionArgs, sortOrder);
     }
 
 
@@ -165,7 +224,7 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
                 + TrackMeContract.RoutePointEntry.TABLE_NAME + PARAM_WHERE + TrackMeContract.RoutePointEntry.ROUTE_ID + PARAM_AND
                 + TrackMeContract.RoutePointEntry.LOCATION_LAT + PARAM_LESS_OR_EQUAL + Constants.MAX_LATITUDE + PARAM_COMMA_CLOSE;
         String[] selectionArgs = new String[]{Long.toString(routeid)};
-        return findTrackPointBy(selection, selectionArgs);
+        return findRoutePointBy(selection, selectionArgs);
     }
 
     @Override
@@ -177,13 +236,8 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
                 + TrackMeContract.RoutePointEntry.TABLE_NAME + PARAM_WHERE + TrackMeContract.RoutePointEntry.ROUTE_ID + PARAM_AND
                 + TrackMeContract.RoutePointEntry.LOCATION_LAT + PARAM_LESS_OR_EQUAL + Constants.MAX_LATITUDE + PARAM_COMMA_CLOSE;
         String[] selectionArgs = new String[]{Long.toString(routeId)};
-        return findTrackPointBy(selection, selectionArgs);
+        return findRoutePointBy(selection, selectionArgs);
     }
-
-    private Location findTrackPointBy(String selection, String[] selectionArgs) {
-        return null;
-    }
-
 
     @Override
     public Uri insertRouteTrack(Route route) {
@@ -249,15 +303,168 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
 
     @Override
     public int updateRoutePoint(RoutePoint routePoint) {
-        String where = TrackMeContract.RouteEntry._ID + " =?";
+        String where = TrackMeContract.RouteEntry._ID + PARAM_EQUAL_STRING;
         String[] args = new String[]{String.valueOf(routePoint.getId())};
         ContentValues values = createContentValues(routePoint);
         return getContentResolver().update(TrackMeContract.RouteEntry.CONTENT_URI, values, where, args);
     }
 
+
+    @Override
+    public LocationIterator getRoutePointsIterator(final long routeId,
+                                                   final long startRoutePointId) {
+        return new LocationIterator() {
+            private boolean descending = true;
+            private long lastRoutePointId = -1L;
+            private Cursor cursor = getCursor(startRoutePointId);
+            private List<RoutePoint> routePoints = getAllRoutePointsByRouteId(routeId);
+            private final CachedTrackPointsIndexes indexes = cursor != null ? new CachedTrackPointsIndexes(cursor) : null;
+
+            /**
+             * Gets the routepoint cursor.
+             *
+             * @param routePointId the starting route point id
+             */
+            private Cursor getCursor(long routePointId) {
+                return getRoutePointCursorById(routeId, routePointId, defaultCursorBatchSize, descending);
+            }
+
+
+            private List<RoutePoint> getAllRoutePointsByRouteId(long routeid) {
+                return getAllRoutePointIds(routeid, descending);
+            }
+
+            /**
+             * Advances the cursor to the next batch. Returns true if successful.
+             */
+            private boolean advanceCursorToNextBatch() {
+                close();
+                long lastRoutePointId = -1L;
+                int lastIndex = routePoints.size() - 1;
+                if (lastIndex >= 0) {
+                    RoutePoint routePoint = routePoints.remove(lastIndex);
+                    lastRoutePointId = routePoint.getId();
+                }
+                cursor = getCursor(lastRoutePointId);
+                return cursor != null;
+            }
+
+            @Override
+            public long getLocationId() {
+                return lastRoutePointId;
+            }
+
+            @Override
+            public boolean hasNext() {
+
+                if (cursor == null) {
+                    return false;
+                }
+
+                if (cursor.isAfterLast()) {
+                    return false;
+                }
+
+                if (cursor.isLast()) {
+                    if (cursor.getCount() != defaultCursorBatchSize) {
+                        return false;
+                    }
+                    return advanceCursorToNextBatch();
+                }
+
+                return true;
+            }
+
+            @Override
+            public Location next() {
+
+                if (!cursor.moveToNext() || !advanceCursorToNextBatch()) {
+                    throw new NoSuchElementException("no element found");
+                }
+
+                Location loc = LocationUtils.createLocation();
+                lastRoutePointId = cursor.getLong(indexes.idIndex);
+                return updateRoutePointFromCursorAndCache(cursor, indexes, loc);
+            }
+
+            @Override
+            public void close() {
+                if (cursor != null) {
+                    cursor.close();
+                }
+            }
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+        };
+    }
+
+
     //====================================end of public methods==================================================//
 
     //====================================private methods========================================================//
+
+
+    @NonNull
+    private List<RoutePoint> getAllRoutePointIdsInternal(long routeId, Boolean descending) {
+        List<RoutePoint> routeList = new LinkedList<>();
+        Cursor cursor = null;
+        try {
+            cursor = getRoutePointCursorById(routeId, descending);
+            if (cursor != null && cursor.moveToFirst()) {
+                do {
+                    routeList.add(createRoutePointFromCursor(cursor));
+                } while (cursor.moveToNext());
+            }
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+        return routeList;
+    }
+
+    private Cursor getRoutePointCursorById(long routeId, Boolean descending) {
+        String where = null;
+        String[] args = null;
+        String sortOrder = null;
+        if (routeId != -1L) {
+            where = TrackMeContract.RoutePointEntry.ROUTE_ID + PARAM_EQUAL_STRING;
+            args = new String[]{Long.toString(routeId)};
+            sortOrder = DatabaseConstants.DEFAULT_ORDER_COLUMN;
+            if (descending) {
+                sortOrder += QUERY_DESCENDING;
+            } else {
+                sortOrder += QUERY_ASCENDING;
+            }
+        }
+        return getContentResolver().query(TrackMeContract.RoutePointEntry.CONTENT_URI, null, where, args, sortOrder);
+    }
+
+    private Cursor getRoutePointCursorById(long routeId) {
+        String where = null;
+        String[] args = null;
+        if (routeId != -1L) {
+            where = TrackMeContract.RoutePointEntry.ROUTE_ID + PARAM_EQUAL_STRING;
+            args = new String[]{Long.toString(routeId)};
+        }
+        return getContentResolver().query(TrackMeContract.RoutePointEntry.CONTENT_URI, null, where, args, null);
+    }
+
+    private Cursor getRoutePointCursorById() {
+        return getContentResolver().query(TrackMeContract.RoutePointEntry.CONTENT_URI, null, null, null, DatabaseConstants.DEFAULT_ORDER_COLUMN);
+    }
+
+    private Cursor getRoutePointCursorById(String[] strings, String selection, String[] selectionArgs, String sortOrder) {
+        return getContentResolver().query(TrackMeContract.RoutePointEntry.CONTENT_URI, strings, selection, selectionArgs, sortOrder);
+    }
+
+
+    private RoutePoint createRoutePointFromCursor(Cursor cursor) {
+        return null;
+    }
 
     private ContentValues createContentValues(RoutePoint routePoint) {
         ContentValues contentValues = new ContentValues();
@@ -403,6 +610,141 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
         selectArgs = new String[]{String.valueOf(id)};
         getContentResolver().delete(TrackMeContract.RouteCheckPointEntry.CONTENT_URI, where, selectArgs);
 
+    }
+
+    private Location findRoutePointBy(String selection, String[] selectionArgs) {
+        Location location = null;
+        Cursor cursor = null;
+        try {
+            cursor = getContentResolver().query(TrackMeContract.RoutePointEntry.CONTENT_URI, null, selection, selectionArgs, null);
+            if (cursor != null && cursor.moveToNext()) {
+                location = getLocationFromCursor(cursor);
+            }
+        } catch (Exception exc) {
+            Log.e(TAG, "exception in retrieving data.");
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+        return location;
+    }
+
+    private Location getLocationFromCursor(Cursor cursor) {
+        Location location = LocationUtils.createLocation();
+        CachedTrackPointsIndexes cursorIndexes = new CachedTrackPointsIndexes(cursor);
+        if (!cursor.isNull(cursorIndexes.latitudeIndex)) {
+            location.setLatitude(((double) cursor.getInt(cursorIndexes.latitudeIndex)) / 1E6);
+        }
+
+        if (!cursor.isNull(cursorIndexes.longitudeIndex)) {
+            location.setLatitude(((double) cursor.getInt(cursorIndexes.longitudeIndex)) / 1E6);
+        }
+
+        if (!cursor.isNull(cursorIndexes.altitudeIndex)) {
+            location.setLatitude(cursor.getFloat(cursorIndexes.altitudeIndex));
+        }
+
+        if (!cursor.isNull(cursorIndexes.accuracyIndex)) {
+            location.setLatitude(cursor.getFloat(cursorIndexes.accuracyIndex));
+        }
+
+        if (!cursor.isNull(cursorIndexes.bearingIndex)) {
+            location.setLatitude(cursor.getFloat(cursorIndexes.bearingIndex));
+        }
+
+        return location;
+    }
+
+
+    private Cursor getRoutePointCursorById(long routeId, long startRoutePointId, int defaultCursorBatchSize, boolean descending) {
+        if (routeId == -1L) {
+            return null;
+        }
+
+        String selection = "";
+        String[] selectionArgs;
+
+        if (startRoutePointId >= 0) {
+            String comparison = descending ? "<=" : ">=";
+            selection += TrackMeContract.RoutePointEntry._ID + PARAM_EQUAL_STRING + QUERY_AND + TrackMeContract.RoutePointEntry.ROUTE_ID + comparison;
+            selectionArgs = new String[]{String.valueOf(startRoutePointId), String.valueOf(routeId)};
+
+        } else {
+            selection = TrackMeContract.RoutePointEntry._ID;
+            selectionArgs = new String[]{String.valueOf(routeId)};
+        }
+
+        String sortOrderQuery = TrackMeContract.RoutePointEntry._ID;
+        if (descending) {
+            sortOrderQuery += QUERY_DESCENDING;
+        }
+
+        if (defaultCursorBatchSize > 0) {
+            sortOrderQuery += " LIMIT " + defaultCursorBatchSize;
+        }
+        return getRoutePointCursorById(null, selection, selectionArgs, sortOrderQuery);
+    }
+
+    /**
+     * A cache of track points indexes.
+     */
+    private static class CachedTrackPointsIndexes {
+        public final int idIndex;
+        public final int longitudeIndex;
+        public final int latitudeIndex;
+        public final int timeIndex;
+        public final int altitudeIndex;
+        public final int accuracyIndex;
+        public final int speedIndex;
+        public final int bearingIndex;
+
+        public CachedTrackPointsIndexes(Cursor cursor) {
+            idIndex = cursor.getColumnIndex(TrackMeContract.RoutePointEntry._ID);
+            longitudeIndex = cursor.getColumnIndexOrThrow(TrackMeContract.RoutePointEntry.LOCATION_LONG);
+            latitudeIndex = cursor.getColumnIndexOrThrow(TrackMeContract.RoutePointEntry.LOCATION_LAT);
+            timeIndex = cursor.getColumnIndexOrThrow(TrackMeContract.RoutePointEntry.TIME);
+            altitudeIndex = cursor.getColumnIndexOrThrow(TrackMeContract.RoutePointEntry.LOCATION_ALT);
+            accuracyIndex = cursor.getColumnIndexOrThrow(TrackMeContract.RoutePointEntry.LOCATION_ACCURACY);
+            speedIndex = cursor.getColumnIndexOrThrow(TrackMeContract.RoutePointEntry.SPEED);
+            bearingIndex = cursor.getColumnIndexOrThrow(TrackMeContract.RoutePointEntry.LOCATION_BEARING);
+        }
+    }
+
+    /**
+     * Fills a track point from a cursor.
+     *
+     * @param cursor           the cursor pointing to a location.
+     * @param indexes          the cached track points indexes
+     * @param locationToUpdate the track point
+     */
+    private Location updateRoutePointFromCursorAndCache(Cursor cursor, CachedTrackPointsIndexes indexes, final Location locationToUpdate) {
+
+        Location location = locationToUpdate;
+        location.reset();
+
+        if (!cursor.isNull(indexes.longitudeIndex)) {
+            location.setLongitude(((double) cursor.getInt(indexes.longitudeIndex)) / 1E6);
+        }
+        if (!cursor.isNull(indexes.latitudeIndex)) {
+            location.setLatitude(((double) cursor.getInt(indexes.latitudeIndex)) / 1E6);
+        }
+        if (!cursor.isNull(indexes.timeIndex)) {
+            location.setTime(cursor.getLong(indexes.timeIndex));
+        }
+        if (!cursor.isNull(indexes.altitudeIndex)) {
+            location.setAltitude(cursor.getFloat(indexes.altitudeIndex));
+        }
+        if (!cursor.isNull(indexes.accuracyIndex)) {
+            location.setAccuracy(cursor.getFloat(indexes.accuracyIndex));
+        }
+        if (!cursor.isNull(indexes.speedIndex)) {
+            location.setSpeed(cursor.getFloat(indexes.speedIndex));
+        }
+        if (!cursor.isNull(indexes.bearingIndex)) {
+            location.setBearing(cursor.getFloat(indexes.bearingIndex));
+        }
+        return location;
     }
 
     private RouteCheckPoint createRouteCheckPointFromCursor(Cursor cursor) {
@@ -562,14 +904,19 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
     }
 
 
-    private Cursor getRouteCursor(long routeId) {
+    private Cursor getRouteCursor(Long routeId) {
         return getRouteCursor(routeId, null);
     }
 
-    private Cursor getRouteCursor(long routeId, String[] projection) {
-        String where = TrackMeContract.RouteEntry._ID + " = ";
-        String[] selectArgs = new String[]{String.valueOf(routeId)};
+    private Cursor getRouteCursor(Long routeId, String[] projection) {
+        String where = null;
+        String[] selectArgs = null;
+        if (routeId != null) {
+            where = TrackMeContract.RouteEntry._ID + " = ";
+            selectArgs = new String[]{String.valueOf(routeId)};
+        }
         return getContentResolver().query(TrackMeContract.RouteEntry.CONTENT_URI, projection, where, selectArgs, DatabaseConstants.DEFAULT_ORDER_COLUMN);
+
     }
 
     private ContentResolver getContentResolver() {

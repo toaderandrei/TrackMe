@@ -21,6 +21,14 @@ public class RoutePoint implements Parcelable {
 
     }
 
+    public RoutePoint(long routeId,
+                      Location location,
+                      String activityMode) {
+        this.routeId = routeId;
+        this.location = location;
+        this.activityMode = activityMode;
+    }
+
     public RoutePoint(long id,
                       long routeId,
                       Location location,
