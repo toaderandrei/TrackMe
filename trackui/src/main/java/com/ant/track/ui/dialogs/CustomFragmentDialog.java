@@ -1,4 +1,4 @@
-package com.ant.track.app.fragments;
+package com.ant.track.ui.dialogs;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -10,6 +10,7 @@ import android.text.TextUtils;
 /**
  * A reusable generic dialog fragment class
  */
+
 public class CustomFragmentDialog extends DialogFragment implements DialogInterface.OnClickListener {
 
     private static final String DIALOG_TITLE = "title";
@@ -84,11 +85,14 @@ public class CustomFragmentDialog extends DialogFragment implements DialogInterf
                 .setMessage(message)
                 .setPositiveButton(positiveButtonText, this);
 
+
         if (!TextUtils.isEmpty(negativeButtonText)) {
             builder.setNegativeButton(negativeButtonText, this);
         }
 
-        return builder.create();
+        Dialog dialog = builder.create();
+        dialog.setCanceledOnTouchOutside(false);
+        return dialog;
     }
 
     @Override

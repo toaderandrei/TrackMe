@@ -75,28 +75,6 @@ public abstract class ServiceConnectActivity extends BaseActivity implements Ser
         return getSupportFragmentManager().findFragmentByTag(HEADLESS_TAG);
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode) {
-            case LocationFragment.CONNECTION_RESOLUTION_CODE:
-                switch (resultCode) {
-                    case Activity.RESULT_OK:
-                        Fragment fragment = getFragmentById(R.id.container);
-                        if (isMapLocationFragment(fragment)) {
-                            ((LocationFragment) fragment).initGpsTracker(false);
-                        }
-                        break;
-                    case Activity.RESULT_CANCELED:
-                        showErrToast("Gps not enabled:");
-                        break;
-                    default:
-                        showErrToast("Gps not enabled:");
-                        break;
-                }
-                break;
-        }
-    }
-
     /*
   * Note that sharedPreferenceChangeListener cannot be an anonymous inner
   * class. Anonymous inner class will get garbage collected.

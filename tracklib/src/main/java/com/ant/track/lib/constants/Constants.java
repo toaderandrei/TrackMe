@@ -4,7 +4,7 @@ import android.support.annotation.VisibleForTesting;
 
 /**
  * Constants
- * */
+ */
 public class Constants {
 
 
@@ -15,6 +15,7 @@ public class Constants {
 
     public static final int MAX_LONGITUDE = 180;
     public static final int MAX_LATITUDE = 90;
+    public static final String EMPTY_STRING = "";
 
     public static double PAUSE_LATITUDE = 100.0d;
 

@@ -12,6 +12,7 @@ import android.widget.ImageButton;
 import com.ant.track.app.R;
 import com.ant.track.app.activities.RecordStateListener;
 import com.ant.track.lib.service.RecordingState;
+import com.ant.track.ui.dialogs.CustomFragmentDialog;
 
 /**
  * Fragment containing the controls for starting/stopping a service.

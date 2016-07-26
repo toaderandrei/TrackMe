@@ -1,1 +1,1 @@
-include ':app', ':tracklib'
+include ':app', ':tracklib', ':trackui'

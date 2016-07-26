@@ -212,8 +212,10 @@ public class RecordingServiceConnection {
     }
 
     public void resumeTracking() throws RemoteException {
-        Message message = Message.obtain(null, RecordingServiceConstants.MSG_RESUME_TRACKING, 0, 0);
-        mServiceMessenger.send(message);
+        if (mServiceMessenger != null) {
+            Message message = Message.obtain(null, RecordingServiceConstants.MSG_RESUME_TRACKING, 0, 0);
+            mServiceMessenger.send(message);
+        }
     }
 
     public void pauseTracking() throws RemoteException {

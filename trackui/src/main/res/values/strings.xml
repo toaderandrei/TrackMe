@@ -1,0 +1,78 @@
+<resources>
+
+    <string name="app_name">GPSLiveTracker</string>
+    <string name="title_activity_main">Live Tracking</string>
+    <string name="info_activity">InfoActivity</string>
+    <string name="main_activity">Map</string>
+    <string name="normal_view_map">Normal Mode</string>
+    <string name="satellite_view_map">Satellite Mode</string>
+    <string name="stop_tracking">Stop Tracking</string>
+    <string name="start_tracking">Start Tracking</string>
+    <string name="open_content_drawer">Open the main menu</string>
+    <string name="close_content_drawer">Close the main menu</string>
+    <string name="image_my_location">My Location</string>
+     <string name="gps_live_tracking_recording_service">
+    Recording service
+  </string>
+    <string name="placeholder_message">This is a Live Tracking Application that sends data to the server.</string>
+
+    <string name="gps_disabled_location_mode">
+    Select high-accuracy location mode.
+  </string>
+  <string name="gps_disabled_my_location">
+    Current location cannot be determined. Enable more location sources at %1$s &amp; make sure the
+    sky is visible. Try again later.
+  </string>
+  <string name="gps_disabled_my_location_location_mode">
+    Current location cannot be determined.
+  </string>
+     <string name="permission_notification_label">
+    receive Live Tracking notifications
+  </string>
+    <!-- Gps -->
+  <string name="gps_google_location_settings" translation_description="See Settings -> Google -> Location settings.">
+    &#8216;Google location settings&#8217;
+  </string>
+    <string name="gps_location_access" translation_description="See Settings -> Location access.">
+    &#8216;Location access&#8217;
+  </string>
+    <string name="tracking_record_notification">
+    Recording your track&#8230;
+  </string>
+    <string name="content_authority">com.ant.track</string>
+
+    <string name="route_id_key">route_key</string>
+
+    <string name="recording_state_key">recording_state_key</string>
+
+    <string name="recording_gps_accuracy_key">recording_gpsy_accuracy_key</string>
+    <string name="recording_location_threshold_key">recording_location_threshold_key</string>
+    <string name="recording_distance_interval_key">recording_distance_key</string>
+    <string name="max_recording_distance_key">max_recording_distance_key</string>
+
+     <string name="image_pause" translation_description="The pause button.">
+    Pause
+  </string>
+  <string name="image_record" translation_description="Record button.">
+    Record
+  </string>
+  <string name="image_stop" translation_description="Stop button.">
+    Stop
+  </string>
+
+
+    <string name="dialog_pause_tracking">Pause</string>
+
+    <string name="dialog_stop_tracking">Stop</string>
+
+    <string name="enable_gps_title">Enable GPS</string>
+    <string name="enable_gps_message">Do you want to enable GPS?</string>
+
+
+    <string name="enable_permissions_title">Enable Location Permissions</string>
+    <string name="enable_permissions_message">Do you want to enable location services permissions?</string>
+
+
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+</resources>

@@ -1,10 +1,17 @@
 package com.ant.track.app.fragments;
 
+import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.Intent;
 import android.content.IntentSender;
+import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -22,6 +29,7 @@ import com.ant.track.lib.model.Route;
 import com.ant.track.lib.publisher.ContentPublisherImpl;
 import com.ant.track.lib.publisher.NotifyListener;
 import com.ant.track.lib.service.RecordingState;
+import com.ant.track.ui.dialogs.CustomFragmentDialog;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.maps.CameraUpdate;
@@ -38,10 +46,12 @@ import com.google.android.gms.maps.model.LatLng;
  */
 public class LocationFragment extends Fragment implements NotifyListener {
 
+    private static final String CUSTOM_TAG = LocationFragment.class.getCanonicalName();
     private static final float DEFAULT_ZOOM_LEVEL = 18f;
     private static final String TAG = LocationFragment.class.getSimpleName();
     private static final double DEFAULT_LATITUDE = 68.319392;
     private static final double DEFAULT_LONGITUDE = 14.407718;
+    private static final int REQUEST_CODE_LOCATION = 400;
     private GoogleMap mMap;
     private ImageButton myLocationImageButton;
     private LocationListener locationListener;
@@ -92,10 +102,55 @@ public class LocationFragment extends Fragment implements NotifyListener {
      * in case the user wants to know its location and the gps is disabled then a notification will be shown
      */
     protected void notifyUserNoLocationIsAvailable() {
-        String message = GoogleLocationServicesUtils.getGpsDisabledMyLocationMessage(getActivity());
+        checkIfInitialized();
+        String message = GoogleLocationServicesUtils.getInstance().getGpsDisabledMyLocationMessage();
         Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
+        //askToEnableGPS();
     }
 
+    private void askToEnableGPS() {
+        CustomFragmentDialog customFragmentDialog = CustomFragmentDialog.newInstance(getString(R.string.enable_gps_title),
+                getString(R.string.enable_gps_message),
+                getString(R.string.ok),
+                getString(R.string.cancel),
+                callback);
+        customFragmentDialog.show(getFragmentManager(), CUSTOM_TAG);
+    }
+
+
+    private void askIfToRequestPersmissions() {
+        CustomFragmentDialog customFragmentDialog = CustomFragmentDialog.newInstance(getString(R.string.enable_gps_title),
+                getString(R.string.enable_permissions_message),
+                getString(R.string.ok),
+                getString(R.string.cancel),
+                callback_permissions);
+        customFragmentDialog.show(getFragmentManager(), CUSTOM_TAG);
+    }
+
+    private CustomFragmentDialog.Callback callback = new CustomFragmentDialog.Callback() {
+        @Override
+        public void onPositiveButtonClicked(Bundle bundle) {
+            enableGPS();
+        }
+
+        @Override
+        public void onNegativeButtonClicked(Bundle bundle) {
+
+        }
+    };
+
+
+    private CustomFragmentDialog.Callback callback_permissions = new CustomFragmentDialog.Callback() {
+        @Override
+        public void onPositiveButtonClicked(Bundle bundle) {
+            requestPermissions();
+        }
+
+        @Override
+        public void onNegativeButtonClicked(Bundle bundle) {
+
+        }
+    };
 
     private GoogleMap.OnMyLocationButtonClickListener getOnMyLocationClickListener() {
         return new GoogleMap.OnMyLocationButtonClickListener() {
@@ -108,7 +163,8 @@ public class LocationFragment extends Fragment implements NotifyListener {
     }
 
     private void requestLastLocationOrNotify() {
-        if (mGPSLiveTrackerLocManager != null && !GoogleLocationServicesUtils.isGpsProviderEnabled(getActivity())) {
+        checkIfInitialized();
+        if (mGPSLiveTrackerLocManager != null && !GoogleLocationServicesUtils.getInstance().isGpsProviderEnabled()) {
             notifyUserNoLocationIsAvailable();
         } else {
             requestLastKnowLocation();
@@ -235,25 +291,54 @@ public class LocationFragment extends Fragment implements NotifyListener {
     @Override
     public void onResume() {
         super.onResume();
-        initGpsTracker(true);
+        initGpsTracker();
     }
 
-    public synchronized void initGpsTracker(boolean force) {
+    public synchronized void initGpsTracker() {
         if (mMap != null) {
             try {
-                boolean isGPSProviderEnabled = GoogleLocationServicesUtils.isGpsProviderEnabled(getActivity());
-                if (isGPSProviderEnabled) {
-                    mMap.setMyLocationEnabled(true);
-                } else if (force) {
-                    askToEnableGps();
-                }
+                checkIfInitialized();
+                checkIfPermissionAllowedForLocation();
             } catch (SecurityException secex) {
                 Toast.makeText(getActivity(), "not enabled in manifest", Toast.LENGTH_SHORT).show();
             }
         }
     }
 
-    private void askToEnableGps() {
+    private void checkIfPermissionAllowedForLocation() {
+        if (ActivityCompat.checkSelfPermission(getActivity(),
+                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // Request missing location permission.
+            if (ActivityCompat.shouldShowRequestPermissionRationale(getActivity(),
+                    Manifest.permission.ACCESS_FINE_LOCATION)) {
+                askIfToRequestPersmissions();
+            } else {
+                requestPermissions();
+            }
+        } else {
+            // Location permission has been granted, continue as usual.
+            if (!GoogleLocationServicesUtils.getInstance().isGpsProviderEnabled()) {
+                askToEnableGPS();
+            }
+            else{
+                mMap.setMyLocationEnabled(true);
+            }
+        }
+    }
+
+    private void requestPermissions() {
+        ActivityCompat.requestPermissions(getActivity(),
+                new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                REQUEST_CODE_LOCATION);
+    }
+
+    private void checkIfInitialized() {
+        if (!GoogleLocationServicesUtils.getInstance().isInitialized()) {
+            GoogleLocationServicesUtils.getInstance().init(getActivity());
+        }
+    }
+
+    private void enableGPS() {
         if (enableLocationService != null) {
             enableLocationService.askToEnableGps(locationCallback);
         }
@@ -262,7 +347,7 @@ public class LocationFragment extends Fragment implements NotifyListener {
     private GoogleAskToEnableLocationService.GpsCallback locationCallback = new GoogleAskToEnableLocationService.GpsCallback() {
         @Override
         public void onSuccess() {
-            initGpsTracker(false);
+            initGpsTracker();
         }
 
         @Override
@@ -337,7 +422,7 @@ public class LocationFragment extends Fragment implements NotifyListener {
                 mMap.setOnMyLocationButtonClickListener(getOnMyLocationClickListener());
                 mMap.setLocationSource(getNewLocationSource());
                 mMap.setOnCameraChangeListener(getCameraChangeListener());
-                initGpsTracker(true);
+                initGpsTracker();
             }
         };
     }
@@ -362,11 +447,51 @@ public class LocationFragment extends Fragment implements NotifyListener {
         //notify
     }
 
+    public interface GPSCallback {
+        void onConnected();
+
+        void onAskToConnect(Status status);
+
+        void onDisconnected();
+    }
+
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case CONNECTION_RESOLUTION_CODE:
+                switch (resultCode) {
+                    case Activity.RESULT_OK:
+                        initGpsTracker();
+                        break;
+                    case Activity.RESULT_CANCELED:
+                        Toast.makeText(getContext(), "Gps not enabled:", Toast.LENGTH_SHORT).show();
+                        break;
+                    default:
+                        break;
+                }
+                break;
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == REQUEST_CODE_LOCATION) {
+            if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                initGpsTracker();
+            } else {
+                Toast.makeText(getActivity(), "Manifest permission, not enabled", Toast.LENGTH_SHORT).show();
+
+            }
+        }
+    }
+
     /**
      * return a default location.
      *
      * @return the default location
      */
+
     protected Location getDefaultLocation() {
 
         Location loc = new Location("");

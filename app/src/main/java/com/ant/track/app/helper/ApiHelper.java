@@ -9,23 +9,31 @@ public class ApiHelper {
 
     public static boolean hasLocationMode() {
         boolean hasLocationServices = false;
-        if (Build.VERSION.SDK_INT >= 19) {
+        if (getSdkInt() >= 19) {
             hasLocationServices = true;
-        } else if (Build.VERSION.SDK_INT >= 17) {
+        } else if (getSdkInt() >= 17) {
             hasLocationServices = true;
-        } else if (Build.VERSION.SDK_INT >= 16) {
+        } else if (getSdkInt() >= 16) {
             hasLocationServices = true;
-        } else if (Build.VERSION.SDK_INT >= 14) {
+        } else if (getSdkInt() >= 14) {
             hasLocationServices = true;
-        } else if (Build.VERSION.SDK_INT >= 11) {
+        } else if (getSdkInt() >= 11) {
             hasLocationServices = false;
-        } else if (Build.VERSION.SDK_INT >= 10) {
+        } else if (getSdkInt() >= 10) {
             hasLocationServices = false;
-        } else if (Build.VERSION.SDK_INT >= 9) {
+        } else if (getSdkInt() >= 9) {
             hasLocationServices = false;
         } else {
             hasLocationServices = false;
         }
         return hasLocationServices;
+    }
+
+    private static int getSdkInt() {
+        return Build.VERSION.SDK_INT;
+    }
+
+    public static boolean isApi23() {
+        return Build.VERSION.SDK_INT == Build.VERSION_CODES.M;
     }
 }
