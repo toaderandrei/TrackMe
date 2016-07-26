@@ -2,7 +2,6 @@ package com.ant.track.lib.db.content.datasource;
 
 import android.os.Handler;
 
-import com.ant.track.lib.controller.RouteType;
 import com.ant.track.lib.db.content.publisher.DataContentObserver;
 import com.ant.track.lib.db.content.publisher.RouteDataSourceListener;
 import com.ant.track.lib.db.provider.TrackMeContract;
@@ -23,7 +22,7 @@ public class DataSourceManager {
 
     private AbstractDataSourceObserverImpl routeCheckPointSourceManager;
 
-    private PreferenceSoourceObserverImpl preferenceObserver;
+    private PreferenceSourceObserverImpl preferenceObserver;
 
     private Set<RouteType> registeredTypes = EnumSet.noneOf(RouteType.class);
 
@@ -32,7 +31,7 @@ public class DataSourceManager {
         routePointSourceManager = new RoutePointDataSourceObserverImpl(handler, routeDataSourceListener);
         routeCheckPointSourceManager = new RouteCheckPointDataSourceObserverImpl(handler, routeDataSourceListener);
         dataObserver = new DataContentObserver();
-        preferenceObserver = new PreferenceSoourceObserverImpl(routeDataSourceListener);
+        preferenceObserver = new PreferenceSourceObserverImpl(routeDataSourceListener);
     }
 
     public void updateListeners(EnumSet<RouteType> neededListeners) {
@@ -98,5 +97,15 @@ public class DataSourceManager {
             default:
                 throw new UnsupportedOperationException("type does not exist");
         }
+    }
+
+    public void clear() {
+        for (RouteType type : RouteType.values()) {
+            unregisterObserver(type);
+        }
+        routeSourceManager = null;
+        routeCheckPointSourceManager = null;
+        routePointSourceManager = null;
+        preferenceObserver = null;
     }
 }

@@ -7,10 +7,10 @@ import com.ant.track.lib.application.TrackLibApplication;
 /**
  * Extension of the TrackLibApplication which in turn extends the Android Application.
  */
-public class GPSLiveTrackerApplication extends TrackLibApplication {
+public class TrackMeApplication extends TrackLibApplication {
 
 
-    public GPSLiveTrackerApplication() {
+    public TrackMeApplication() {
         TrackLibApplication.instance = this;
     }
 

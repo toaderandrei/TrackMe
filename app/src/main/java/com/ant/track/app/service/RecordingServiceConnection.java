@@ -217,13 +217,17 @@ public class RecordingServiceConnection {
     }
 
     public void pauseTracking() throws RemoteException {
-        Message message = Message.obtain(null, RecordingServiceConstants.MSG_PAUSE_TRACKING, 0, 0);
-        mServiceMessenger.send(message);
+        if (mServiceMessenger != null) {
+            Message message = Message.obtain(null, RecordingServiceConstants.MSG_PAUSE_TRACKING, 0, 0);
+            mServiceMessenger.send(message);
+        }
     }
 
     public void stopTracking() throws RemoteException {
-        Message message = Message.obtain(null, RecordingServiceConstants.MSG_STOP_TRACKING, 0, 0);
-        mServiceMessenger.send(message);
+        if (mServiceMessenger != null) {
+            Message message = Message.obtain(null, RecordingServiceConstants.MSG_STOP_TRACKING, 0, 0);
+            mServiceMessenger.send(message);
+        }
     }
 
     public interface Callback {

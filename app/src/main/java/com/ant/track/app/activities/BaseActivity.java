@@ -1,6 +1,5 @@
 package com.ant.track.app.activities;
 
-import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -23,22 +22,23 @@ import android.widget.SimpleAdapter;
 
 import com.ant.track.app.R;
 import com.ant.track.app.fragments.LocationFragment;
-import com.ant.track.app.fragments.RecordControlsFragment;
 import com.ant.track.app.helper.ResourceHelper;
+import com.ant.track.lib.service.RecordingState;
 
 /**
  * This is in charge of initializing the fragments and also the toolbars.
  */
-public abstract class BaseActivity extends AppCompatActivity implements TrackStateListener {
+public abstract class BaseActivity extends AppCompatActivity implements RecordStateListener {
 
     public LocationFragment mMapFragment;
-    protected RecordControlsFragment mRecordFragment;
     private Toolbar mToolbar;
     private ActionBarDrawerToggle mDrawerToggle;
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
     private DrawerMenuContents mDrawerMenuContents;
     private boolean mToolbarInitialized;
+    protected RecordingState recordingState = RecordingState.PAUSED;
+
 
     private int mItemToOpenWhenDrawerCloses = -1;
     private FragmentManager.OnBackStackChangedListener mBackStackChangedListener =
@@ -87,20 +87,9 @@ public abstract class BaseActivity extends AppCompatActivity implements TrackSta
         super.onCreate(savedInstanceState);
     }
 
-    protected void initRecordingFragment() {
-        mRecordFragment = (RecordControlsFragment) getFragmentManager().findFragmentById(R.id.fragment_record_controls);
-        if (mRecordFragment == null) {
-            throw new IllegalStateException("Mising fragment with id 'controls'. Cannot continue.");
-        }
-    }
-
-    protected void updateRecordingFragment(View.OnClickListener recordListener, View.OnClickListener stopListener) {
-        mRecordFragment.updateRecordListeners(recordListener, stopListener);
-    }
-
     protected void initGoogleMapsIfNotAlready() {
         if (mMapFragment == null) {
-            mMapFragment = LocationFragment.newInstance(isRecording());
+            mMapFragment = LocationFragment.newInstance(recordingState);
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
             ft.replace(R.id.container, mMapFragment);
             ft.commit();
@@ -154,7 +143,6 @@ public abstract class BaseActivity extends AppCompatActivity implements TrackSta
     @Override
     public void onPause() {
         super.onPause();
-        //remove the backstacklistener
         getFragmentManager().removeOnBackStackChangedListener(mBackStackChangedListener);
     }
 
@@ -289,9 +277,5 @@ public abstract class BaseActivity extends AppCompatActivity implements TrackSta
 
     protected void setActionBarTitle() {
         getSupportActionBar().setTitle(R.string.app_name);
-    }
-
-    protected Fragment getRecordControls() {
-        return mRecordFragment;
     }
 }

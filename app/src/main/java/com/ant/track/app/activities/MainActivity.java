@@ -17,7 +17,7 @@ public class MainActivity extends ServiceConnectActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initializeToolbar();
-        initRecordingFragment();
+        initRecordingAndServiceFragment();
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }

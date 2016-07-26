@@ -1,7 +1,7 @@
 package com.ant.track.lib.db.content.publisher;
 
-import com.ant.track.lib.controller.RouteType;
 import com.ant.track.lib.db.content.datasource.RouteDataListener;
+import com.ant.track.lib.db.content.datasource.RouteType;
 
 import java.util.EnumSet;
 import java.util.Set;
@@ -41,7 +41,12 @@ public interface DataContentPublisher {
     EnumSet<RouteType> getRouteTypes(final RouteDataListener listener);
 
 
-    Set<RouteType> getAllRouteTypes();
+    /**
+     * retrieves all teh route tytpes from the cache.
+     *
+     * @return all the route typs are retrieved.
+     */
+    EnumSet<RouteType> getAllRouteTypes();
 
     /**
      * retrieves a list of all the listener for a specific type
@@ -58,6 +63,11 @@ public interface DataContentPublisher {
      */
     int getRouteTypesCount();
 
+    /**
+     * retrieves all the route listeners.
+     *
+     * @return all the listeners.
+     */
     int getRouteListenersCount();
 
     /**

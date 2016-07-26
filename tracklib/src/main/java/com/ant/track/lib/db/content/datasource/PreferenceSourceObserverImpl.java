@@ -7,11 +7,11 @@ import com.ant.track.lib.db.content.publisher.RouteDataSourceListener;
 /**
  * Observer for preference changes.
  */
-public class PreferenceSoourceObserverImpl implements SharedPreferences.OnSharedPreferenceChangeListener {
+public class PreferenceSourceObserverImpl implements SharedPreferences.OnSharedPreferenceChangeListener {
 
     private RouteDataSourceListener dataSourceListener;
 
-    public PreferenceSoourceObserverImpl(RouteDataSourceListener listener) {
+    public PreferenceSourceObserverImpl(RouteDataSourceListener listener) {
         this.dataSourceListener = listener;
     }
 

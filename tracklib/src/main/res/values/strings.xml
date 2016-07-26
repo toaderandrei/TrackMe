@@ -49,4 +49,18 @@
     <string name="recording_distance_interval_key">recording_distance_key</string>
     <string name="max_recording_distance_key">max_recording_distance_key</string>
 
+     <string name="image_pause" translation_description="The pause button.">
+    Pause
+  </string>
+  <string name="image_record" translation_description="Record button.">
+    Record
+  </string>
+  <string name="image_stop" translation_description="Stop button.">
+    Stop
+  </string>
+
+
+    <string name="dialog_pause_tracking">Pause</string>
+
+    <string name="dialog_stop_tracking">Stop</string>
 </resources>

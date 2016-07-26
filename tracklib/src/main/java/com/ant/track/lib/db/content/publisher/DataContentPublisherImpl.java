@@ -2,7 +2,7 @@ package com.ant.track.lib.db.content.publisher;
 
 import android.util.Log;
 
-import com.ant.track.lib.controller.RouteType;
+import com.ant.track.lib.db.content.datasource.RouteType;
 import com.ant.track.lib.db.content.datasource.RouteDataListener;
 
 import java.util.EnumMap;
@@ -74,8 +74,8 @@ public class DataContentPublisherImpl implements DataContentPublisher {
     }
 
     @Override
-    public Set<RouteType> getAllRouteTypes() {
-        Set<RouteType> listeners = EnumSet.noneOf(RouteType.class);
+    public EnumSet<RouteType> getAllRouteTypes() {
+        EnumSet<RouteType> listeners = EnumSet.noneOf(RouteType.class);
         for (RouteDataListener type : listenerToEnumSetMap.keySet()) {
             listeners.addAll(listenerToEnumSetMap.get(type));
         }

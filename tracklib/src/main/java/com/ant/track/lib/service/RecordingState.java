@@ -1,9 +1,11 @@
-package com.ant.track.app.service;
+package com.ant.track.lib.service;
 
 /**
  * Recording state
- * */
+ */
 public enum RecordingState {
+
+    NOT_STARTED("not_started"),
 
     STARTED("started"),
 

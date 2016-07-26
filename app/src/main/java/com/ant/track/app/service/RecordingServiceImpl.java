@@ -25,7 +25,7 @@ import android.util.Log;
 
 import com.ant.track.app.R;
 import com.ant.track.app.activities.MainActivity;
-import com.ant.track.app.application.GPSLiveTrackerApplication;
+import com.ant.track.app.application.TrackMeApplication;
 import com.ant.track.app.helper.IntentUtils;
 import com.ant.track.app.helper.SystemUtils;
 import com.ant.track.app.location.GPSLiveTrackerLocationManager;
@@ -43,6 +43,7 @@ import com.ant.track.lib.model.RouteCheckPoint;
 import com.ant.track.lib.model.RoutePoint;
 import com.ant.track.lib.model.RouteTrackCreator;
 import com.ant.track.lib.prefs.PreferenceUtils;
+import com.ant.track.lib.service.RecordingState;
 import com.ant.track.lib.stats.RouteStats;
 import com.ant.track.lib.stats.RouteStatsManager;
 import com.ant.track.lib.utils.LocationUtils;
@@ -143,6 +144,12 @@ public class RecordingServiceImpl extends Service {
                     minRecordingDistance = PreferenceUtils.getInt(contextWeakRef.get(),
                             R.string.recording_distance_interval_key,
                             PreferenceUtils.RECORDING_DISTANCE_DEFAULT);
+                }
+
+                if (TextUtils.equals(key, PreferenceUtils.getKey(contextWeakRef.get(), R.string.recording_state_key))) {
+                    recordingState = PreferenceUtils.getRecordingState(contextWeakRef.get(),
+                            R.string.recording_state_key,
+                            PreferenceUtils.RECORDING_STATE_PAUSED_DEFAULT);
                 }
 
                 //distance interval
@@ -776,8 +783,8 @@ public class RecordingServiceImpl extends Service {
         return getApp().getDataProvider();
     }
 
-    private GPSLiveTrackerApplication getApp() {
-        return (GPSLiveTrackerApplication) GPSLiveTrackerApplication.getInstance();
+    private TrackMeApplication getApp() {
+        return (TrackMeApplication) TrackMeApplication.getInstance();
     }
 
 }

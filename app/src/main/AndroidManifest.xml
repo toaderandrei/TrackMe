@@ -29,7 +29,7 @@
     -->
 
     <application
-        android:name=".application.GPSLiveTrackerApplication"
+        android:name=".application.TrackMeApplication"
         android:allowBackup="true"
         android:icon="@drawable/walk"
         android:label="@string/app_name"

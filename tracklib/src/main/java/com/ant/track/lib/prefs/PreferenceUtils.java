@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.ant.track.lib.constants.Constants;
+import com.ant.track.lib.service.RecordingState;
 
 /**
  * Preference utils used for storing un-sensitive data.
@@ -15,6 +16,7 @@ public class PreferenceUtils {
     public static final int RECORDING_GPS_ACCURACY_DEFAUL = 5;
     public static final int RECORDING_DISTANCE_DEFAULT = 15;
     public static final int DEFAULT_MAX_RECORDING_DISTANCE = 200;
+    public static final RecordingState RECORDING_STATE_PAUSED_DEFAULT = RecordingState.PAUSED;
 
     private PreferenceUtils() {
 
@@ -59,6 +61,11 @@ public class PreferenceUtils {
         return sharedPreferences.getBoolean(getKey(context, keyId), value);
     }
 
+    public static long getLong(Context context, int keyId) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.SETTINGS_KEY, Context.MODE_PRIVATE);
+        return sharedPreferences.getLong(getKey(context, keyId), -1L);
+    }
+
     public static long getLong(Context context, int keyId, long defaultVal) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.SETTINGS_KEY, Context.MODE_PRIVATE);
         return sharedPreferences.getLong(getKey(context, keyId), defaultVal);
@@ -73,5 +80,17 @@ public class PreferenceUtils {
 
     public static SharedPreferences getSharedPrefs(Context context) {
         return context.getSharedPreferences(Constants.SETTINGS_KEY, Context.MODE_PRIVATE);
+    }
+
+    public static RecordingState getRecordingState(Context context, int recording_state_key, RecordingState recordingStatePausedDefault) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.SETTINGS_KEY, Context.MODE_PRIVATE);
+        return RecordingState.valueOf(sharedPreferences.getString(getKey(context, recording_state_key), recordingStatePausedDefault.getState()));
+    }
+
+    public static void setDefaultRecordingState(Context context, int keyid, RecordingState state) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.SETTINGS_KEY, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(getKey(context, keyid), state.getState());
+        editor.apply();
     }
 }

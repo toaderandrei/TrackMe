@@ -1,70 +1,78 @@
 package com.ant.track.app.activities;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
-import android.location.Location;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.support.v4.app.Fragment;
-import android.util.Log;
-import android.view.View;
+import android.support.v4.app.FragmentTransaction;
+import android.text.TextUtils;
 
 import com.ant.track.app.R;
 import com.ant.track.app.fragments.LocationFragment;
 import com.ant.track.app.fragments.RecordControlsFragment;
+import com.ant.track.app.fragments.ServiceHeadlessFragment;
 import com.ant.track.app.helper.UiHelperUtils;
-import com.ant.track.app.service.RecordingServiceConnection;
-import com.ant.track.app.service.utils.RecordingServiceConnectionUtils;
+import com.ant.track.lib.constants.Constants;
+import com.ant.track.lib.prefs.PreferenceUtils;
+import com.ant.track.lib.service.RecordingState;
 
 /**
  * This activity is in charge of establishing the connection with the service - start/stopping the tracking.
  */
-public abstract class ServiceConnectActivity extends BaseActivity {
+public abstract class ServiceConnectActivity extends BaseActivity implements ServiceHeadlessFragment.Callback {
 
     private static final String TAG = ServiceConnectActivity.class.getSimpleName();
     public static final String GENERIC_ERROR_IN_STARTING_THE_LOCATION_SERVICE = "Generic Error in starting the location service!";
-    boolean isRecording = false;
-    boolean isPaused = false;
-    private RecordingServiceConnection mRecordingServiceConnection;
-    private boolean startNewRecording = false; // true to start a new recording
+    private static final String RECORD_FRAGMENT_CONTROLS_TAG = "RECORD_FRAGMENT_CONTROLS_TAG";
+
+    private SharedPreferences sharedPreferences;
+
+    private long routeId;
+    private long recordingRouteId;
+    private RecordControlsFragment recordControlsFragment;
+
+    private static final String HEADLESS_TAG = "HEADLESS_TAG";
+    private ServiceHeadlessFragment serviceFragment;
+
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mRecordingServiceConnection = new RecordingServiceConnection(this, bindToServiceCallback);
+        sharedPreferences = this.getSharedPreferences(Constants.SETTINGS_NAME, Context.MODE_PRIVATE);
 
+        sharedPreferences.registerOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
+        sharedPreferenceChangeListener.onSharedPreferenceChanged(null, null);
     }
 
-    @Override
+    protected void initRecordingAndServiceFragment() {
+        initRecordingFragment();
+        initServiceHeadlessFragment();
+    }
+
     protected void initRecordingFragment() {
-        super.initRecordingFragment();
-        updateRecordingFragment();
-    }
-
-    private void updateRecordingFragment() {
-        if (mRecordFragment != null) {
-            mRecordFragment.updateRecordListeners(recordListener, stopListener);
+        recordControlsFragment = (RecordControlsFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_record_controls);
+        if (recordControlsFragment == null) {
+            recordControlsFragment = new RecordControlsFragment();
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+            transaction.add(recordControlsFragment, RECORD_FRAGMENT_CONTROLS_TAG);
+            transaction.commit();
         }
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        // Update the recording service connection
-        RecordingServiceConnectionUtils.startConnection(mRecordingServiceConnection);
+    protected void initServiceHeadlessFragment() {
+        serviceFragment = (ServiceHeadlessFragment) getServiceFragment();
+        if (serviceFragment == null) {
+            serviceFragment = new ServiceHeadlessFragment();
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+            transaction.add(serviceFragment, HEADLESS_TAG);
+            transaction.commit();
+        }
     }
 
-    private void updateControlsOnUiThread() {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                updateRecordControls();
-            }
-        });
-    }
-
-    protected void updateRecordControls() {
-        updateRecordState(isRecording());
+    private Fragment getServiceFragment() {
+        return getSupportFragmentManager().findFragmentByTag(HEADLESS_TAG);
     }
 
     @Override
@@ -89,117 +97,62 @@ public abstract class ServiceConnectActivity extends BaseActivity {
         }
     }
 
+    /*
+  * Note that sharedPreferenceChangeListener cannot be an anonymous inner
+  * class. Anonymous inner class will get garbage collected.
+  */
+    private final SharedPreferences.OnSharedPreferenceChangeListener
+            sharedPreferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+        @Override
+        public void onSharedPreferenceChanged(SharedPreferences preferences, String key) {
+            // Note that key can be null
+            if (TextUtils.equals(key, PreferenceUtils.getKey(ServiceConnectActivity.this, R.string.route_id_key))) {
+                recordingRouteId = PreferenceUtils.getLong(ServiceConnectActivity.this, R.string.route_id_key);
+            }
+            if (TextUtils.equals(key, PreferenceUtils.getKey(ServiceConnectActivity.this, R.string.recording_state_key))) {
+                recordingState = PreferenceUtils.getRecordingState(ServiceConnectActivity.this,
+                        R.string.recording_state_key,
+                        PreferenceUtils.RECORDING_STATE_PAUSED_DEFAULT);
+            }
+            if (key != null) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        boolean isRecording = routeId == recordingRouteId;
+                        if (isRecording) {
+                            recordingState = RecordingState.STARTED;
+                        }
+                        updateServiceState(recordingState);
+                    }
+                });
+            }
+        }
+    };
+
     private boolean isMapLocationFragment(Fragment fragment) {
         return fragment != null && fragment instanceof LocationFragment;
     }
 
     @Override
     protected void onStop() {
+        sharedPreferences.unregisterOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
         super.onStop();
-        mRecordingServiceConnection.unbind();
     }
 
     @Override
-    protected void onDestroy() {
-        if (!isRecording && isPaused) {
-            mRecordingServiceConnection.unbindAndStop();
+    public void updateServiceState(RecordingState state) {
+        Fragment serviceHeadlessFragment = getServiceFragment();
+        if (serviceHeadlessFragment != null && serviceHeadlessFragment instanceof ServiceHeadlessFragment) {
+            ((ServiceHeadlessFragment) serviceHeadlessFragment).updateServiceState(state);
         }
-        super.onDestroy();
-    }
-
-
-    private final View.OnClickListener stopListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            RecordingServiceConnectionUtils.stopTracking(mRecordingServiceConnection);
-            isRecording = false;
-            updateRecordState(isRecording());
-        }
-    };
-
-    private final RecordingServiceConnection.Callback bindToServiceCallback = new RecordingServiceConnection.Callback() {
-
-        @Override
-        public void onConnected() {
-
-            final IBinder service = mRecordingServiceConnection.getServiceIfBound();
-            if (service == null) {
-                Log.d(TAG, "service not available to start a new recording");
-                return;
-            }
-            if (!startNewRecording) {
-                isRecording = true;
-                updateControlsOnUiThread();
-                return;
-            }
-
-            if (startNewRecording) {
-                RecordingServiceConnectionUtils.startTracking(mRecordingServiceConnection);
-                startNewRecording = false;
-            }
-        }
-
-        @Override
-        public void onLocationUpdate(Location location) {
-
-        }
-
-        @Override
-        public void onDisconnected() {
-
-        }
-
-        @Override
-        public void onError(String errrMessage) {
-            if (errrMessage == null) {
-                errrMessage = GENERIC_ERROR_IN_STARTING_THE_LOCATION_SERVICE;
-            }
-            showErrToast(errrMessage);
-            stopTrackingService();
-        }
-    };
-
-    private final View.OnClickListener recordListener = new View.OnClickListener() {
-        public void onClick(View v) {
-            if (!isRecording() && !isPaused) {
-                startTrackingService();
-            } else if (!isRecording() && isPaused) {
-                resumeTracking();
-            } else if (isRecording()) {
-                stopTracking();
-            }
-            updateRecordState(isRecording);
-        }
-    };
-
-    private void startTrackingService() {
-        RecordingServiceConnectionUtils.startTrackingService(mRecordingServiceConnection);
-        isRecording = true;
-        isPaused = false;
-        startNewRecording = true;
-    }
-
-    private void resumeTracking() {
-        RecordingServiceConnectionUtils.resumeTracking(mRecordingServiceConnection);
-        isRecording = true;
-        isPaused = false;
-    }
-
-    private void stopTracking() {
-        RecordingServiceConnectionUtils.stopTracking(mRecordingServiceConnection);
-        isRecording = false;
-        isPaused = true;
-    }
-
-    private void stopTrackingService() {
-        RecordingServiceConnectionUtils.stopTrackingService(mRecordingServiceConnection);
-        isRecording = false;
-        isPaused = true;
     }
 
     @Override
-    public void updateRecordState(boolean update) {
-        ((RecordControlsFragment) this.getRecordControls()).update(update);
+    public void onError(String message) {
+        if (message == null) {
+            message = GENERIC_ERROR_IN_STARTING_THE_LOCATION_SERVICE;
+        }
+        showErrToast(message);
     }
 
     private Fragment getFragmentById(int id) {
@@ -207,8 +160,8 @@ public abstract class ServiceConnectActivity extends BaseActivity {
     }
 
     @Override
-    public boolean isRecording() {
-        return isRecording;
+    public void onUpdateUIControls(RecordingState recordingState) {
+        recordControlsFragment.updateRecordState(recordingState);
     }
 
     private void showErrToast(String errMessage) {

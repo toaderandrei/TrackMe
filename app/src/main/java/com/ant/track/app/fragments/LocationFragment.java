@@ -14,13 +14,14 @@ import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.ant.track.app.R;
-import com.ant.track.app.activities.TrackStateListener;
+import com.ant.track.app.activities.RecordStateListener;
 import com.ant.track.app.helper.GoogleAskToEnableLocationService;
 import com.ant.track.app.helper.GoogleLocationServicesUtils;
 import com.ant.track.app.location.GPSLiveTrackerLocationManager;
 import com.ant.track.lib.model.Route;
 import com.ant.track.lib.publisher.ContentPublisherImpl;
 import com.ant.track.lib.publisher.NotifyListener;
+import com.ant.track.lib.service.RecordingState;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.maps.CameraUpdate;
@@ -47,15 +48,15 @@ public class LocationFragment extends Fragment implements NotifyListener {
     private LocationSource.OnLocationChangedListener onLocationChangedListener;
     // Current location
     private Location currentLocation;
-    private TrackStateListener listener;
+    private RecordStateListener listener;
     private GoogleAskToEnableLocationService enableLocationService;
     public static final int CONNECTION_RESOLUTION_CODE = 300;
     private GPSLiveTrackerLocationManager mGPSLiveTrackerLocManager;
 
-    public static LocationFragment newInstance(boolean isRecording) {
+    public static LocationFragment newInstance(RecordingState state) {
         LocationFragment f = new LocationFragment();
         Bundle args = new Bundle();
-        args.putBoolean("is_recording", isRecording);
+        args.putString("is_recording", state.getState());
         f.setArguments(args);
         return f;
     }
@@ -74,7 +75,7 @@ public class LocationFragment extends Fragment implements NotifyListener {
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         if (this.listener == null) {
-            listener = (TrackStateListener) activity;
+            listener = (RecordStateListener) activity;
         }
     }
 
