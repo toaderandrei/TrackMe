@@ -475,8 +475,9 @@ public class RecordingServiceImpl extends Service {
         Uri uriRouteInsert = trackMeDatabaseUtils.insertRouteTrack(route);
         long insertedRouteId = Long.parseLong(uriRouteInsert.getLastPathSegment());
         PreferenceUtils.setRouteId(this, R.string.route_id_key, insertedRouteId);
-        route.setRouteId(insertedRouteId);
         routeId = insertedRouteId;
+        route.setRouteId(insertedRouteId);
+
         trackMeDatabaseUtils.updateRouteTrack(route);
         insertRoutePoint(RouteTrackCreator.DEFAULT_ROUTE_TRACK_BUILDER);
         insertRouteCheckPoint(RouteTrackCreator.DEFAULT_ROUTE_TRACK_BUILDER);

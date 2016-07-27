@@ -14,7 +14,7 @@ public class Route implements Parcelable {
     private RouteStats routeStats = new RouteStats();
     private String routeName;
     private String description = "";
-    private long routeId;
+    private long routeId = -1L;
     private long startPointId;
     private long stopPointId;
     private int numberOfPoints;
