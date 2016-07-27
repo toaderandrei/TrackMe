@@ -298,6 +298,7 @@ public class RecordingServiceImpl extends Service {
         Route route = trackMeDatabaseUtils.getRouteById(routeId);
         if (route == null) {
             Log.e(TAG, "invalid route.");
+            return;
         }
 
         if (location == null) {
