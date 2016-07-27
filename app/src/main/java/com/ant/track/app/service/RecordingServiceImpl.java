@@ -216,7 +216,7 @@ public class RecordingServiceImpl extends Service {
         routeId = _routeId;
         PreferenceUtils.setRouteId(this, R.string.route_id_key, routeId);
         recordingState = state;
-        PreferenceUtils.setString(this, R.string.recording_state_key, recordingState.getState());
+        PreferenceUtils.setRecordingState(this, R.string.recording_state_key, recordingState);
     }
 
     private void restartRoute(Route route) {
@@ -377,7 +377,7 @@ public class RecordingServiceImpl extends Service {
             routeStatsManager.addLocationToStats(location, minRecordingDistance);
 
             updateRecordingRoute(route, id, LocationUtils.isValidLocation(location));
-            sendLocationUpdate(location);
+            sendRouteIdUpdate(id);
             showNotification();
 
         } catch (SQLException exc) {
@@ -408,10 +408,10 @@ public class RecordingServiceImpl extends Service {
         trackMeDatabaseUtils.updateRouteTrack(route);
     }
 
-    private void sendLocationUpdate(Location location) {
+    private void sendRouteIdUpdate(long id) {
         if (serviceMessenger != null) {
-            Message message = Message.obtain(null, RecordingServiceConstants.MSG_UPDATE_LOCATION, 0, 0);
-            message.obj = location;
+            Message message = Message.obtain(null, RecordingServiceConstants.MSG_UPDATE_ROUTE_ID, 0, 0);
+            message.obj = id;
             try {
                 serviceMessenger.send(message);
             } catch (RemoteException remex) {
@@ -422,7 +422,7 @@ public class RecordingServiceImpl extends Service {
 
     private void sendErrorLocationUpdate(ErrorLocation errorLocation) {
         if (serviceMessenger != null) {
-            Message message = Message.obtain(null, RecordingServiceConstants.MSG_UPDATE_LOCATION, 0, 0);
+            Message message = Message.obtain(null, RecordingServiceConstants.MSG_UPDATE_ROUTE_ID, 0, 0);
             message.obj = errorLocation;
             try {
                 serviceMessenger.send(message);

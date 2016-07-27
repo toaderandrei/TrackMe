@@ -59,9 +59,9 @@ public class RecordingServiceConnection {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
-                case RecordingServiceConstants.MSG_UPDATE_LOCATION:
+                case RecordingServiceConstants.MSG_UPDATE_ROUTE_ID:
                     if (callback != null && msg.obj != null) {
-                        callback.onLocationUpdate((Location) msg.obj);
+                        callback.onRouteUpdate((long) msg.obj);
                     }
                     break;
                 case RecordingServiceConstants.MSG_NOT_ALLOWED:
@@ -235,11 +235,11 @@ public class RecordingServiceConnection {
     public interface Callback {
 
         /**
-         * callback for when a new location came from the service
+         * callback for when a new route is created.
          *
-         * @param location location to be updated.
+         * @param id - the route id.
          */
-        void onLocationUpdate(Location location);
+        void onRouteUpdate(long id);
 
         /**
          * callback for when the service has been connected.

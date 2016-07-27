@@ -1,13 +1,17 @@
 package com.ant.track.app.fragments;
 
-import android.location.Location;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.os.RemoteException;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
+import com.ant.track.app.R;
 import com.ant.track.app.application.TrackMeApplication;
 import com.ant.track.app.service.RecordingServiceConnection;
 import com.ant.track.app.service.utils.RecordingServiceConnectionUtils;
@@ -24,6 +28,8 @@ public class ServiceHeadlessFragment extends Fragment {
     private static final String TAG = ServiceHeadlessFragment.class.getCanonicalName();
     private Callback callback;
     private RecordingState recordingState = RecordingState.NOT_STARTED;
+    private boolean startNewRecording = true;
+    private long routeId;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -67,12 +73,39 @@ public class ServiceHeadlessFragment extends Fragment {
     private final RecordingServiceConnection.Callback bindToServiceCallback = new RecordingServiceConnection.Callback() {
         @Override
         public void onConnected() {
-            //updateServiceState(recordingState);
+
+
+            if (!startNewRecording) {
+                return;
+            }
+
+            IBinder service = mRecordingServiceConnection.getServiceIfBound();
+            if (service == null) {
+                Log.d(TAG, "service not available to start gps or a new recording");
+                return;
+            }
+            if (startNewRecording) {
+                try {
+                    mRecordingServiceConnection.startTracking();
+                    recordingState = RecordingState.STARTED;
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.onUpdateUIControls(recordingState);
+                        }
+                    });
+                } catch (RemoteException e) {
+                    Toast.makeText(
+                            getActivity(), R.string.recording_record_error, Toast.LENGTH_LONG).show();
+                    Log.e(TAG, "Unable to start a new recording.", e);
+                }
+            }
+
         }
 
         @Override
-        public void onLocationUpdate(Location location) {
-
+        public void onRouteUpdate(long id) {
+            routeId = id;
         }
 
         @Override
@@ -88,30 +121,37 @@ public class ServiceHeadlessFragment extends Fragment {
     };
 
 
+    private void runOnUiThread(final Runnable runnable) {
+        getActivity().runOnUiThread(runnable);
+    }
+
+
     private void startTrackingService() {
         RecordingServiceConnectionUtils.startTrackingService(mRecordingServiceConnection);
-        recordingState = RecordingState.STARTED;
     }
 
     private void resumeTracking() {
         RecordingServiceConnectionUtils.resumeTracking(mRecordingServiceConnection);
+        //todo should be done with ca callback.
         recordingState = RecordingState.RESUMED;
     }
 
     private void pauseTracking() {
         RecordingServiceConnectionUtils.stopTracking(mRecordingServiceConnection);
+        //todo should be done with a callback
         recordingState = RecordingState.PAUSED;
     }
 
     private void stopTracking() {
         RecordingServiceConnectionUtils.stopTrackingService(mRecordingServiceConnection);
+        //todo should be done with a callback.
         recordingState = RecordingState.STOPPED;
     }
 
     public void updateServiceState(RecordingState recordingState) {
         if (recordingState == RecordingState.PAUSED) {
             pauseTracking();
-        } else if (recordingState == RecordingState.STARTED) {
+        } else if (recordingState == RecordingState.STARTING) {
             startTrackingService();
         } else if (recordingState == RecordingState.RESUMED) {
             resumeTracking();
@@ -120,11 +160,15 @@ public class ServiceHeadlessFragment extends Fragment {
         }
     }
 
-    private void updateUIRecordState(RecordingState update) {
-        callback.onUpdateUIControls(update);
-    }
-
     public interface Callback {
+
+        /**
+         * update the Ui regarding the current routeid.
+         *
+         * @param routeId the id of the running route.
+         */
+        void updateRoute(long routeId);
+
         /**
          * updates the UI controls.
          */

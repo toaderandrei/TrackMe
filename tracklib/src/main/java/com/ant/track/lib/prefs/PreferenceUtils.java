@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 
 import com.ant.track.lib.constants.Constants;
 import com.ant.track.lib.service.RecordingState;
+import com.ant.track.lib.service.RecordingStateUtils;
 
 /**
  * Preference utils used for storing un-sensitive data.
@@ -84,10 +85,15 @@ public class PreferenceUtils {
 
     public static RecordingState getRecordingState(Context context, int recording_state_key, RecordingState recordingStatePausedDefault) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.SETTINGS_KEY, Context.MODE_PRIVATE);
-        return RecordingState.valueOf(sharedPreferences.getString(getKey(context, recording_state_key), recordingStatePausedDefault.getState()));
+        String key = sharedPreferences.getString(getKey(context, recording_state_key), recordingStatePausedDefault.getState());
+        RecordingState recordingState = RecordingStateUtils.getString(key);
+        if (recordingState != null) {
+            return recordingState;
+        }
+        return recordingStatePausedDefault;
     }
 
-    public static void setDefaultRecordingState(Context context, int keyid, RecordingState state) {
+    public static void setRecordingState(Context context, int keyid, RecordingState state) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.SETTINGS_KEY, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString(getKey(context, keyid), state.getState());

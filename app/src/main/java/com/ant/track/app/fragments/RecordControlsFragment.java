@@ -102,7 +102,7 @@ public class RecordControlsFragment extends Fragment {
             public void onClick(View view) {
                 if (view != null) {
                     if (recordingState == RecordingState.NOT_STARTED | recordingState == RecordingState.STOPPED) {
-                        updateService(RecordingState.STARTED);
+                        updateService(RecordingState.STARTING);
                     } else if (recordingState == RecordingState.STARTED | recordingState == RecordingState.RESUMED) {
                         CustomFragmentDialog customFragmentDialog = CustomFragmentDialog.newInstance(STOP_OR_PAUSE,
                                 STOPS_THE_TRACKING_OR_PAUSES_IT,

@@ -1,8 +1,6 @@
 package com.ant.track.app.activities;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -10,7 +8,6 @@ import android.support.v4.app.FragmentTransaction;
 import android.text.TextUtils;
 
 import com.ant.track.app.R;
-import com.ant.track.app.fragments.LocationFragment;
 import com.ant.track.app.fragments.RecordControlsFragment;
 import com.ant.track.app.fragments.ServiceHeadlessFragment;
 import com.ant.track.app.helper.UiHelperUtils;
@@ -107,10 +104,6 @@ public abstract class ServiceConnectActivity extends BaseActivity implements Ser
         }
     };
 
-    private boolean isMapLocationFragment(Fragment fragment) {
-        return fragment != null && fragment instanceof LocationFragment;
-    }
-
     @Override
     protected void onStop() {
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
@@ -133,13 +126,15 @@ public abstract class ServiceConnectActivity extends BaseActivity implements Ser
         showErrToast(message);
     }
 
-    private Fragment getFragmentById(int id) {
-        return getSupportFragmentManager().findFragmentById(id);
-    }
-
     @Override
     public void onUpdateUIControls(RecordingState recordingState) {
         recordControlsFragment.updateRecordState(recordingState);
+    }
+
+
+    @Override
+    public void updateRoute(long routeId) {
+        this.routeId = routeId;
     }
 
     private void showErrToast(String errMessage) {

@@ -7,6 +7,8 @@ public enum RecordingState {
 
     NOT_STARTED("not_started"),
 
+    STARTING("starting"),
+
     STARTED("started"),
 
     STOPPED("stopped"),

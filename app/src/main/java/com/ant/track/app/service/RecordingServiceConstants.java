@@ -15,7 +15,7 @@ public class RecordingServiceConstants {
 
     public static final int MSG_RESUME_TRACKING = 105;
 
-    public static final int MSG_UPDATE_LOCATION = 200;
+    public static final int MSG_UPDATE_ROUTE_ID = 200;
 
     public static final int MSG_NOT_ALLOWED = 300;
 
