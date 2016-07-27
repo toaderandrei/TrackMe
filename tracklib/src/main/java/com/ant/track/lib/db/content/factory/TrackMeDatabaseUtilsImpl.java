@@ -40,7 +40,7 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
     public static final String PARAM_COMMA_CLOSE = ")";
     public static final String PARAM_SELECT_MIN = "=(select min(";
     public static final String PARAM_EQUAL_QUESTION_MARK = "=?)";
-    public static final String PARAM_EQUAL_STRING = " =?";
+    public static final String PARAM_EQUAL_STRING = "=?";
     public static final String QUERY_AND = " AND ";
     public static final String QUERY_DESCENDING = " DESCENDING";
     private static final String QUERY_ASCENDING = " ASC";
@@ -912,7 +912,7 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
         String where = null;
         String[] selectArgs = null;
         if (routeId != null) {
-            where = TrackMeContract.RouteEntry._ID + " = ";
+            where = TrackMeContract.RouteEntry._ID +  PARAM_EQUAL_STRING;
             selectArgs = new String[]{String.valueOf(routeId)};
         }
         return getContentResolver().query(TrackMeContract.RouteEntry.CONTENT_URI, projection, where, selectArgs, DatabaseConstants.DEFAULT_ORDER_COLUMN);
