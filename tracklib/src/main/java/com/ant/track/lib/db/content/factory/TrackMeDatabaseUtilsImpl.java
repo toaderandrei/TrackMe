@@ -116,7 +116,7 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
     public Uri insertRoutePoint(long routeId, Location location) {
         RoutePoint routePoint = new RoutePoint();
         routePoint.setLocation(location);
-
+        routePoint.setRouteId(routeId);
         return insertRoutePoint(routePoint);
     }
 
@@ -469,7 +469,7 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
     private ContentValues createContentValues(RoutePoint routePoint) {
         ContentValues contentValues = new ContentValues();
 
-        contentValues.put(TrackMeContract.RoutePointEntry.ROUTE_ID, routePoint.getId());
+        contentValues.put(TrackMeContract.RoutePointEntry.ROUTE_ID, routePoint.getRouteId());
         if (LocationUtils.isValidLatitude(routePoint.getLatitude())) {
             contentValues.put(TrackMeContract.RoutePointEntry.LOCATION_LAT, LocationUtils.getLatitude1E6FromDouble(routePoint.getLatitude()));
         }
@@ -638,19 +638,19 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
         }
 
         if (!cursor.isNull(cursorIndexes.longitudeIndex)) {
-            location.setLatitude(((double) cursor.getInt(cursorIndexes.longitudeIndex)) / 1E6);
+            location.setLongitude(((double) cursor.getInt(cursorIndexes.longitudeIndex)) / 1E6);
         }
 
         if (!cursor.isNull(cursorIndexes.altitudeIndex)) {
-            location.setLatitude(cursor.getFloat(cursorIndexes.altitudeIndex));
+            location.setAltitude(cursor.getFloat(cursorIndexes.altitudeIndex));
         }
 
         if (!cursor.isNull(cursorIndexes.accuracyIndex)) {
-            location.setLatitude(cursor.getFloat(cursorIndexes.accuracyIndex));
+            location.setAccuracy(cursor.getFloat(cursorIndexes.accuracyIndex));
         }
 
         if (!cursor.isNull(cursorIndexes.bearingIndex)) {
-            location.setLatitude(cursor.getFloat(cursorIndexes.bearingIndex));
+            location.setBearing(cursor.getFloat(cursorIndexes.bearingIndex));
         }
 
         return location;

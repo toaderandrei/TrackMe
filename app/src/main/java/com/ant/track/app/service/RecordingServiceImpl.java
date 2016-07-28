@@ -36,7 +36,6 @@ import com.ant.track.app.provider.IDataProvider;
 import com.ant.track.app.service.utils.UnitConversions;
 import com.ant.track.lib.constants.Constants;
 import com.ant.track.lib.db.content.factory.LocationIterator;
-import com.ant.track.lib.db.content.factory.TrackMeDatabaseUtils;
 import com.ant.track.lib.db.content.factory.TrackMeDatabaseUtilsImpl;
 import com.ant.track.lib.model.Route;
 import com.ant.track.lib.model.RouteCheckPoint;
@@ -71,7 +70,6 @@ public class RecordingServiceImpl extends Service {
     private int minRecordingIntervalTime = 20;
     private GPSLiveTrackerLocationManager mLiveTrackingLocationManager;
     private int recordingGpsAccuracy = LocationUtils.RECORDING_GPS_ACCURACY_DEFAULT;
-    private boolean isRecording = false;
     private PowerManager.WakeLock wakeLock;
     private SharedPreferences sharedPrefs;
     private Location mLastLocation;
@@ -80,9 +78,9 @@ public class RecordingServiceImpl extends Service {
     private Handler handler;
     private Messenger serviceMessenger;
     private RouteStatsManager routeStatsManager;
-    private RecordingState recordingState;
+    private RecordingState recordingState = RecordingState.NOT_STARTED;
     private int minRecordingDistance;
-    private int maxRecordingDistance;
+    private int maxRecordingDistance = PreferenceUtils.DEFAULT_MAX_RECORDING_DISTANCE;
     private AtomicBoolean isIdle = new AtomicBoolean(false);
     //location listener policy
     //Battery life
@@ -95,7 +93,7 @@ public class RecordingServiceImpl extends Service {
     private static final long DEFAULT_HIGH_ACCURACY_MAX_INTERVAL = ONE_MINUTE;
     private static final int DEFAULT_ACCURACY_MIN_DISTANCE = 5;
 
-    private TrackMeDatabaseUtils trackMeDatabaseUtils;
+    //private TrackMeDatabaseUtils trackMeDatabaseUtils;
 
     private LocationListener locationListener = new LocationListener() {
         @Override
@@ -193,7 +191,7 @@ public class RecordingServiceImpl extends Service {
         contextWeakRef = new WeakReference<Context>(this);
         locationListenerPolicy = new LocationListenerRestrictionsImpl(minRecordingIntervalTime * ONE_SECOND);
         handler.post(registerLocationRunnable);
-        trackMeDatabaseUtils = TrackMeDatabaseUtilsImpl.getInstance();
+        //trackMeDatabaseUtils = TrackMeDatabaseUtilsImpl.getInstance();
         routeId = PreferenceUtils.DEFAULT_ROUTE_ID;
         getSharedPrefs().registerOnSharedPreferenceChangeListener(shareListener);
         shareListener.onSharedPreferenceChanged(getSharedPrefs(), null);
@@ -227,7 +225,7 @@ public class RecordingServiceImpl extends Service {
         //try to add all the locations using a location iterator and the start time
         LocationIterator locationIterator = null;
         try {
-            locationIterator = trackMeDatabaseUtils.getRoutePointsIterator(route.getRouteId(), -1L);
+            locationIterator = TrackMeDatabaseUtilsImpl.getInstance().getRoutePointsIterator(route.getRouteId(), -1L);
 
             while (locationIterator.hasNext()) {
                 Location location = locationIterator.next();
@@ -295,7 +293,7 @@ public class RecordingServiceImpl extends Service {
             return;
         }
 
-        Route route = trackMeDatabaseUtils.getRouteById(routeId);
+        Route route = TrackMeDatabaseUtilsImpl.getInstance().getRouteById(routeId);
         if (route == null) {
             Log.e(TAG, "invalid route.");
             return;
@@ -334,7 +332,7 @@ public class RecordingServiceImpl extends Service {
             return;
         }
 
-        double distance = location.distanceTo(getLastValidLocationForRoute(routeId));
+        double distance = location.distanceTo(lastValidTrackLocation);
 
         //this can happen - in case of a tunnel longer than max distance
         if (distance > maxRecordingDistance) {
@@ -373,13 +371,13 @@ public class RecordingServiceImpl extends Service {
 
         //insert it to the stats.
         try {
-            Uri uri = trackMeDatabaseUtils.insertRoutePoint(route.getRouteId(), location);
+            Uri uri = TrackMeDatabaseUtilsImpl.getInstance().insertRoutePoint(route.getRouteId(), location);
             long id = Long.parseLong(uri.getLastPathSegment());
             routeStatsManager.addLocationToStats(location, minRecordingDistance);
 
             updateRecordingRoute(route, id, LocationUtils.isValidLocation(location));
             sendRouteIdUpdate(id);
-            showNotification();
+            //showNotification();
 
         } catch (SQLException exc) {
             sendErrorLocationUpdate(new ErrorLocation(exc, location));
@@ -406,7 +404,7 @@ public class RecordingServiceImpl extends Service {
         //we update the route
         routeStatsManager.updateTime(System.currentTimeMillis());
         route.setRouteStats(routeStatsManager.getCurrentRouteStats());
-        trackMeDatabaseUtils.updateRouteTrack(route);
+        TrackMeDatabaseUtilsImpl.getInstance().updateRouteTrack(route);
     }
 
     private void sendRouteIdUpdate(long id) {
@@ -445,6 +443,13 @@ public class RecordingServiceImpl extends Service {
         }
     }
 
+    public boolean isStartingToRecord() {
+        if (!canAccess()) {
+            return false;
+        }
+        return recordingState == RecordingState.STARTING;
+    }
+
     public boolean isRecording() {
         if (!canAccess()) {
             return false;
@@ -460,6 +465,25 @@ public class RecordingServiceImpl extends Service {
         startNewRouteTracking();
     }
 
+
+    private void startNewRouteTracking() {
+        long now = System.currentTimeMillis();
+
+        routeStatsManager = new RouteStatsManager(now);
+        Route route = new Route();
+        Uri uriRouteInsert = TrackMeDatabaseUtilsImpl.getInstance().insertRouteTrack(route);
+        long insertedRouteId = Long.parseLong(uriRouteInsert.getLastPathSegment());
+        PreferenceUtils.setRouteId(this, R.string.route_id_key, insertedRouteId);
+        routeId = insertedRouteId;
+        route.setRouteId(insertedRouteId);
+
+        TrackMeDatabaseUtilsImpl.getInstance().updateRouteTrack(route);
+        insertRoutePoint(RouteTrackCreator.DEFAULT_ROUTE_TRACK_BUILDER);
+        insertRouteCheckPoint(RouteTrackCreator.DEFAULT_ROUTE_TRACK_BUILDER);
+        updateRecordingState(routeId, RecordingState.STARTED);
+        startRecording();
+    }
+
     /**
      * Starts gps.
      */
@@ -468,53 +492,6 @@ public class RecordingServiceImpl extends Service {
         startRequestingLocationUpdates();
     }
 
-    private void startNewRouteTracking() {
-        long now = System.currentTimeMillis();
-
-        routeStatsManager = new RouteStatsManager(now);
-        Route route = new Route();
-        Uri uriRouteInsert = trackMeDatabaseUtils.insertRouteTrack(route);
-        long insertedRouteId = Long.parseLong(uriRouteInsert.getLastPathSegment());
-        PreferenceUtils.setRouteId(this, R.string.route_id_key, insertedRouteId);
-        routeId = insertedRouteId;
-        route.setRouteId(insertedRouteId);
-
-        trackMeDatabaseUtils.updateRouteTrack(route);
-        insertRoutePoint(RouteTrackCreator.DEFAULT_ROUTE_TRACK_BUILDER);
-        insertRouteCheckPoint(RouteTrackCreator.DEFAULT_ROUTE_TRACK_BUILDER);
-        updateRecordingState(routeId, RecordingState.STARTED);
-        startRecording();
-    }
-
-    private long insertRoutePoint(RouteTrackCreator routeTrackCreator) {
-
-        if (!isRecording || isPaused()) {
-            return -1L;
-        }
-
-        Location location = trackMeDatabaseUtils.getLastValidLocationForRoute(routeId);
-        if (!LocationUtils.isValidLocation(location)) {
-            location = routeTrackCreator.getLocation();
-        }
-        RoutePoint routePoint = new RoutePoint(DEFAULT_ROUTE_POINT_ID, routeId, location, null);
-        Uri uri = trackMeDatabaseUtils.insertRoutePoint(routePoint);
-        return Long.parseLong(uri.getLastPathSegment());
-    }
-
-    private long insertRouteCheckPoint(RouteTrackCreator routeTrackCreator) {
-
-        if (!isRecording || isPaused()) {
-            return -1L;
-        }
-
-        Location location = trackMeDatabaseUtils.getLastValidLocationForRoute(routeId);
-        if (!LocationUtils.isValidLocation(location)) {
-            location = routeTrackCreator.getLocation();
-        }
-        RouteCheckPoint routePoint = new RouteCheckPoint(routeId, routeTrackCreator.getName(), routeTrackCreator.getDescription(), location, null, String.valueOf(Color.BLUE));
-        Uri uri = trackMeDatabaseUtils.insertRoutePoint(routePoint);
-        return Long.parseLong(uri.getLastPathSegment());
-    }
 
     private void resumeTracking() {
         Log.d(TAG, "resume the route track");
@@ -524,7 +501,7 @@ public class RecordingServiceImpl extends Service {
         }
         updateRecordingState(routeId, RecordingState.RESUMED);
 
-        Route pausedRoute = trackMeDatabaseUtils.getRouteById(routeId);
+        Route pausedRoute = TrackMeDatabaseUtilsImpl.getInstance().getRouteById(routeId);
         if (pausedRoute != null) {
             insertLocation(pausedRoute, mLastLocation, getLastValidLocationForRoute(pausedRoute.getRouteId()));
 
@@ -542,7 +519,7 @@ public class RecordingServiceImpl extends Service {
     private void startRecording() {
 
         mLastLocation = null;
-        isRecording = true;
+        recordingState = RecordingState.STARTED;
 
         isIdle.set(false);
 
@@ -551,12 +528,44 @@ public class RecordingServiceImpl extends Service {
         showNotification();
     }
 
+
+    private long insertRoutePoint(RouteTrackCreator routeTrackCreator) {
+
+        if (!isRecording() || isPaused()) {
+            return -1L;
+        }
+
+        Location location = TrackMeDatabaseUtilsImpl.getInstance().getLastValidLocationForRoute(routeId);
+        if (!LocationUtils.isValidLocation(location)) {
+            location = routeTrackCreator.getLocation();
+        }
+        RoutePoint routePoint = new RoutePoint(DEFAULT_ROUTE_POINT_ID, routeId, location, null);
+        Uri uri = TrackMeDatabaseUtilsImpl.getInstance().insertRoutePoint(routePoint);
+        return Long.parseLong(uri.getLastPathSegment());
+    }
+
+    private long insertRouteCheckPoint(RouteTrackCreator routeTrackCreator) {
+
+        if (!isRecording() || isPaused()) {
+            return -1L;
+        }
+
+        Location location = TrackMeDatabaseUtilsImpl.getInstance().getLastValidLocationForRoute(routeId);
+        if (!LocationUtils.isValidLocation(location)) {
+            location = routeTrackCreator.getLocation();
+        }
+        RouteCheckPoint routePoint = new RouteCheckPoint(routeId, routeTrackCreator.getName(), routeTrackCreator.getDescription(), location, null, String.valueOf(Color.BLUE));
+        Uri uri = TrackMeDatabaseUtilsImpl.getInstance().insertRoutePoint(routePoint);
+        return Long.parseLong(uri.getLastPathSegment());
+    }
+
+
     private void pauseTracking() {
 
         Log.d(TAG, "pausing the route track");
 
         updateRecordingState(routeId, RecordingState.PAUSED);
-        Route route = trackMeDatabaseUtils.getRouteById(routeId);
+        Route route = TrackMeDatabaseUtilsImpl.getInstance().getRouteById(routeId);
 
         if (route != null) {
             insertLocation(route, mLastLocation, getLastValidLocationForRoute(route.getRouteId()));
@@ -585,10 +594,10 @@ public class RecordingServiceImpl extends Service {
         RecordingState state = recordingState;
         updateRecordingState(currentRouteId, state);
         //todo update status sometime.
-        Route currentRoute = trackMeDatabaseUtils.getRouteById(currentRouteId);
+        Route currentRoute = TrackMeDatabaseUtilsImpl.getInstance().getRouteById(currentRouteId);
         if (currentRoute != null) {
             if (!isPaused()) {
-                if (!insertLocation(currentRoute, mLastLocation, trackMeDatabaseUtils.getLastValidLocationForRoute(currentRouteId))) {
+                if (!insertLocation(currentRoute, mLastLocation, TrackMeDatabaseUtilsImpl.getInstance().getLastValidLocationForRoute(currentRouteId))) {
                     //if somehow the last location is the same as the last inserted,
                     //we still want to update the route's time.
                     //if it is true, it is updated already, does not make sense to update it again.
@@ -601,7 +610,7 @@ public class RecordingServiceImpl extends Service {
 
     private void stopRecordingService(boolean stopped) {
         mLastLocation = null;
-        isRecording = false;
+        recordingState = stopped ? RecordingState.STOPPED : RecordingState.PAUSED;
         stopGpsTracking(stopped);
     }
 
@@ -623,9 +632,9 @@ public class RecordingServiceImpl extends Service {
      * Shows the notification.
      */
     private void showNotification() {
-        if (isRecording) {
+        if (isRecording()) {
             if (!isPaused()) {
-                Intent intent = IntentUtils.newIntentWithAction(IntentUtils.MAIN_ACTIVITY_ACTION).putExtra(Constants.EXTRA_RECORDING_ID, isRecording);
+                Intent intent = IntentUtils.newIntentWithAction(IntentUtils.MAIN_ACTIVITY_ACTION).putExtra(Constants.EXTRA_RECORDING_ID, isRecording());
                 PendingIntent pendingIntent = TaskStackBuilder.create(this).addParentStack(MainActivity.class).addNextIntent(intent).getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
                 startForegroundService(pendingIntent, R.string.tracking_record_notification);
                 sendMessageToListeners(RecordingServiceConstants.MSG_SHOW_NOTIFICATIONS);
@@ -749,7 +758,7 @@ public class RecordingServiceImpl extends Service {
 
 
     protected Location getLastValidLocationForRoute() {
-        return trackMeDatabaseUtils.getLastValidLocationForRoute(routeId);
+        return TrackMeDatabaseUtilsImpl.getInstance().getLastValidLocationForRoute(routeId);
     }
 
     @Override
@@ -765,12 +774,11 @@ public class RecordingServiceImpl extends Service {
         // This should be the next to last operation
         releaseWakeLock();
         TrackMeDatabaseUtilsImpl.reset();
-        trackMeDatabaseUtils = null;
         super.onDestroy();
     }
 
     private Location getLastValidLocationForRoute(long routeId) {
-        return trackMeDatabaseUtils.getLastValidLocationForRoute(routeId);
+        return TrackMeDatabaseUtilsImpl.getInstance().getLastValidLocationForRoute(routeId);
     }
 
     private boolean isPaused() {

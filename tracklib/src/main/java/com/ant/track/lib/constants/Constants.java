@@ -14,12 +14,12 @@ public class Constants {
     public static final String SETTINGS_NAME = "SettingsActivity";
 
     public static final int MAX_LONGITUDE = 180;
-    public static final int MAX_LATITUDE = 90;
+    public static final int MAX_LATITUDE = 90000000;
     public static final String EMPTY_STRING = "";
 
-    public static double PAUSE_LATITUDE = 100.0d;
+    public static double PAUSE_LATITUDE = 100.0;
 
-    public static double PAUSE_LONGITUDE = 200.0d;
+    public static double PAUSE_LONGITUDE = 200.0;
 
     /**
      * The number of speed reading to smooth to get a somewhat accurate signal.

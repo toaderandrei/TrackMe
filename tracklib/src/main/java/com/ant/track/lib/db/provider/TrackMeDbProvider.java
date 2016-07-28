@@ -99,7 +99,7 @@ public class TrackMeDbProvider extends ContentProvider {
             }
             case ROUTE_ID:
                 queryBuilder.setTables(TrackMeContract.RouteEntry.TABLE_NAME);
-                queryBuilder.appendWhere("_id = " + uri.getPathSegments().get(1));
+                queryBuilder.appendWhere("_id= " + uri.getPathSegments().get(1));
                 sort = sortOrder == null ? DatabaseConstants.DEFAULT_ORDER_COLUMN : sortOrder;
                 break;
             case ROUTE_POINT: {
@@ -109,7 +109,7 @@ public class TrackMeDbProvider extends ContentProvider {
             }
             case ROUTE_POINT_ID:
                 queryBuilder.setTables(TrackMeContract.RoutePointEntry.TABLE_NAME);
-                queryBuilder.appendWhere("_id = " + uri.getPathSegments().get(1));
+                queryBuilder.appendWhere("_id= " + uri.getPathSegments().get(1));
                 sort = sortOrder == null ? DatabaseConstants.DEFAULT_ORDER_COLUMN : sortOrder;
                 break;
             case ROUTE_CHECK_POINT: {
@@ -119,7 +119,7 @@ public class TrackMeDbProvider extends ContentProvider {
             }
             case ROUTE_CHECK_POINT_ID:
                 queryBuilder.setTables(TrackMeContract.RouteCheckPointEntry.TABLE_NAME);
-                queryBuilder.appendWhere("_id = " + uri.getPathSegments().get(1));
+                queryBuilder.appendWhere("_id= " + uri.getPathSegments().get(1));
                 sort = sortOrder == null ? DatabaseConstants.DEFAULT_ORDER_COLUMN : sortOrder;
                 break;
 
