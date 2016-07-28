@@ -1,6 +1,7 @@
 package com.ant.track.lib.db.content.factory;
 
 import android.content.ContentValues;
+import android.database.Cursor;
 import android.location.Location;
 import android.net.Uri;
 
@@ -133,6 +134,14 @@ public interface TrackMeDatabaseUtils {
     int updateRoutePoint(RoutePoint routePoint);
 
     /**
+     * gets a route cursor based on the route id
+     *
+     * @param routeId the id of the route
+     * @return a cursor
+     */
+    Cursor getRouteCursor(Long routeId);
+
+    /**
      * gets a route by id.
      *
      * @param routeId the id of the route
@@ -140,14 +149,63 @@ public interface TrackMeDatabaseUtils {
      */
     Route getRouteById(long routeId);
 
+    /**
+     * retrieves all the routes from db
+     *
+     * @return all the routes form db.
+     */
     List<Route> getAllRoutes();
 
+    /**
+     * retrieves a list of all the route points for a specific route.
+     */
     List<RoutePoint> getAllRoutePointIds(long routeId);
 
     List<RoutePoint> getAllRoutePointIds(long routeId, boolean descending);
 
+    /**
+     * inserts a route point into db.
+     *
+     * @param routeId  the id for which we need to insert it.
+     * @param location the location that needs to be inserted.
+     * @return the uri of the newly inserted point.
+     */
     Uri insertRoutePoint(long routeId, Location location);
 
     LocationIterator getRoutePointsIterator(long routeId,
                                             long startTrackPointId);
+
+    /**
+     * gets a route check point cursor based on routeid and start id.
+     *
+     * @param routeid             the id of the route
+     * @param startId             the startid for the route
+     * @param totalNumberOfPoints the total number of points.
+     * @return the cursor
+     */
+    Cursor getNewRouteCheckPointsCursor(long routeid, long startId, int totalNumberOfPoints);
+
+    /**
+     * creates a route from cursor.
+     *
+     * @param cursor the cursor from which the route is created
+     * @return a route.
+     */
+    Route createRouteFromCursor(Cursor cursor);
+
+    /**
+     * creates a route point from cursor.
+     *
+     * @param cursor the cursor from which we need to create the point.
+     * @return a route point.
+     */
+    RoutePoint createRoutePointFromCursor(Cursor cursor);
+
+    /**
+     * create a route check point from cursor.
+     *
+     * @param cursor the cursor from which we need to create the route check point.
+     * @return the route check point.
+     */
+    RouteCheckPoint getRouteCheckPointFromCursor(Cursor cursor);
 }

@@ -66,7 +66,6 @@ public class GPSLiveTrackerLocationManager {
     };
 
     public GPSLiveTrackerLocationManager(Context context) {
-        checkIfInitialized(context);
         this.handler = new Handler(Looper.getMainLooper());
 
         locationClient = new GoogleApiClient.Builder(context)
@@ -75,14 +74,8 @@ public class GPSLiveTrackerLocationManager {
                 .addOnConnectionFailedListener(onConnectionFailedListener)
                 .build();
         locationClient.connect();
-        isAllowed = GoogleLocationServicesUtils.getInstance().isAllowed();
+        isAllowed = GoogleLocationServicesUtils.getInstance(context).isAllowed();
 
-    }
-
-    private void checkIfInitialized(Context context) {
-        if (!GoogleLocationServicesUtils.getInstance().isInitialized()) {
-            GoogleLocationServicesUtils.getInstance().init(context);
-        }
     }
 
 

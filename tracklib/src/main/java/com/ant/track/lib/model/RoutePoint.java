@@ -213,4 +213,8 @@ public class RoutePoint implements Parcelable {
     public void setLocation(Location location) {
         this.location = location;
     }
+
+    public Location getLocation() {
+        return location;
+    }
 }
