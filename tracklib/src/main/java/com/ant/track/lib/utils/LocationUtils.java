@@ -4,6 +4,7 @@ import android.location.Location;
 import android.location.LocationManager;
 
 import com.ant.track.lib.constants.Constants;
+import com.google.android.gms.maps.model.LatLng;
 
 /**
  * Location utils
@@ -24,6 +25,20 @@ public class LocationUtils {
 
 
     public static final double PAUSE_LONGITUDE = 300;
+
+    /**
+     * Checks if a given location is a valid (i.e. physically possible) location
+     * on Earth. Note: The special separator locations (which have latitude = 100)
+     * will not qualify as valid. Neither will locations with lat=0 and lng=0 as
+     * these are most likely "bad" measurements which often cause trouble.
+     *
+     * @param location the location to test
+     * @return true if the location is a valid location.
+     */
+    public static boolean isValidLocation(LatLng location) {
+        return location != null && Math.abs(location.latitude) <= Constants.MAX_LATITUDE
+                && Math.abs(location.longitude) <= Constants.MAX_LONGITUDE;
+    }
 
     /**
      * Checks if a given location is a valid (i.e. physically possible) location
