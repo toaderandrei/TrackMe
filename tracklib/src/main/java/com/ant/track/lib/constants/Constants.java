@@ -17,6 +17,7 @@ public class Constants {
     public static final int MAX_LATITUDE = 90000000;
     public static final String EMPTY_STRING = "";
     public static final int DEFAULT_MAX_NUMBER_OF_POINTS = 5000;
+    public static final String EXTRA_ROUTE_ID = "route_id";
 
     public static double PAUSE_LATITUDE = 100.0;
 

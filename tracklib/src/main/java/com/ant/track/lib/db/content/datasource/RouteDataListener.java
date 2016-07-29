@@ -40,7 +40,7 @@ public interface RouteDataListener {
     /**
      * update of the new point.
      */
-    void onNewRoutePointUpdate();
+    void onNewRoutePointUpdateDone();
 
     /**
      * adds a location to queue for later processing.
@@ -54,7 +54,7 @@ public interface RouteDataListener {
      *
      * @param location the location to show on the map.
      */
-    void addLocationToMap(Location location);
+    void addPendingLocation(Location location);
 
     /**
      * sets the last shown location.

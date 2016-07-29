@@ -134,7 +134,7 @@ public class RecordingServiceImpl extends Service {
                 if (TextUtils.equals(key, PreferenceUtils.getKey(contextWeakRef.get(), R.string.recording_gps_accuracy_key))) {
                     recordingGpsAccuracy = PreferenceUtils.getInt(contextWeakRef.get(),
                             R.string.recording_gps_accuracy_key,
-                            PreferenceUtils.RECORDING_GPS_ACCURACY_DEFAUL);
+                            PreferenceUtils.RECORDING_GPS_ACCURACY_DEFAULT);
                 }
 
                 //distance interval
@@ -161,7 +161,7 @@ public class RecordingServiceImpl extends Service {
                 if (TextUtils.equals(key, PreferenceUtils.getKey(contextWeakRef.get(), R.string.recording_location_threshold_key))) {
                     int recordingThreshold = PreferenceUtils.getInt(contextWeakRef.get(),
                             R.string.recording_location_threshold_key,
-                            PreferenceUtils.RECORDING_GPS_ACCURACY_DEFAUL);
+                            PreferenceUtils.RECORDING_GPS_ACCURACY_DEFAULT);
 
                     switch (recordingThreshold) {
                         case RecordingInterval.BATTERY_LIFE:

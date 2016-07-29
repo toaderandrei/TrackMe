@@ -14,7 +14,7 @@ public class PreferenceUtils {
 
     public static final long DEFAULT_ROUTE_ID = -1L;
     //in meters
-    public static final int RECORDING_GPS_ACCURACY_DEFAUL = 5;
+    public static final int RECORDING_GPS_ACCURACY_DEFAULT = 5;
     public static final int RECORDING_DISTANCE_DEFAULT = 15;
     public static final int DEFAULT_MAX_RECORDING_DISTANCE = 200;
     public static final RecordingState RECORDING_STATE_PAUSED_DEFAULT = RecordingState.PAUSED;

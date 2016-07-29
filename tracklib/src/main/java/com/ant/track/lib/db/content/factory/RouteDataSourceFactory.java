@@ -278,7 +278,7 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
                 if (!LocationUtils.isValidLocation(location)) {
                     for (RouteDataListener routeDataListener : routePointsDataListeners) {
                         Location validLoc = TrackMeDatabaseUtilsImpl.getInstance().getLastValidLocationForRoute(currentRouteId);
-                        routeDataListener.addLocationToMap(validLoc);
+                        routeDataListener.addPendingLocation(validLoc);
                         routeDataListener.addLocationToQueue(location);
                         includeNextPoint = true;
                     }
@@ -287,7 +287,7 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
                     if (includeNextPoint || updateInsertedPoints || (locationId == lastTrackPointId && !isSelectedRouteRecording())) {
                         includeNextPoint = false;
                         for (RouteDataListener trackDataListener : routePointsDataListeners) {
-                            trackDataListener.addLocationToMap(location);
+                            trackDataListener.addPendingLocation(location);
                         }
                     } else {
                         for (RouteDataListener routeDataListener : routePointsDataListeners) {
@@ -311,7 +311,7 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
         }
 
         for (RouteDataListener listener : routePointsDataListeners) {
-            listener.onNewRoutePointUpdate();
+            listener.onNewRoutePointUpdateDone();
         }
 
     }
@@ -405,7 +405,7 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
                              if (TextUtils.equals(key, PreferenceUtils.getKey(context, R.string.recording_gps_accuracy_key))) {
                                  recordingGpsAccuracy = PreferenceUtils.getInt(context,
                                          R.string.recording_gps_accuracy_key,
-                                         PreferenceUtils.RECORDING_GPS_ACCURACY_DEFAUL);
+                                         PreferenceUtils.RECORDING_GPS_ACCURACY_DEFAULT);
                              }
 
                              //distance interval

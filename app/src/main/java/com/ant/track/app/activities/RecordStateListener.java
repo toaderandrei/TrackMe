@@ -13,4 +13,6 @@ public interface RecordStateListener {
      * @param update
      */
     void updateServiceState(RecordingState update);
+
+    long getRouteId();
 }

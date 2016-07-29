@@ -76,4 +76,5 @@
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="recording_record_error">Recording Error</string>
+    <string name="first_start_app">First start</string>
 </resources>

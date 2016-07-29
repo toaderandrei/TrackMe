@@ -1,10 +1,18 @@
 package com.ant.track.app.activities;
 
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.ant.track.app.R;
+import com.ant.track.lib.constants.Constants;
+import com.ant.track.lib.prefs.PreferenceUtils;
+import com.ant.track.lib.service.RecordingState;
 import com.google.android.gms.maps.GoogleMap;
 
 /**
@@ -12,11 +20,20 @@ import com.google.android.gms.maps.GoogleMap;
  */
 public class MainActivity extends ServiceConnectActivity {
 
+    private long routeId;
+    private long recordingRouteId = PreferenceUtils.DEFAULT_ROUTE_ID;
+
+    private SharedPreferences sharedPreferences;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initializeToolbar();
+        handleIntent(getIntent());
+        sharedPreferences = getSharedPreferences(Constants.SETTINGS_NAME, Context.MODE_PRIVATE);
+        sharedPreferences.registerOnSharedPreferenceChangeListener(onSharedPreferencesListener);
+
         initRecordingAndServiceFragment();
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -24,10 +41,41 @@ public class MainActivity extends ServiceConnectActivity {
         setActionBarTitle();
     }
 
+    private SharedPreferences.OnSharedPreferenceChangeListener onSharedPreferencesListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+        @Override
+        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+            if (key != null) {
+                if (TextUtils.equals(key, PreferenceUtils.getKey(MainActivity.this, R.string.route_id_key))) {
+                    recordingRouteId = PreferenceUtils.getLong(MainActivity.this, R.string.route_id_key);
+                }
+                if (TextUtils.equals(key, PreferenceUtils.getKey(MainActivity.this, R.string.recording_state_key))) {
+                    recordingState = PreferenceUtils.getRecordingState(MainActivity.this, R.string.recording_state_key, RecordingState.NOT_STARTED);
+                }
+            }
+        }
+    };
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        handleIntent(intent);
+    }
+
+    private void handleIntent(Intent intent) {
+        if (intent != null) {
+            routeId = intent.getLongExtra(Constants.EXTRA_ROUTE_ID, -1L);
+            if (routeId == -1L) {
+                Toast.makeText(this, getString(R.string.first_start_app), Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            //clearly first start.
+            Toast.makeText(this, getString(R.string.first_start_app), Toast.LENGTH_SHORT).show();
+        }
+    }
 
     @Override
     public void onResume() {
         super.onResume();
+        onUpdateUIControls(getRecordingState());
     }
 
     /**
@@ -91,4 +139,23 @@ public class MainActivity extends ServiceConnectActivity {
         return null;
     }
 
+    @Override
+    protected void onDestroy() {
+        sharedPreferences.unregisterOnSharedPreferenceChangeListener(onSharedPreferencesListener);
+        sharedPreferences = null;
+        super.onDestroy();
+    }
+
+
+    public RecordingState getRecordingState() {
+        if (recordingState == RecordingState.NOT_STARTED) {
+            recordingState = routeId == recordingRouteId ? RecordingState.STARTED : RecordingState.STOPPED;
+        }
+        return recordingState;
+    }
+
+    @Override
+    public long getRouteId() {
+        return routeId;
+    }
 }
