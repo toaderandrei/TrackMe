@@ -2,10 +2,18 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/normal_view"
+        android:orderInCategory="0"
         android:icon="@drawable/normal_view"
         android:title="@string/normal_view_map" />
     <item
         android:id="@+id/satellite_view"
         android:icon="@drawable/satellite_view"
+        android:orderInCategory="1"
         android:title="@string/satellite_view_map" />
+
+    <item
+        android:icon="@drawable/ic_menu_settings"
+        android:id="@+id/route_detail_settings"
+        android:orderInCategory="2"
+        android:title="@string/menu_settings"/>
 </menu>

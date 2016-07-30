@@ -192,7 +192,7 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
     }
 
     private void runAsync(final Runnable runnable) {
-        if (runnable != null) {
+        if (runnable != null && bgHandler!=null) {
             bgHandler.post(runnable);
         }
     }

@@ -113,7 +113,7 @@ public class MainActivity extends ServiceConnectActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
-        int type;
+        int type = R.id.normal_view;
         if (this.getGoogleMap() != null) {
             type = this.getGoogleMap().getMapType();
         }
@@ -122,6 +122,9 @@ public class MainActivity extends ServiceConnectActivity {
             type = GoogleMap.MAP_TYPE_NORMAL;
         } else if (item.getItemId() == R.id.satellite_view) {
             type = GoogleMap.MAP_TYPE_SATELLITE;
+        } else if (item.getItemId() == R.id.route_detail_settings) {
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
         } else {
             return super.onOptionsItemSelected(item);
         }
