@@ -1,4 +1,4 @@
-package com.ant.track.lib.db.content.publisher;
+package com.ant.track.lib.content.publisher;
 
 import android.content.ContentResolver;
 import android.content.Context;

@@ -19,6 +19,7 @@ public class PreferenceUtils {
     public static final int DEFAULT_MAX_RECORDING_DISTANCE = 200;
     public static final RecordingState RECORDING_STATE_PAUSED_DEFAULT = RecordingState.PAUSED;
     public static final String DEFAULT_ROUTE_COLOR = "RED";
+    public static int MAP_TYPE_DEFAUlT = 1;
 
     private PreferenceUtils() {
 

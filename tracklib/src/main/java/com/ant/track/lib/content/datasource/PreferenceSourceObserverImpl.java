@@ -1,8 +1,8 @@
-package com.ant.track.lib.db.content.datasource;
+package com.ant.track.lib.content.datasource;
 
 import android.content.SharedPreferences;
 
-import com.ant.track.lib.db.content.publisher.RouteDataSourceListener;
+import com.ant.track.lib.content.publisher.RouteDataSourceListener;
 
 /**
  * Observer for preference changes.

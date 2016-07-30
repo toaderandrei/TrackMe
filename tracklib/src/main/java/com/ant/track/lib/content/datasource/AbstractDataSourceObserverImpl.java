@@ -1,9 +1,9 @@
-package com.ant.track.lib.db.content.datasource;
+package com.ant.track.lib.content.datasource;
 
 import android.database.ContentObserver;
 import android.os.Handler;
 
-import com.ant.track.lib.db.content.publisher.RouteDataSourceListener;
+import com.ant.track.lib.content.publisher.RouteDataSourceListener;
 
 /**
  * Data content manager.

@@ -1,4 +1,4 @@
-package com.ant.track.lib.db.content.datasource;
+package com.ant.track.lib.content.datasource;
 
 /**
  * Type of routes, route, routepoint, routecheckpoint.

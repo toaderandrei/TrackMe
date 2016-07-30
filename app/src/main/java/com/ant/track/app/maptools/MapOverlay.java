@@ -8,6 +8,7 @@ import com.ant.track.lib.constants.Constants;
 import com.ant.track.lib.model.RouteCheckPoint;
 import com.ant.track.lib.prefs.PreferenceUtils;
 import com.ant.track.lib.utils.LocationUtils;
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
@@ -67,6 +68,17 @@ public class MapOverlay {
             pendingLocations.offer(new CachedLocation(location));
         } else {
             Log.i(TAG, "cannot insert the location or location is null");
+        }
+    }
+
+    public void update(GoogleMap mMap, boolean reload) {
+        synchronized (lock){
+            int newLocations = pendingLocations.drainTo(locations);
+
+            if(newLocations)
+            {
+
+            }
         }
     }
 

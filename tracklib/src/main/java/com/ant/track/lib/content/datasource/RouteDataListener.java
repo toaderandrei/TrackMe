@@ -1,4 +1,4 @@
-package com.ant.track.lib.db.content.datasource;
+package com.ant.track.lib.content.datasource;
 
 import android.location.Location;
 
@@ -75,11 +75,19 @@ public interface RouteDataListener {
      *
      * @param routeCheckPoint the check point to be added.
      */
-    void addRouteCheckPointToMap(RouteCheckPoint routeCheckPoint);
+    void addNewRouteCheckPoint(RouteCheckPoint routeCheckPoint);
 
     /**
      * notify the adding of point is finished.
      */
     void onNewRouteCheckPointUpdate();
 
+    /**
+     * callback to the ui in case we changed the map type
+     * in the preferences.
+     *
+     * @param mapType teh new type.
+     * @return true or false.
+     */
+    void onMapTypeChanged(int mapType);
 }

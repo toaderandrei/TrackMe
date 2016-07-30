@@ -1,4 +1,4 @@
-package com.ant.track.lib.db.content.factory;
+package com.ant.track.lib.content.factory;
 
 import android.content.ContentValues;
 import android.database.Cursor;
@@ -148,6 +148,14 @@ public interface TrackMeDatabaseUtils {
      * @return the Route by id.
      */
     Route getRouteById(long routeId);
+
+    /**
+     * retrieves all the route points from a route.
+     *
+     * @param routeid the id of the route.
+     * @return the number of points part of the route.
+     */
+    int getInsertedPoints(long routeid);
 
     /**
      * retrieves all the routes from db

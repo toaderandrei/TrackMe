@@ -1,9 +1,5 @@
-package com.ant.track.lib.db.content.publisher;
+package com.ant.track.lib.content.publisher;
 
-
-import com.ant.track.lib.db.content.datasource.RouteDataListener;
-
-import java.util.Set;
 
 /**
  * Listener to be invoked when {@link} changes.

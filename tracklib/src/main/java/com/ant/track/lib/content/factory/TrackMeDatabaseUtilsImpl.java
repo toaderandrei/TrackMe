@@ -1,4 +1,4 @@
-package com.ant.track.lib.db.content.factory;
+package com.ant.track.lib.content.factory;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -88,6 +88,32 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
         }
         return route;
     }
+
+    @Override
+    public int getInsertedPoints(long routeid) {
+        if (routeid < 0) {
+            return -1;
+        }
+
+        Cursor cursor = null;
+        try {
+            cursor = getRouteCursor(routeid);
+            if (cursor != null && cursor.isBeforeFirst() && cursor.moveToNext()) {
+                Route route = TrackMeDatabaseUtilsImpl.getInstance().createRouteFromCursor(cursor);
+                if (route != null) {
+                    return route.getNumberOfPoints();
+                }
+
+
+            }
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+        return -1;
+    }
+
 
     @Override
     public List<Route> getAllRoutes() {

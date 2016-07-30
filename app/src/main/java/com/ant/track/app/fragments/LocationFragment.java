@@ -23,15 +23,16 @@ import com.ant.track.app.helper.GoogleAskToEnableLocationService;
 import com.ant.track.app.helper.GoogleLocationServicesUtils;
 import com.ant.track.app.location.GPSLiveTrackerLocationManager;
 import com.ant.track.app.maptools.MapOverlay;
-import com.ant.track.lib.db.content.datasource.RouteDataListener;
-import com.ant.track.lib.db.content.datasource.RouteType;
-import com.ant.track.lib.db.content.factory.RouteDataSourceFactory;
-import com.ant.track.lib.db.content.factory.TrackMeDatabaseUtilsImpl;
+import com.ant.track.lib.content.datasource.RouteDataListener;
+import com.ant.track.lib.content.datasource.RouteType;
+import com.ant.track.lib.content.factory.RouteDataSourceFactory;
+import com.ant.track.lib.content.factory.TrackMeDatabaseUtilsImpl;
 import com.ant.track.lib.model.Route;
 import com.ant.track.lib.model.RouteCheckPoint;
 import com.ant.track.lib.prefs.PreferenceUtils;
 import com.ant.track.lib.service.RecordingState;
 import com.ant.track.lib.stats.RouteStats;
+import com.ant.track.lib.utils.LocationUtils;
 import com.ant.track.ui.dialogs.CustomFragmentDialog;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
@@ -506,12 +507,12 @@ public class LocationFragment extends Fragment implements RouteDataListener {
 
     @Override
     public void onNewRouteUpdate(Route route) {
-        //todo
+        this.currentRoute = route;
     }
 
     @Override
-    public void addRouteCheckPointToMap(RouteCheckPoint routeCheckPoint) {
-        if (isResumed() && mapOverlay != null) {
+    public void addNewRouteCheckPoint(RouteCheckPoint routeCheckPoint) {
+        if (isResumed() && mapOverlay != null && LocationUtils.isValidLocation(routeCheckPoint.getLocation())) {
             mapOverlay.addRouteCheckPoint(routeCheckPoint);
         }
     }
@@ -519,8 +520,19 @@ public class LocationFragment extends Fragment implements RouteDataListener {
     @Override
     public void onNewRoutePointUpdateDone() {
         if (isResumed() && mapOverlay != null) {
-            //todo
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (mMap != null && isResumed() && mapOverlay != null && currentRoute != null) {
+                        mapOverlay.update(mMap, true);
+                    }
+                }
+            });
         }
+    }
+
+    private void runOnUiThread(Runnable runnable) {
+        getActivity().runOnUiThread(runnable);
     }
 
     @Override
@@ -561,6 +573,20 @@ public class LocationFragment extends Fragment implements RouteDataListener {
     public void clearPoints() {
         if (isResumed() && mapOverlay != null) {
             mapOverlay.clearPoints();
+        }
+    }
+
+    @Override
+    public void onMapTypeChanged(final int mapType) {
+        if (isResumed()) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (mMap != null) {
+                        mMap.setMapType(mapType);
+                    }
+                }
+            });
         }
     }
 

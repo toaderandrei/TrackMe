@@ -1,4 +1,4 @@
-package com.ant.track.lib.db.content.factory;
+package com.ant.track.lib.content.factory;
 
 import android.location.Location;
 

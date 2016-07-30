@@ -1,4 +1,4 @@
-package com.ant.track.lib.db.content.factory;
+package com.ant.track.lib.content.factory;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -10,12 +10,12 @@ import android.util.Log;
 
 import com.ant.track.lib.R;
 import com.ant.track.lib.constants.Constants;
-import com.ant.track.lib.db.content.datasource.DataSourceManager;
-import com.ant.track.lib.db.content.datasource.RouteDataListener;
-import com.ant.track.lib.db.content.datasource.RouteType;
-import com.ant.track.lib.db.content.publisher.DataContentPublisher;
-import com.ant.track.lib.db.content.publisher.DataContentPublisherImpl;
-import com.ant.track.lib.db.content.publisher.RouteDataSourceListener;
+import com.ant.track.lib.content.datasource.DataSourceManager;
+import com.ant.track.lib.content.datasource.RouteDataListener;
+import com.ant.track.lib.content.datasource.RouteType;
+import com.ant.track.lib.content.publisher.DataContentPublisher;
+import com.ant.track.lib.content.publisher.DataContentPublisherImpl;
+import com.ant.track.lib.content.publisher.RouteDataSourceListener;
 import com.ant.track.lib.model.Route;
 import com.ant.track.lib.model.RouteCheckPoint;
 import com.ant.track.lib.prefs.PreferenceUtils;
@@ -28,6 +28,10 @@ import java.util.Set;
 
 /**
  * Factory class that updates all the listeners registered to the data source class.
+ * This class initializes the DataSource manager that registers
+ * all the observers for the desired Uri and when an update arrives
+ * forwards it via RouteDataSource listener callbacks. Next, we forward it to the
+ * Ui listeners. All the requests coming from db are process in a background thread.
  */
 public class RouteDataSourceFactory implements RouteDataSourceListener {
 
@@ -52,6 +56,7 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
     private int maxRecordingDistance;
     private int targetNumPoints;
     private long lastSeenLocationId;
+    private int mapType;
     private long recordingRouteId;
 
     public RouteDataSourceFactory(Context context) {
@@ -122,7 +127,7 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
 
         Set<RouteDataListener> dataListeners = contentPublisher.getListeners();
 
-        for (RouteDataListener listener : contentPublisher.getListeners()) {
+        for (RouteDataListener listener : contentPublisher.getListenersByType(RouteType.PREFERENCE)) {
             listener.onRecordingGpsAccuracyChanged(recordingGpsAccuracy);
             listener.onRecordingDistanceIntervalChanged(minRecordingDistance);
             listener.onRecordingMaxDistanceChanged(maxRecordingDistance);
@@ -146,8 +151,10 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
         Set<RouteDataListener> dataListeners = Collections.singleton(listener);
 
         if (types.contains(RouteType.PREFERENCE)) {
-            listener.onRecordingDistanceIntervalChanged(minRecordingDistance);
             listener.onRecordingGpsAccuracyChanged(recordingGpsAccuracy);
+            listener.onRecordingDistanceIntervalChanged(minRecordingDistance);
+            listener.onRecordingMaxDistanceChanged(maxRecordingDistance);
+            listener.onMapTypeChanged(mapType);
         }
         if (types.contains(RouteType.ROUTE)) {
             notifyRouteUpdateInternal(dataListeners);
@@ -272,7 +279,8 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
                 if (maxPointId != -1L && locationId > maxPointId) {
                     break;
                 }
-                int insertedPoints = Math.max(0, getInsertedPoints(currentRouteId));
+                int insertedPointsInDb = TrackMeDatabaseUtilsImpl.getInstance().getInsertedPoints(currentRouteId);
+                int insertedPoints = Math.max(0, insertedPointsInDb);
                 boolean updateInsertedPoints = insertedPoints <= targetNumPoints;
 
                 if (!LocationUtils.isValidLocation(location)) {
@@ -316,33 +324,6 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
 
     }
 
-
-    private int getInsertedPoints(long routeid) {
-
-        if (routeid < 0) {
-            return -1;
-        }
-
-        Cursor cursor = null;
-        try {
-            cursor = TrackMeDatabaseUtilsImpl.getInstance().getRouteCursor(routeid);
-            if (cursor != null && cursor.isBeforeFirst() && cursor.moveToNext()) {
-                Route route = TrackMeDatabaseUtilsImpl.getInstance().createRouteFromCursor(cursor);
-                if (route != null) {
-                    return route.getNumberOfPoints();
-                }
-
-
-            }
-        } finally {
-            if (cursor != null) {
-                cursor.close();
-            }
-        }
-        return -1;
-    }
-
-
     private void notifyRouteCheckPointUpdateInternal(Set<RouteDataListener> dataListeners) {
         if (dataListeners.isEmpty()) {
             return;
@@ -361,7 +342,7 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
                         //todo think of something better.
                     } else {
                         for (RouteDataListener routeDataListener : dataListeners) {
-                            routeDataListener.addRouteCheckPointToMap(routeCheckPoint);
+                            routeDataListener.addNewRouteCheckPoint(routeCheckPoint);
                         }
 
                     }
@@ -427,6 +408,16 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
                                          R.string.recording_state_key,
                                          PreferenceUtils.RECORDING_STATE_PAUSED_DEFAULT);
                              }
+
+                             if (TextUtils.equals(key, PreferenceUtils.getKey(context, R.string.map_type_key))) {
+                                 mapType = PreferenceUtils.getInt(context, R.string.map_type_key, PreferenceUtils.MAP_TYPE_DEFAUlT);
+                                 if (mapType >= 0) {
+                                     for (RouteDataListener routeDataListener :
+                                             contentPublisher.getListenersByType(RouteType.PREFERENCE)) {
+                                         routeDataListener.onMapTypeChanged(mapType);
+                                     }
+                                 }
+                             }
                              //
                          }
                      }
@@ -434,7 +425,6 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
                  }
         );
     }
-
 
     /**
      * Returns true if the selected track is recording.

@@ -1,7 +1,7 @@
-package com.ant.track.lib.db.content.publisher;
+package com.ant.track.lib.content.publisher;
 
-import com.ant.track.lib.db.content.datasource.RouteDataListener;
-import com.ant.track.lib.db.content.datasource.RouteType;
+import com.ant.track.lib.content.datasource.RouteDataListener;
+import com.ant.track.lib.content.datasource.RouteType;
 
 import java.util.EnumSet;
 import java.util.Set;
