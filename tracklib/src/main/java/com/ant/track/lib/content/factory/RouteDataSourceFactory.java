@@ -286,7 +286,7 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
                 if (!LocationUtils.isValidLocation(location)) {
                     for (RouteDataListener routeDataListener : routePointsDataListeners) {
                         Location validLoc = TrackMeDatabaseUtilsImpl.getInstance().getLastValidLocationForRoute(currentRouteId);
-                        routeDataListener.addPendingLocation(validLoc);
+                        routeDataListener.addLocationToMap(validLoc);
                         routeDataListener.addLocationToQueue(location);
                         includeNextPoint = true;
                     }
@@ -295,7 +295,7 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
                     if (includeNextPoint || updateInsertedPoints || (locationId == lastTrackPointId && !isSelectedRouteRecording())) {
                         includeNextPoint = false;
                         for (RouteDataListener trackDataListener : routePointsDataListeners) {
-                            trackDataListener.addPendingLocation(location);
+                            trackDataListener.addLocationToMap(location);
                         }
                     } else {
                         for (RouteDataListener routeDataListener : routePointsDataListeners) {

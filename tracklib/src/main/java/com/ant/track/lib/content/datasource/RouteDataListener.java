@@ -54,7 +54,7 @@ public interface RouteDataListener {
      *
      * @param location the location to show on the map.
      */
-    void addPendingLocation(Location location);
+    void addLocationToMap(Location location);
 
     /**
      * sets the last shown location.

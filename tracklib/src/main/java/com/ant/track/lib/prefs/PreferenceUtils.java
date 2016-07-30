@@ -18,7 +18,7 @@ public class PreferenceUtils {
     public static final int RECORDING_DISTANCE_DEFAULT = 15;
     public static final int DEFAULT_MAX_RECORDING_DISTANCE = 200;
     public static final RecordingState RECORDING_STATE_PAUSED_DEFAULT = RecordingState.PAUSED;
-    public static final String DEFAULT_ROUTE_COLOR = "RED";
+    public static final int DEFAULT_ROUTE_COLOR = android.R.color.holo_red_dark;
     public static int MAP_TYPE_DEFAUlT = 1;
 
     private PreferenceUtils() {

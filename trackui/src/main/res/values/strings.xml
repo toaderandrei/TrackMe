@@ -59,7 +59,7 @@
   <string name="image_stop" translation_description="Stop button.">
     Stop
   </string>
-
+    <string name="menu_settings">Settings</string>
 
     <string name="dialog_pause_tracking">Pause</string>
 
@@ -67,7 +67,6 @@
 
     <string name="enable_gps_title">Enable GPS</string>
     <string name="enable_gps_message">Do you want to enable GPS?</string>
-
 
     <string name="enable_permissions_title">Enable Location Permissions</string>
     <string name="enable_permissions_message">Do you want to enable location services permissions?</string>
@@ -78,4 +77,11 @@
     <string name="recording_record_error">Recording Error</string>
     <string name="first_start_app">First start</string>
     <string name="map_type_key">map_type_key</string>
+
+
+    <string name="settings_advanced_key">settingsAdvanced</string>
+
+    <!-- Settings Advanced -->
+  <string name="settings_advanced">Advanced
+  </string>
 </resources>

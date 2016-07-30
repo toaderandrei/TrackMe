@@ -7,9 +7,8 @@ import android.util.Log;
 import com.ant.track.lib.constants.Constants;
 import com.ant.track.lib.model.RouteCheckPoint;
 import com.ant.track.lib.prefs.PreferenceUtils;
-import com.ant.track.lib.utils.LocationUtils;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Polyline;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +24,7 @@ public class MapOverlay {
     private BlockingQueue<CachedLocation> pendingLocations = null;
 
     private static final String TAG = MapOverlay.class.getCanonicalName();
-    private static final String ROUTE_COLOR = PreferenceUtils.DEFAULT_ROUTE_COLOR;
+    private static final int ROUTE_COLOR = PreferenceUtils.DEFAULT_ROUTE_COLOR;
     private List<CachedLocation> locations = null;
     private List<RouteCheckPoint> checkpoints;
     private final Object lock = new Object();
@@ -56,68 +55,35 @@ public class MapOverlay {
     }
 
     public void addLocation(Location location) {
-        if (location != null && pendingLocations.contains(location)) {
+        //todo replace location with cached
+        if (location != null) {
             pendingLocations.offer(new CachedLocation(location));
         } else {
             Log.i(TAG, "cannot insert the location or location is null");
         }
     }
 
-    public void addPendingLocation(Location location) {
-        if (location != null && pendingLocations.contains(location)) {
+    public void addLocationToMap(Location location) {
+        if (location != null) {
             pendingLocations.offer(new CachedLocation(location));
         } else {
             Log.i(TAG, "cannot insert the location or location is null");
         }
     }
 
-    public void update(GoogleMap mMap, boolean reload) {
-        synchronized (lock){
+    public void update(GoogleMap mMap, List<Polyline> path, boolean reload) {
+        synchronized (lock) {
             int newLocations = pendingLocations.drainTo(locations);
 
-            if(newLocations)
-            {
-
+            if (newLocations >= 0 && reload) {
+                mMap.clear();
+                drawPath.updatePath(mMap, path, 0, locations);
+            } else {
+                if (newLocations > 0) {
+                    int totalLocations = locations.size();
+                    drawPath.updatePath(mMap, path, totalLocations - newLocations, locations);
+                }
             }
-        }
-    }
-
-    /**
-     * cached location that basically stores the location from Location object
-     * to LatLng object.
-     */
-    private class CachedLocation {
-
-        private LatLng location;
-        //for now it is not used.
-        private float speed;
-        private boolean isValid;
-
-        public CachedLocation(Location location) {
-            isValid = LocationUtils.isValidLocation(location);
-            this.location = new LatLng(location.getLatitude(), location.getLongitude());
-            this.speed = location.getSpeed();
-        }
-
-        public CachedLocation(LatLng latLng) {
-            isValid = LocationUtils.isValidLocation(latLng);
-            this.location = latLng;
-        }
-
-        public double getSpeed() {
-            return speed;
-        }
-
-        public LatLng getLocation() {
-            return location;
-        }
-
-        public void setSpee(float speed) {
-            this.speed = speed;
-        }
-
-        public boolean isValid() {
-            return isValid;
         }
     }
 }

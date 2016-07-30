@@ -1,5 +1,6 @@
 apply plugin: 'com.android.library'
 apply from: '../jaccoco.gradle'
+apply plugin: 'findbugs'
 
 
 android {
@@ -37,6 +38,26 @@ android {
 repositories {
     flatDir {
         dirs 'libs'
+    }
+}
+
+task findbugs(type: FindBugs) {
+    ignoreFailures = false
+    effort = "default"
+    reportLevel = "medium"
+    excludeFilter = new File("${project.rootDir}/findbugs/findbugs-filter.xml")
+    classes = files("${project.rootDir}/app/build/intermediates/classes")
+    source = fileTree('src/main/java/')
+    classpath = files()
+    reports {
+        xml.enabled = true
+        html.enabled = true
+        xml {
+            destination "$project.buildDir/findbugs/findbugs-output.xml"
+        }
+        html {
+            destination "$project.buildDir/findbugs/findbugs-output.html"
+        }
     }
 }
 

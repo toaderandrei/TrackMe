@@ -44,7 +44,9 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Polyline;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
 
 /**
@@ -68,6 +70,8 @@ public class LocationFragment extends Fragment implements RouteDataListener {
     private Location currentLocation;
     private GoogleLocationServicesUtils googleUtils;
     private RecordStateListener listener;
+    private ArrayList<Polyline> paths = new ArrayList<>();
+
     private GoogleAskToEnableLocationService enableLocationService;
     public static final int CONNECTION_RESOLUTION_CODE = 300;
     private GPSLiveTrackerLocationManager mGPSLiveTrackerLocManager;
@@ -524,7 +528,12 @@ public class LocationFragment extends Fragment implements RouteDataListener {
                 @Override
                 public void run() {
                     if (mMap != null && isResumed() && mapOverlay != null && currentRoute != null) {
-                        mapOverlay.update(mMap, true);
+                        mapOverlay.update(mMap, paths, true);
+                    }
+
+                    if (lastLocation != null && isRecording()) {
+                        boolean firstLocation = setCurrentLocation(lastLocation);
+                        updateCurrentLocation(firstLocation);
                     }
                 }
             });
@@ -543,9 +552,10 @@ public class LocationFragment extends Fragment implements RouteDataListener {
     }
 
     @Override
-    public void addPendingLocation(Location location) {
+    public void addLocationToMap(Location location) {
+        lastLocation = location;
         if (isResumed() && mapOverlay != null) {
-            mapOverlay.addPendingLocation(location);
+            mapOverlay.addLocationToMap(location);
         }
     }
 
