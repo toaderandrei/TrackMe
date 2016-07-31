@@ -6,7 +6,7 @@ package com.ant.track.app.service;
  */
 public class RecordingServiceConstants {
 
-    public static final int MSG_SERVICE_CALL = 100;
+    public static final int MSG_REGISTER_CLIENT = 100;
 
     public static final int MSG_START_TRACKING = 101;
     public static final int MSG_STOP_TRACKING = 102;

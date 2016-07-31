@@ -26,8 +26,8 @@ public abstract class ServiceConnectActivity extends BaseActivity implements Ser
 
     private SharedPreferences sharedPreferences;
 
-    private long routeId;
-    private long recordingRouteId;
+    protected long routeId;
+    protected long recordingRouteId;
     private RecordControlsFragment recordControlsFragment;
 
     private static final String HEADLESS_TAG = "HEADLESS_TAG";
@@ -135,6 +135,7 @@ public abstract class ServiceConnectActivity extends BaseActivity implements Ser
     @Override
     public void updateRoute(long routeId) {
         this.routeId = routeId;
+        mMapFragment.initAndShowRoute();
     }
 
     private void showErrToast(String errMessage) {

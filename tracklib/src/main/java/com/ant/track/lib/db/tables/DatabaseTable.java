@@ -33,7 +33,7 @@ public enum DatabaseTable {
             new GenericColumnImpl(TrackMeContract.RouteEntry.ELEVATION_GAIN, SqliteDataType.Double)
     ),
 
-    ROUTE_POINT(new GenericColumnImpl(true, TrackMeContract.RoutePointEntry._ID, SqliteDataType.Integer),
+    ROUTE_POINT(new GenericColumnImpl(true, true, false, false, TrackMeContract.RoutePointEntry._ID, SqliteDataType.Integer),
             new GenericColumnImpl(false, false, false, true, TrackMeContract.RoutePointEntry.ROUTE_ID, SqliteDataType.Integer),
             new GenericColumnImpl(TrackMeContract.RoutePointEntry.TIME, SqliteDataType.Integer),
             new GenericColumnImpl(TrackMeContract.RoutePointEntry.SPEED, SqliteDataType.Float),

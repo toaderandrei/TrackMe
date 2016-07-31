@@ -249,6 +249,63 @@ public class RouteStats implements Parcelable {
     public long getMovingTime() {
         return totalMovingTime;
     }
+
+    public int getTop() {
+        return (int) (latitudeProximityManager.getMax() * 1E6);
+    }
+
+    public int getBottom() {
+        return (int) (latitudeProximityManager.getMin() * 1E6);
+    }
+
+    /**
+     * Gets the leftmost position (lowest longitude) of the track, in signed
+     * millions of degrees.
+     */
+    public int getLeft() {
+        return (int) (longitudeProximityManager.getMin() * 1E6);
+    }
+
+
+    /**
+     * Gets the topmost position (highest latitude) of the track, in signed
+     * degrees.
+     */
+    public double getTopDegrees() {
+        return latitudeProximityManager.getMax();
+    }
+
+    /**
+     * Gets the rightmost position (highest longitude) of the track, in signed
+     * millions of degrees.
+     */
+    public int getRight() {
+        return (int) (longitudeProximityManager.getMax() * 1E6);
+    }
+
+    /**
+     * Gets the leftmost position (lowest longitude) of the track, in signed
+     * degrees.
+     */
+    public double getLeftDegrees() {
+        return longitudeProximityManager.getMin();
+    }
+
+    /**
+     * Gets the bottommost position (lowest latitude) of the track, in signed
+     * degrees.
+     */
+    public double getBottomDegrees() {
+        return latitudeProximityManager.getMin();
+    }
+
+    /**
+     * Gets the rightmost position (highest longitude) of the track, in signed
+     * degrees.
+     */
+    public double getRightDegrees() {
+        return longitudeProximityManager.getMax();
+    }
 }
 
 

@@ -9,6 +9,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
@@ -85,7 +86,7 @@ public class TrackMeDbProvider extends ContentProvider {
 
     @Nullable
     @Override
-    public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+    public Cursor query(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
         Cursor queryCursor;
 
         UriType match = getUriType(uri);
@@ -99,7 +100,7 @@ public class TrackMeDbProvider extends ContentProvider {
             }
             case ROUTE_ID:
                 queryBuilder.setTables(TrackMeContract.RouteEntry.TABLE_NAME);
-                queryBuilder.appendWhere("_id= " + uri.getPathSegments().get(1));
+                queryBuilder.appendWhere(TrackMeContract.RouteEntry._ID + "=" + uri.getPathSegments().get(1));
                 sort = sortOrder == null ? DatabaseConstants.DEFAULT_ORDER_COLUMN : sortOrder;
                 break;
             case ROUTE_POINT: {
@@ -109,7 +110,7 @@ public class TrackMeDbProvider extends ContentProvider {
             }
             case ROUTE_POINT_ID:
                 queryBuilder.setTables(TrackMeContract.RoutePointEntry.TABLE_NAME);
-                queryBuilder.appendWhere("_id= " + uri.getPathSegments().get(1));
+                queryBuilder.appendWhere(TrackMeContract.RoutePointEntry._ID + "=" + uri.getPathSegments().get(1));
                 sort = sortOrder == null ? DatabaseConstants.DEFAULT_ORDER_COLUMN : sortOrder;
                 break;
             case ROUTE_CHECK_POINT: {
@@ -119,7 +120,7 @@ public class TrackMeDbProvider extends ContentProvider {
             }
             case ROUTE_CHECK_POINT_ID:
                 queryBuilder.setTables(TrackMeContract.RouteCheckPointEntry.TABLE_NAME);
-                queryBuilder.appendWhere("_id= " + uri.getPathSegments().get(1));
+                queryBuilder.appendWhere(TrackMeContract.RouteCheckPointEntry._ID + "=" + uri.getPathSegments().get(1));
                 sort = sortOrder == null ? DatabaseConstants.DEFAULT_ORDER_COLUMN : sortOrder;
                 break;
 
@@ -307,7 +308,11 @@ public class TrackMeDbProvider extends ContentProvider {
     }
 
     private ContentResolver getContentResolver() {
-        return TrackLibApplication.getInstance().getContentResolver();
+        if (getContext() != null) {
+            return getContext().getContentResolver();
+        } else {
+            return TrackLibApplication.getInstance().getContentResolver();
+        }
     }
 
     enum UriType {

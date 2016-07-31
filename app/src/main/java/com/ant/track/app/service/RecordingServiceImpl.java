@@ -77,9 +77,10 @@ public class RecordingServiceImpl extends Service {
     private long currentRecordingInterval;
     private Handler handler;
     private Messenger serviceMessenger;
+    private Messenger client;
     private RouteStatsManager routeStatsManager;
     private RecordingState recordingState = RecordingState.NOT_STARTED;
-    private int minRecordingDistance;
+    private int minRecordingDistance = 1;
     private int maxRecordingDistance = PreferenceUtils.DEFAULT_MAX_RECORDING_DISTANCE;
     private AtomicBoolean isIdle = new AtomicBoolean(false);
     //location listener policy
@@ -309,7 +310,7 @@ public class RecordingServiceImpl extends Service {
             return;
         }
 
-        if (!location.hasAccuracy() || location.getAccuracy() >= recordingGpsAccuracy) {
+        if (!location.hasAccuracy() || location.getAccuracy() > recordingGpsAccuracy) {
             Log.d(TAG, "Ignore onLocationChangedAsync. Poor accuracy.");
             return;
         }
@@ -332,13 +333,17 @@ public class RecordingServiceImpl extends Service {
             return;
         }
 
+        if (lastValidTrackLocation.getLatitude() > 0.000001) {
+            location.setLatitude(lastValidTrackLocation.getLatitude() + 0.000020);
+        }
+
         double distance = location.distanceTo(lastValidTrackLocation);
 
         //this can happen - in case of a tunnel longer than max distance
         if (distance > maxRecordingDistance) {
             //todo we need to find a way that can show on the map and on the track that we basically had a long location or something in between.
             //todo tunnel mode can happen?
-            Location pauseLocation = new Location("GPS");
+            Location pauseLocation = new Location(LocationManager.GPS_PROVIDER);
             pauseLocation.setLatitude(Constants.PAUSE_LATITUDE);
             //todo think about a better time, maybe a mix between last valid and current location?
             pauseLocation.setTime(location.getTime());
@@ -376,7 +381,7 @@ public class RecordingServiceImpl extends Service {
             routeStatsManager.addLocationToStats(location, minRecordingDistance);
 
             updateRecordingRoute(route, id, LocationUtils.isValidLocation(location));
-            sendRouteIdUpdate(id);
+            //sendMessageToListeners(RecordingServiceConstants.MSG_UPDATE_ROUTE_ID, id);
             //showNotification();
 
         } catch (SQLException exc) {
@@ -407,17 +412,6 @@ public class RecordingServiceImpl extends Service {
         TrackMeDatabaseUtilsImpl.getInstance().updateRouteTrack(route);
     }
 
-    private void sendRouteIdUpdate(long id) {
-        if (serviceMessenger != null) {
-            Message message = Message.obtain(null, RecordingServiceConstants.MSG_UPDATE_ROUTE_ID, 0, 0);
-            message.obj = id;
-            try {
-                serviceMessenger.send(message);
-            } catch (RemoteException remex) {
-                Log.e(TAG, "Exception in sending the message" + remex.getMessage());
-            }
-        }
-    }
 
     private void sendErrorLocationUpdate(ErrorLocation errorLocation) {
         if (serviceMessenger != null) {
@@ -454,7 +448,7 @@ public class RecordingServiceImpl extends Service {
         if (!canAccess()) {
             return false;
         }
-        return recordingState == RecordingState.RESUMED || recordingState == RecordingState.STARTED;
+        return recordingState == RecordingState.RESUMED || recordingState == RecordingState.STARTED || routeId != PreferenceUtils.DEFAULT_ROUTE_ID;
     }
 
     public void startNewTracking() {
@@ -478,6 +472,7 @@ public class RecordingServiceImpl extends Service {
         route.setRouteId(insertedRouteId);
 
         TrackMeDatabaseUtilsImpl.getInstance().updateRouteTrack(route);
+        sendMessageToListeners(RecordingServiceConstants.MSG_UPDATE_ROUTE_ID, routeId);
         insertRoutePoint(RouteTrackCreator.DEFAULT_ROUTE_TRACK_BUILDER);
         insertRouteCheckPoint(RouteTrackCreator.DEFAULT_ROUTE_TRACK_BUILDER);
         updateRecordingState(routeId, RecordingState.STARTED);
@@ -520,11 +515,8 @@ public class RecordingServiceImpl extends Service {
 
         mLastLocation = null;
         recordingState = RecordingState.STARTED;
-
         isIdle.set(false);
-
         startGPSTracking();
-
         showNotification();
     }
 
@@ -555,7 +547,7 @@ public class RecordingServiceImpl extends Service {
             location = routeTrackCreator.getLocation();
         }
         RouteCheckPoint routePoint = new RouteCheckPoint(routeId, routeTrackCreator.getName(), routeTrackCreator.getDescription(), location, null, String.valueOf(Color.BLUE));
-        Uri uri = TrackMeDatabaseUtilsImpl.getInstance().insertRoutePoint(routePoint);
+        Uri uri = TrackMeDatabaseUtilsImpl.getInstance().insertRouteCheckPoint(routePoint);
         return Long.parseLong(uri.getLastPathSegment());
     }
 
@@ -634,10 +626,10 @@ public class RecordingServiceImpl extends Service {
     private void showNotification() {
         if (isRecording()) {
             if (!isPaused()) {
-                Intent intent = IntentUtils.newIntentWithAction(IntentUtils.MAIN_ACTIVITY_ACTION).putExtra(Constants.EXTRA_RECORDING_ID, isRecording());
+                Intent intent = IntentUtils.newIntent(this, MainActivity.class).putExtra(Constants.EXTRA_ROUTE_ID,routeId);
                 PendingIntent pendingIntent = TaskStackBuilder.create(this).addParentStack(MainActivity.class).addNextIntent(intent).getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
                 startForegroundService(pendingIntent, R.string.tracking_record_notification);
-                sendMessageToListeners(RecordingServiceConstants.MSG_SHOW_NOTIFICATIONS);
+                sendMessageToListeners(RecordingServiceConstants.MSG_SHOW_NOTIFICATIONS, true);
             } else {
                 stopForegroundService();
             }
@@ -646,7 +638,7 @@ public class RecordingServiceImpl extends Service {
 
     private void stopNotifications() {
         stopForegroundService();
-        sendMessageToListeners(RecordingServiceConstants.MSG_STOP_NOTIFICATIONS);
+        sendMessageToListeners(RecordingServiceConstants.MSG_STOP_NOTIFICATIONS, true);
     }
 
 
@@ -723,6 +715,10 @@ public class RecordingServiceImpl extends Service {
                 case RecordingServiceConstants.MSG_RESUME_TRACKING:
                     resumeTracking();
                     break;
+                case RecordingServiceConstants.MSG_REGISTER_CLIENT: {
+                    client = msg.replyTo;
+                    break;
+                }
             }
         }
     }
@@ -740,7 +736,7 @@ public class RecordingServiceImpl extends Service {
      *
      * @param messageId the id to identify the type of message.
      */
-    private void sendMessageToListeners(int messageId) {
+    private void sendMessageToListeners(int messageId, Object data) {
 
         switch (messageId) {
             case RecordingServiceConstants.MSG_SHOW_NOTIFICATIONS:
@@ -749,6 +745,18 @@ public class RecordingServiceImpl extends Service {
             case RecordingServiceConstants.MSG_STOP_NOTIFICATIONS:
                 //todo notify ui
                 break;
+            case RecordingServiceConstants.MSG_UPDATE_ROUTE_ID: {
+                if (client != null) {
+                    Message message = Message.obtain(null, RecordingServiceConstants.MSG_UPDATE_ROUTE_ID, 0, 0);
+                    message.obj = data;
+                    try {
+                        client.send(message);
+                    } catch (RemoteException remex) {
+                        Log.e(TAG, "Exception in sending the message" + remex.getMessage());
+                    }
+                }
+                break;
+            }
         }
     }
 

@@ -20,9 +20,6 @@ import com.google.android.gms.maps.GoogleMap;
  */
 public class MainActivity extends ServiceConnectActivity {
 
-    private long routeId;
-    private long recordingRouteId = PreferenceUtils.DEFAULT_ROUTE_ID;
-
     private SharedPreferences sharedPreferences;
 
     @Override

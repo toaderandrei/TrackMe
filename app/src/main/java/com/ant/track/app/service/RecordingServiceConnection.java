@@ -4,7 +4,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.location.Location;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
@@ -198,7 +197,7 @@ public class RecordingServiceConnection {
 
     private void attachListenerToService(IBinder binder) throws RemoteException {
         mServiceMessenger = new Messenger(binder);
-        Message message = Message.obtain(null, RecordingServiceConstants.MSG_SERVICE_CALL, 0, 0);
+        Message message = Message.obtain(null, RecordingServiceConstants.MSG_REGISTER_CLIENT, 0, 0);
         message.replyTo = mClientMessenger;
         mServiceMessenger.send(message);
         if (callback != null) {

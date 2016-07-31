@@ -21,7 +21,7 @@ public class DataContentObserver {
     }
 
     public void registerObserver(Uri uri, ContentObserver observer) {
-        getContentResolver().registerContentObserver(uri, false, observer);
+        getContentResolver().registerContentObserver(uri, true, observer);
     }
 
     public ContentResolver getContentResolver() {

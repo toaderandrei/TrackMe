@@ -52,6 +52,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity android:name=".activities.SettingsActivity" />
+
         <service
             android:name=".service.RecordingServiceImpl"
             android:enabled="true"

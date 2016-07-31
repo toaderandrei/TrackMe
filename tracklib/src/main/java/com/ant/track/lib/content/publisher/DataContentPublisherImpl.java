@@ -2,13 +2,14 @@ package com.ant.track.lib.content.publisher;
 
 import android.util.Log;
 
-import com.ant.track.lib.content.datasource.RouteType;
 import com.ant.track.lib.content.datasource.RouteDataListener;
+import com.ant.track.lib.content.datasource.RouteType;
 
-import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -20,10 +21,12 @@ public class DataContentPublisherImpl implements DataContentPublisher {
     private static final String TAG = DataContentPublisherImpl.class.getCanonicalName();
     private Map<RouteDataListener, EnumSet<RouteType>> listenerToEnumSetMap = new HashMap<>();
 
-    private Map<RouteType, Set<RouteDataListener>> typeToListenersMap = new EnumMap<>(RouteType.class);
+    private Map<RouteType, Set<RouteDataListener>> typeToListenersMap = new LinkedHashMap<>();
 
     public DataContentPublisherImpl() {
-
+        for (RouteType routeType : RouteType.values()) {
+            typeToListenersMap.put(routeType, new LinkedHashSet<RouteDataListener>());
+        }
     }
 
     @Override

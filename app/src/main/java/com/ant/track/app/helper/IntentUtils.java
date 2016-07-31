@@ -7,7 +7,7 @@ import android.content.Intent;
  * Utility class for starting intents.
  */
 public class IntentUtils {
-    public static final String MAIN_ACTIVITY_ACTION = "com.ant.lib.activity";
+    public static final String MAIN_ACTIVITY_ACTION = "com.ant.track.MainActivity";
 
     /**
      * Creates an intent with {@link Intent#FLAG_ACTIVITY_CLEAR_TOP} and

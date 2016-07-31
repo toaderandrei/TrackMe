@@ -1,9 +1,11 @@
 package com.ant.track.lib.model;
 
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.VisibleForTesting;
+import android.util.Log;
 
 /**
  * Point that is part of a route. This type of point is not shown on the
@@ -15,10 +17,11 @@ public class RoutePoint implements Parcelable {
     private long routeId;
     private Location location;
     private String activityMode;
+    private static final String TAG = RoutePoint.class.getCanonicalName();
 
     @VisibleForTesting
     public RoutePoint() {
-
+        location = new Location(LocationManager.GPS_PROVIDER);
     }
 
     public RoutePoint(long routeId,
@@ -118,6 +121,10 @@ public class RoutePoint implements Parcelable {
     }
 
     public void setLocation_long(double location_long) {
+        if (!hasLocation()) {
+            Log.d(TAG, "null location");
+            return;
+        }
         this.location.setLongitude(location_long);
     }
 

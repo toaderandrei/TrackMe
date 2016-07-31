@@ -44,6 +44,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Polyline;
 
 import java.util.ArrayList;
@@ -91,7 +92,6 @@ public class LocationFragment extends Fragment implements RouteDataListener {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         routeDataSourceFactory = new RouteDataSourceFactory(getActivity());
-        registerRouteDataListeners();
     }
 
     @Nullable
@@ -224,18 +224,28 @@ public class LocationFragment extends Fragment implements RouteDataListener {
     @Override
     public void onStart() {
         super.onStart();
-        initGpsTracker();
-        routeDataSourceFactory.start();
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        initGpsTracker();
+        routeDataSourceFactory.start();
+        registerRouteDataListeners();
+        initAndShowRouteInternal();
+    }
+
+    public void initAndShowRoute() {
+        initAndShowRouteInternal();
+    }
+
+    private void initAndShowRouteInternal() {
         long routeId = -1L;
         if (listener != null) {
             routeId = listener.getRouteId();
         }
-
+        routeDataSourceFactory.loadRouteById(routeId);
+        mapOverlay.setShowEndMarker(!isRecording());
         currentRoute = TrackMeDatabaseUtilsImpl.getInstance().getRouteById(routeId);
         if (isRecording() && currentLocation != null) {
             updateCurrentLocation(true);
@@ -254,13 +264,42 @@ public class LocationFragment extends Fragment implements RouteDataListener {
     }
 
     private void moveCameraOverRoute() {
+        if (currentRoute == null || mMap == null) {
+            Log.d(TAG, "route is null or google map is not 'Log.wtf(terrible)' ready");
+            return;
+        }
         RouteStats routeStats = currentRoute.getRouteStats();
         //todo calculate the boundaries where to zoom in.
+        if (currentRoute.getNumberOfPoints() < 2) {
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LocationUtils.getDefaultLatLng(), mMap.getMinZoomLevel()));
+        }
+        if (!LocationUtils.isValidLatitude(routeStats.getLatitudeMax()) ||
+                !LocationUtils.isValidLatitude(routeStats.getLatitudeMin()) ||
+                !LocationUtils.isValidLongitude(routeStats.getLongitudeMax()) |
+                        !LocationUtils.isValidLongitude(routeStats.getLongitudeMin())) {
+            return;
+        }
+        int width = 40;
+        int height = 40;
+
+        int latitudeSpanE6 = routeStats.getTop() - routeStats.getBottom();
+        int longitudeSpanE6 = routeStats.getRight() - routeStats.getLeft();
+        if (latitudeSpanE6 > 0 && latitudeSpanE6 < 180E6 && longitudeSpanE6 > 0
+                && longitudeSpanE6 < 360E6) {
+            LatLng southWest = new LatLng(
+                    routeStats.getBottomDegrees(), routeStats.getLeftDegrees());
+            LatLng northEast = new LatLng(
+                    routeStats.getTopDegrees(), routeStats.getRightDegrees());
+            LatLngBounds bounds = LatLngBounds.builder().include(southWest).include(northEast).build();
+            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngBounds(bounds, width, height, 32);
+            mMap.moveCamera(cameraUpdate);
+        }
     }
 
     public synchronized void initGpsTracker() {
         if (mMap != null) {
             try {
+                mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
                 checkIfPermissionAllowedForLocation();
             } catch (SecurityException secex) {
                 Toast.makeText(getActivity(), "not enabled in manifest", Toast.LENGTH_SHORT).show();
@@ -269,7 +308,7 @@ public class LocationFragment extends Fragment implements RouteDataListener {
     }
 
     /**
-     * rule is the following. First we check if the permissions are there. If not, we check if we can enable or not.
+     * rule is the following. First we cheƒck if the permissions are there. If not, we check if we can enable or not.
      * If the permissions are check if gps is enabled.
      */
     private void checkIfPermissionAllowedForLocation() {
@@ -312,6 +351,14 @@ public class LocationFragment extends Fragment implements RouteDataListener {
         @Override
         public void onSuccess() {
             initGpsTracker();
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (mMap != null) {
+                        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+                    }
+                }
+            });
         }
 
         @Override
@@ -376,7 +423,7 @@ public class LocationFragment extends Fragment implements RouteDataListener {
     }
 
     private void registerRouteDataListeners() {
-        routeDataSourceFactory.registerListeners(this, EnumSet.allOf(RouteType.class));
+        routeDataSourceFactory.registerListeners(this, EnumSet.of(RouteType.ROUTE, RouteType.PREFERENCE, RouteType.ROUTE_CHECK_POINT, RouteType.ROUTE_POINT));
     }
 
     private void unregisterDataListeners() {
@@ -397,6 +444,8 @@ public class LocationFragment extends Fragment implements RouteDataListener {
                 mMap.setOnMyLocationButtonClickListener(getOnMyLocationClickListener());
                 mMap.setLocationSource(getNewLocationSource());
                 mMap.setOnCameraChangeListener(getCameraChangeListener());
+                mMap.getUiSettings().setCompassEnabled(true);
+                mMap.getUiSettings().setZoomControlsEnabled(true);
                 initGpsTracker();
             }
         };
@@ -506,7 +555,15 @@ public class LocationFragment extends Fragment implements RouteDataListener {
 
     @Override
     public void onNewRouteCheckPointUpdate() {
-        //todo
+        if (isResumed()) {
+            getActivity().runOnUiThread(new Runnable() {
+                public void run() {
+                    if (isResumed() && mMap != null && currentRoute != null) {
+                        mapOverlay.update(mMap, paths, true);
+                    }
+                }
+            });
+        }
     }
 
     @Override

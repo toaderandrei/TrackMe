@@ -25,6 +25,7 @@ public class LocationUtils {
 
 
     public static final double PAUSE_LONGITUDE = 300;
+    private static LatLng defaultLatLng = new LatLng(48.30, 14.30);
 
     /**
      * Checks if a given location is a valid (i.e. physically possible) location
@@ -103,6 +104,10 @@ public class LocationUtils {
 
     public static Location createLocation() {
         return new Location(LocationManager.GPS_PROVIDER);
+    }
+
+    public static LatLng getDefaultLatLng() {
+        return defaultLatLng;
     }
 }
 

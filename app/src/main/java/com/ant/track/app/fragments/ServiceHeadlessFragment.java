@@ -29,7 +29,6 @@ public class ServiceHeadlessFragment extends Fragment {
     private Callback callback;
     private RecordingState recordingState = RecordingState.NOT_STARTED;
     private boolean startNewRecording = true;
-    private long routeId;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -74,7 +73,6 @@ public class ServiceHeadlessFragment extends Fragment {
         @Override
         public void onConnected() {
 
-
             if (!startNewRecording) {
                 return;
             }
@@ -105,7 +103,7 @@ public class ServiceHeadlessFragment extends Fragment {
 
         @Override
         public void onRouteUpdate(long id) {
-            routeId = id;
+            callback.updateRoute(id);
         }
 
         @Override

@@ -21,6 +21,7 @@ import com.ant.track.lib.model.RouteCheckPoint;
 import com.ant.track.lib.prefs.PreferenceUtils;
 import com.ant.track.lib.service.RecordingState;
 import com.ant.track.lib.utils.LocationUtils;
+import com.google.android.gms.maps.GoogleMap;
 
 import java.util.Collections;
 import java.util.EnumSet;
@@ -55,8 +56,8 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
     private int minRecordingDistance;
     private int maxRecordingDistance;
     private int targetNumPoints;
-    private long lastSeenLocationId;
-    private int mapType;
+    private long lastSeenLocationId = -1L;
+    private int mapType = GoogleMap.MAP_TYPE_NORMAL;
     private long recordingRouteId;
 
     public RouteDataSourceFactory(Context context) {
@@ -64,6 +65,7 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
         handler = new Handler();
         targetNumPoints = TARGET_DISPLAYED_ROUTE_POINTS;
         contentPublisher = new DataContentPublisherImpl();
+        reset();
     }
 
     public void start() {
@@ -79,7 +81,11 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
             public void run() {
                 if (dataSourceManager != null) {
                     dataSourceManager.updateListeners(contentPublisher.getAllRouteTypes());
-                    loadAll();
+                    try {
+                        loadAll();
+                    } catch (Exception exc) {
+                        Log.e(TAG, "exception in loading all:" + exc);
+                    }
                 }
             }
         });
@@ -121,6 +127,7 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
     }
 
     private void loadAll() {
+        reset();
         if (contentPublisher.getRouteTypesCount() == 0) {
             return;
         }
@@ -192,7 +199,7 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
     }
 
     private void runAsync(final Runnable runnable) {
-        if (runnable != null && bgHandler!=null) {
+        if (runnable != null && bgHandler != null) {
             bgHandler.post(runnable);
         }
     }
@@ -202,7 +209,7 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
         runAsync(new Runnable() {
             @Override
             public void run() {
-                notifyRouteUpdateInternal(contentPublisher.getListeners());
+                notifyRouteUpdateInternal(contentPublisher.getListenersByType(RouteType.ROUTE));
             }
         });
     }
@@ -222,7 +229,11 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
                     return;
                 }
                 currentRouteId = routeId;
-                loadAll();
+                try {
+                    loadAll();
+                } catch (Exception exc) {
+                    Log.e(TAG, "exception in loading all:" + exc);
+                }
             }
         });
     }
@@ -232,7 +243,7 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
         runAsync(new Runnable() {
             @Override
             public void run() {
-                notifyRouteCheckPointUpdateInternal(contentPublisher.getListeners());
+                notifyRouteCheckPointUpdateInternal(contentPublisher.getListenersByType(RouteType.ROUTE_CHECK_POINT));
             }
         });
     }
@@ -242,7 +253,7 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
         runAsync(new Runnable() {
             @Override
             public void run() {
-                notifyRoutePointsUpdateInternal(true, contentPublisher.getListeners());
+                notifyRoutePointsUpdateInternal(true, contentPublisher.getListenersByType(RouteType.ROUTE_POINT));
             }
         });
     }
@@ -251,6 +262,7 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
 
         if (routePointsDataListeners == null || routePointsDataListeners.isEmpty()) {
             Log.d(TAG, "listeners empty, nothing to update.");
+            reset();
             return;
         }
 
@@ -269,7 +281,7 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
         LocationIterator locationIterator = null;
 
         try {
-            locationIterator = TrackMeDatabaseUtilsImpl.getInstance().getRoutePointsIterator(currentRouteId, localLastSeenLocationId);
+            locationIterator = TrackMeDatabaseUtilsImpl.getInstance().getRoutePointsIterator(currentRouteId, localLastSeenLocationId + 1);
 
             while (locationIterator.hasNext()) {
                 Location location = locationIterator.next();
@@ -324,6 +336,11 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
 
     }
 
+    private void reset() {
+        numLoadedPoints = 0;
+        lastSeenLocationId = -1L;
+    }
+
     private void notifyRouteCheckPointUpdateInternal(Set<RouteDataListener> dataListeners) {
         if (dataListeners.isEmpty()) {
             return;
@@ -365,7 +382,9 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
     private void notifyRouteUpdateInternal(Set<RouteDataListener> dataListeners) {
         Route route = TrackMeDatabaseUtilsImpl.getInstance().getRouteById(currentRouteId);
         for (RouteDataListener routeDataListener : dataListeners) {
-            routeDataListener.onNewRouteUpdate(route);
+            if (route != null) {
+                routeDataListener.onNewRouteUpdate(route);
+            }
         }
     }
 

@@ -30,7 +30,7 @@ import com.ant.track.lib.service.RecordingState;
  */
 public abstract class BaseActivity extends AppCompatActivity implements RecordStateListener {
 
-    public LocationFragment mMapFragment;
+    protected LocationFragment mMapFragment;
     private Toolbar mToolbar;
     private ActionBarDrawerToggle mDrawerToggle;
     private DrawerLayout mDrawerLayout;
