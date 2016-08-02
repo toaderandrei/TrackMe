@@ -69,6 +69,7 @@ public class MapOverlay {
         }
     }
 
+
     public void addRouteCheckPoint(RouteCheckPoint routeCheckPoint) {
         synchronized (lock) {
             if (routeCheckPoint != null && !checkpoints.contains(routeCheckPoint)) {

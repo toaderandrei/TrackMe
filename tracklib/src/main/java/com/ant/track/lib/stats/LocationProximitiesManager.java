@@ -69,6 +69,13 @@ public class LocationProximitiesManager implements Parcelable {
 
     }
 
+    /**
+     * Returns true if has data.
+     */
+    public boolean hasData() {
+        return min != Double.POSITIVE_INFINITY && max != Double.NEGATIVE_INFINITY;
+    }
+
     public double getMin() {
         return min;
     }

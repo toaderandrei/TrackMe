@@ -216,10 +216,28 @@ public class RouteStats implements Parcelable {
     /**
      * merges the current stats with stats received
      *
-     * @param currentSegmentStats the stats received to be merged with the current stats.
+     * @param other the stats received to be merged with the current stats.
      */
-    public void merge(RouteStats currentSegmentStats) {
-        //todo merge
+    public void merge(RouteStats other) {
+        startTime = Math.min(startTime, other.startTime);
+        stopTime = Math.max(stopTime, other.stopTime);
+        totalDistance += other.totalDistance;
+        totalTime += other.totalTime;
+        totalMovingTime += other.getMovingTime();
+        if (other.latitudeProximityManager.hasData()) {
+            latitudeProximityManager.update(other.latitudeProximityManager.getMin());
+            latitudeProximityManager.update(other.latitudeProximityManager.getMax());
+        }
+        if (other.longitudeProximityManager.hasData()) {
+            longitudeProximityManager.update(other.longitudeProximityManager.getMin());
+            longitudeProximityManager.update(other.longitudeProximityManager.getMax());
+        }
+        maxSpeed = Math.max(maxSpeed, other.maxSpeed);
+        if (other.elevationProximityManager.hasData()) {
+            elevationProximityManager.update(other.elevationProximityManager.getMin());
+            elevationProximityManager.update(other.elevationProximityManager.getMax());
+        }
+        totalElevationGain += other.totalElevationGain;
     }
 
     public double getTotalDistance() {

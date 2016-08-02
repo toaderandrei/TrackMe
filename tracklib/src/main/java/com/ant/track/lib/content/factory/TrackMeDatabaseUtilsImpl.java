@@ -35,7 +35,7 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
     public static final String PARAM_SELECT_MAX = "=(select max(";
     public static final String PARAM_FROM_WITH_PARENTHESES_BEFORE = ") from ";
     public static final String PARAM_WHERE = " WHERE ";
-    public static final String PARAM_AND = "=? AND ";
+    public static final String PARAM_QUESTION_MARK_AND = "=? AND ";
     public static final String PARAM_LESS_OR_EQUAL = "<=";
     public static final String PARAM_COMMA_CLOSE = ")";
     public static final String PARAM_SELECT_MIN = "=(select min(";
@@ -256,7 +256,7 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
             return null;
         }
         String selection = TrackMeContract.RoutePointEntry._ID + PARAM_SELECT_MIN + TrackMeContract.RoutePointEntry._ID + PARAM_FROM_WITH_PARENTHESES_BEFORE
-                + TrackMeContract.RoutePointEntry.TABLE_NAME + PARAM_WHERE + TrackMeContract.RoutePointEntry.ROUTE_ID + PARAM_AND
+                + TrackMeContract.RoutePointEntry.TABLE_NAME + PARAM_WHERE + TrackMeContract.RoutePointEntry.ROUTE_ID + PARAM_QUESTION_MARK_AND
                 + TrackMeContract.RoutePointEntry.LOCATION_LAT + PARAM_LESS_OR_EQUAL + Constants.MAX_LATITUDE + PARAM_COMMA_CLOSE;
         String[] selectionArgs = new String[]{Long.toString(routeid)};
         return findRoutePointBy(selection, selectionArgs);
@@ -268,10 +268,19 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
             return null;
         }
         String selection = TrackMeContract.RoutePointEntry._ID + PARAM_SELECT_MAX + TrackMeContract.RoutePointEntry._ID + PARAM_FROM_WITH_PARENTHESES_BEFORE
-                + TrackMeContract.RoutePointEntry.TABLE_NAME + PARAM_WHERE + TrackMeContract.RoutePointEntry.ROUTE_ID + PARAM_AND
+                + TrackMeContract.RoutePointEntry.TABLE_NAME + PARAM_WHERE + TrackMeContract.RoutePointEntry.ROUTE_ID + PARAM_QUESTION_MARK_AND
                 + TrackMeContract.RoutePointEntry.LOCATION_LAT + PARAM_LESS_OR_EQUAL + Constants.MAX_LATITUDE + PARAM_COMMA_CLOSE;
         String[] selectionArgs = new String[]{Long.toString(routeId)};
         return findRoutePointBy(selection, selectionArgs);
+    }
+
+    @Override
+    public Location getLastValidLocationFromDb(){
+        String selection = TrackMeContract.RoutePointEntry._ID + PARAM_SELECT_MAX + TrackMeContract.RoutePointEntry._ID + PARAM_FROM_WITH_PARENTHESES_BEFORE
+                + TrackMeContract.RoutePointEntry.TABLE_NAME + PARAM_WHERE
+                + TrackMeContract.RoutePointEntry.LOCATION_LAT + PARAM_LESS_OR_EQUAL +
+                Constants.MAX_LATITUDE + PARAM_COMMA_CLOSE;
+        return findRoutePointBy(selection, null);
     }
 
     @Override
@@ -442,7 +451,7 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
             if (startId >= 0) {
 
                 where = TrackMeContract.RouteCheckPointEntry.ROUTE_ID + PARAM_EQUAL_QUESTION_MARK
-                        + PARAM_AND
+                        + PARAM_QUESTION_MARK_AND
                         + TrackMeContract.RouteCheckPointEntry._ID + PARAM_BIG_OR_EQUAL + PARAM_EQUAL_QUESTION_MARK;
                 args = new String[]{Long.toString(routeid), Long.toString(startId)};
 

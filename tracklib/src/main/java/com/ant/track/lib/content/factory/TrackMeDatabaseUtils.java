@@ -55,6 +55,8 @@ public interface TrackMeDatabaseUtils {
      */
     Location getLastValidLocationForRoute(long routeId);
 
+    Location getLastValidLocationFromDb();
+
     /**
      * inserts a new route into the database
      *

@@ -9,5 +9,6 @@ public enum RouteType {
     ROUTE,
     ROUTE_POINT,
     ROUTE_CHECK_POINT,
+    ROUTE_RESAMPLE_POINTS,
     PREFERENCE
 }

@@ -22,7 +22,7 @@ public class DrawPath {
 
     public DrawPath(Context context, int routeColor) {
         this.context = context;
-        this.color = routeColor;
+        this.color = context.getResources().getColor(android.R.color.black);
     }
 
     public int getColor() {

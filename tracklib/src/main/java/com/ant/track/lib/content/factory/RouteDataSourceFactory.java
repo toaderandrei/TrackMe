@@ -42,6 +42,7 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
     private RecordingState recordingState;
     public static final int TARGET_DISPLAYED_ROUTE_POINTS = 5000;
 
+    private static final Object lock = new Object();
     private int numLoadedPoints;
 
     private static final String TAG = RouteDataSourceFactory.class.getCanonicalName();
@@ -113,14 +114,15 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
         runAsync(new Runnable() {
             @Override
             public void run() {
-
-                if (routeDataListener == null && types == null) {
-                    Log.i(TAG, "should throw an exception.");
-                    return;
+                synchronized (lock) {
+                    if (routeDataListener == null && types == null) {
+                        Log.i(TAG, "should throw an exception.");
+                        return;
+                    }
+                    contentPublisher.registerListener(routeDataListener, types);
+                    dataSourceManager.updateListeners(contentPublisher.getRouteTypes(routeDataListener));
+                    loadDataForListener(routeDataListener);
                 }
-                contentPublisher.registerListener(routeDataListener, types);
-                dataSourceManager.updateListeners(contentPublisher.getRouteTypes(routeDataListener));
-                loadDataForListener(routeDataListener);
             }
         });
 
@@ -128,6 +130,9 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
 
     private void loadAll() {
         reset();
+        //temporary hack
+        //todo please fix the issues
+        notifyPreferenceChanged(null);
         if (contentPublisher.getRouteTypesCount() == 0) {
             return;
         }
@@ -138,7 +143,13 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
             listener.onRecordingGpsAccuracyChanged(recordingGpsAccuracy);
             listener.onRecordingDistanceIntervalChanged(minRecordingDistance);
             listener.onRecordingMaxDistanceChanged(maxRecordingDistance);
+            listener.onMapTypeChanged(mapType);
         }
+
+        for (RouteDataListener listener : contentPublisher.getListenersByType(RouteType.ROUTE_RESAMPLE_POINTS)) {
+            listener.clearPoints();
+        }
+
 
         if (contentPublisher.getAllRouteTypes().contains(RouteType.ROUTE)) {
             notifyRouteUpdateInternal(dataListeners);
@@ -157,6 +168,7 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
         EnumSet<RouteType> types = contentPublisher.getRouteTypes(listener);
         Set<RouteDataListener> dataListeners = Collections.singleton(listener);
 
+
         if (types.contains(RouteType.PREFERENCE)) {
             listener.onRecordingGpsAccuracyChanged(recordingGpsAccuracy);
             listener.onRecordingDistanceIntervalChanged(minRecordingDistance);
@@ -166,6 +178,8 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
         if (types.contains(RouteType.ROUTE)) {
             notifyRouteUpdateInternal(dataListeners);
         }
+
+        listener.clearPoints();
 
         if (types.contains(RouteType.ROUTE_CHECK_POINT)) {
             notifyRouteCheckPointUpdateInternal(dataListeners);
@@ -180,11 +194,14 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
         runAsync(new Runnable() {
             @Override
             public void run() {
-                if (listener == null) {
-                    Log.i(TAG, "should throw an exception.");
-                    return;
+                synchronized (lock) {
+
+                    if (listener == null) {
+                        Log.i(TAG, "should throw an exception.");
+                        return;
+                    }
+                    contentPublisher.unregisterListener(listener);
                 }
-                contentPublisher.unregisterListener(listener);
             }
         });
     }
@@ -209,7 +226,9 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
         runAsync(new Runnable() {
             @Override
             public void run() {
-                notifyRouteUpdateInternal(contentPublisher.getListenersByType(RouteType.ROUTE));
+                synchronized (lock) {
+                    notifyRouteUpdateInternal(contentPublisher.getListenersByType(RouteType.ROUTE));
+                }
             }
         });
     }
@@ -224,15 +243,18 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
         runAsync(new Runnable() {
             @Override
             public void run() {
-                if (routeId == currentRouteId) {
-                    Log.i(TAG, "Not reloading track " + routeId);
-                    return;
-                }
-                currentRouteId = routeId;
-                try {
-                    loadAll();
-                } catch (Exception exc) {
-                    Log.e(TAG, "exception in loading all:" + exc);
+                synchronized (lock) {
+
+                    if (routeId == currentRouteId) {
+                        Log.i(TAG, "Not reloading track " + routeId);
+                        return;
+                    }
+                    currentRouteId = routeId;
+                    try {
+                        loadAll();
+                    } catch (Exception exc) {
+                        Log.e(TAG, "exception in loading all:" + exc);
+                    }
                 }
             }
         });
@@ -253,7 +275,9 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
         runAsync(new Runnable() {
             @Override
             public void run() {
-                notifyRoutePointsUpdateInternal(true, contentPublisher.getListenersByType(RouteType.ROUTE_POINT));
+                synchronized (lock) {
+                    notifyRoutePointsUpdateInternal(true, contentPublisher.getListenersByType(RouteType.ROUTE_POINT));
+                }
             }
         });
     }
@@ -395,41 +419,42 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
                      @Override
                      public void run() {
 
-                         if (!TextUtils.isEmpty(key)) {
-                             if (TextUtils.equals(key, PreferenceUtils.getKey(context, R.string.route_id_key))) {
+                         synchronized (lock) {
+
+                             if (key == null || TextUtils.equals(key, PreferenceUtils.getKey(context, R.string.route_id_key))) {
                                  recordingRouteId = PreferenceUtils.getLong(context,
                                          R.string.route_id_key,
                                          PreferenceUtils.DEFAULT_ROUTE_ID);
                              }
                              //gps accuracy
-                             if (TextUtils.equals(key, PreferenceUtils.getKey(context, R.string.recording_gps_accuracy_key))) {
+                             if (key == null || TextUtils.equals(key, PreferenceUtils.getKey(context, R.string.recording_gps_accuracy_key))) {
                                  recordingGpsAccuracy = PreferenceUtils.getInt(context,
                                          R.string.recording_gps_accuracy_key,
                                          PreferenceUtils.RECORDING_GPS_ACCURACY_DEFAULT);
                              }
 
                              //distance interval
-                             if (TextUtils.equals(key, PreferenceUtils.getKey(context, R.string.recording_distance_interval_key))) {
+                             if (key == null || TextUtils.equals(key, PreferenceUtils.getKey(context, R.string.recording_distance_interval_key))) {
                                  minRecordingDistance = PreferenceUtils.getInt(context,
                                          R.string.recording_distance_interval_key,
                                          PreferenceUtils.RECORDING_DISTANCE_DEFAULT);
                              }
 
                              //distance interval
-                             if (TextUtils.equals(key, PreferenceUtils.getKey(context, R.string.max_recording_distance_key))) {
+                             if (key == null || TextUtils.equals(key, PreferenceUtils.getKey(context, R.string.max_recording_distance_key))) {
                                  maxRecordingDistance = PreferenceUtils.getInt(context,
                                          R.string.recording_distance_interval_key,
                                          PreferenceUtils.DEFAULT_MAX_RECORDING_DISTANCE);
                              }
 
-                             if (TextUtils.equals(key, PreferenceUtils.getKey(context, R.string.recording_state_key))) {
+                             if (key == null || TextUtils.equals(key, PreferenceUtils.getKey(context, R.string.recording_state_key))) {
                                  recordingState = PreferenceUtils.getRecordingState(context,
                                          R.string.recording_state_key,
-                                         PreferenceUtils.RECORDING_STATE_PAUSED_DEFAULT);
+                                         PreferenceUtils.RECORDING_STATE_NOT_STARTED_DEFAULT);
                              }
 
-                             if (TextUtils.equals(key, PreferenceUtils.getKey(context, R.string.map_type_key))) {
-                                 mapType = PreferenceUtils.getInt(context, R.string.map_type_key, PreferenceUtils.MAP_TYPE_DEFAUlT);
+                             if (key == null || TextUtils.equals(key, PreferenceUtils.getKey(context, R.string.map_type_key))) {
+                                 mapType = PreferenceUtils.getInt(context, R.string.map_type_key, PreferenceUtils.MAP_TYPE_DEFAULT);
                                  if (mapType >= 0) {
                                      for (RouteDataListener routeDataListener :
                                              contentPublisher.getListenersByType(RouteType.PREFERENCE)) {
@@ -439,8 +464,8 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
                              }
                              //
                          }
-                     }
 
+                     }
                  }
         );
     }

@@ -4,6 +4,7 @@ import android.location.Location;
 import android.location.LocationManager;
 
 import com.ant.track.lib.constants.Constants;
+import com.ant.track.lib.content.factory.TrackMeDatabaseUtilsImpl;
 import com.google.android.gms.maps.model.LatLng;
 
 /**
@@ -37,7 +38,10 @@ public class LocationUtils {
      * @return true if the location is a valid location.
      */
     public static boolean isValidLocation(LatLng location) {
-        return location != null && Math.abs(location.latitude) <= Constants.MAX_LATITUDE
+        return location != null &&
+                !isNotAnExtremeValue(location.longitude) &&
+                !isNotAnExtremeValue(location.latitude) &&
+                Math.abs(location.latitude) <= Constants.MAX_LATITUDE
                 && Math.abs(location.longitude) <= Constants.MAX_LONGITUDE;
     }
 
@@ -51,7 +55,10 @@ public class LocationUtils {
      * @return true if the location is a valid location.
      */
     public static boolean isValidLocation(Location location) {
-        return location != null && Math.abs(location.getLatitude()) <= Constants.MAX_LATITUDE
+        return location != null &&
+                isNotAnExtremeValue(location.getLongitude()) &&
+                isNotAnExtremeValue(location.getLatitude()) &&
+                Math.abs(location.getLatitude()) <= Constants.MAX_LATITUDE
                 && Math.abs(location.getLongitude()) <= Constants.MAX_LONGITUDE;
     }
 
@@ -81,21 +88,22 @@ public class LocationUtils {
     }
 
     public static boolean isValidLatitude(double latitude) {
-        if (Math.abs(latitude) <= Constants.MAX_LATITUDE) {
+        if (isNotAnExtremeValue(latitude) && Math.abs(latitude) <= Constants.MAX_LATITUDE) {
             return true;
         }
         return false;
     }
 
     public static boolean isValidLongitude(double longitude) {
-        if (Math.abs(longitude) <= Constants.MAX_LONGITUDE) {
+        if (isNotAnExtremeValue(longitude) && Math.abs(longitude) <= Constants.MAX_LONGITUDE) {
             return true;
         }
         return false;
     }
 
+
     public static boolean isValidElevation(double elevationMax) {
-        return elevationMax < Double.POSITIVE_INFINITY && elevationMax > Double.NEGATIVE_INFINITY;
+        return isNotAnExtremeValue(elevationMax) && elevationMax < Double.POSITIVE_INFINITY && elevationMax > Double.NEGATIVE_INFINITY;
     }
 
     public static boolean isValidAltitude(double location_alt) {
@@ -106,8 +114,21 @@ public class LocationUtils {
         return new Location(LocationManager.GPS_PROVIDER);
     }
 
+    /**
+     * gets the last location from db or some default location
+     *
+     * @return the desired location.
+     */
     public static LatLng getDefaultLatLng() {
+        Location loc = TrackMeDatabaseUtilsImpl.getInstance().getLastValidLocationFromDb();
+        if (LocationUtils.isValidLocation(loc)) {
+            return new LatLng(loc.getLatitude(), loc.getLongitude());
+        }
         return defaultLatLng;
+    }
+
+    public static boolean isNotAnExtremeValue(double longitude) {
+        return longitude != Double.NEGATIVE_INFINITY && longitude != Double.POSITIVE_INFINITY;
     }
 }
 

@@ -30,6 +30,7 @@ public class MainActivity extends ServiceConnectActivity {
         handleIntent(getIntent());
         sharedPreferences = getSharedPreferences(Constants.SETTINGS_NAME, Context.MODE_PRIVATE);
         sharedPreferences.registerOnSharedPreferenceChangeListener(onSharedPreferencesListener);
+        onSharedPreferencesListener.onSharedPreferenceChanged(sharedPreferences, null);
 
         initRecordingAndServiceFragment();
         if (getSupportActionBar() != null) {
@@ -41,13 +42,11 @@ public class MainActivity extends ServiceConnectActivity {
     private SharedPreferences.OnSharedPreferenceChangeListener onSharedPreferencesListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
         @Override
         public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-            if (key != null) {
-                if (TextUtils.equals(key, PreferenceUtils.getKey(MainActivity.this, R.string.route_id_key))) {
-                    recordingRouteId = PreferenceUtils.getLong(MainActivity.this, R.string.route_id_key);
-                }
-                if (TextUtils.equals(key, PreferenceUtils.getKey(MainActivity.this, R.string.recording_state_key))) {
-                    recordingState = PreferenceUtils.getRecordingState(MainActivity.this, R.string.recording_state_key, RecordingState.NOT_STARTED);
-                }
+            if (key == null || TextUtils.equals(key, PreferenceUtils.getKey(MainActivity.this, R.string.route_id_key))) {
+                recordingRouteId = PreferenceUtils.getLong(MainActivity.this, R.string.route_id_key);
+            }
+            if (key == null || TextUtils.equals(key, PreferenceUtils.getKey(MainActivity.this, R.string.recording_state_key))) {
+                recordingState = PreferenceUtils.getRecordingState(MainActivity.this, R.string.recording_state_key, RecordingState.NOT_STARTED);
             }
         }
     };
@@ -139,13 +138,13 @@ public class MainActivity extends ServiceConnectActivity {
         return null;
     }
 
+
     @Override
-    protected void onDestroy() {
+    protected void onStop() {
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(onSharedPreferencesListener);
         sharedPreferences = null;
-        super.onDestroy();
+        super.onStop();
     }
-
 
     public RecordingState getRecordingState() {
         if (recordingState == RecordingState.NOT_STARTED) {

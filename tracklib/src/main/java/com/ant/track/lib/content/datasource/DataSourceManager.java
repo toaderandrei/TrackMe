@@ -57,19 +57,25 @@ public class DataSourceManager {
                 dataObserver.registerObserver(TrackMeContract.RouteEntry.CONTENT_URI, routeSourceManager);
                 break;
             }
+
             case ROUTE_POINT: {
                 dataObserver.registerObserver(TrackMeContract.RoutePointEntry.CONTENT_URI, routePointSourceManager);
                 break;
             }
+
             case ROUTE_CHECK_POINT: {
                 dataObserver.registerObserver(TrackMeContract.RouteCheckPointEntry.CONTENT_URI, routeCheckPointSourceManager);
                 break;
             }
-            case PREFERENCE: {
 
+            case PREFERENCE: {
                 dataObserver.registerOnSharedPreferenceChangeListener(preferenceObserver);
                 break;
             }
+
+            case ROUTE_RESAMPLE_POINTS:
+                dataObserver.registerObserver(TrackMeContract.RoutePointEntry.CONTENT_URI, routePointSourceManager);
+                break;
             default:
                 throw new UnsupportedOperationException("type does not exist");
         }
@@ -86,14 +92,20 @@ public class DataSourceManager {
                 dataObserver.unregisterObserver(routePointSourceManager);
                 break;
             }
+
             case ROUTE_CHECK_POINT: {
                 dataObserver.unregisterObserver(routeCheckPointSourceManager);
                 break;
             }
+
             case PREFERENCE: {
                 dataObserver.unregisterOnSharedPreferenceChangeListener(preferenceObserver);
                 break;
             }
+
+            case ROUTE_RESAMPLE_POINTS:
+                dataObserver.unregisterObserver(routePointSourceManager);
+                break;
             default:
                 throw new UnsupportedOperationException("type does not exist");
         }

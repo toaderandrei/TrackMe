@@ -62,7 +62,7 @@ public class LocationFragment extends Fragment implements RouteDataListener {
     private GoogleMap mMap;
     private Route currentRoute;
     private Location lastLocation;
-
+    private boolean reload;
 
     private int recordingGpsAccuracy = PreferenceUtils.RECORDING_GPS_ACCURACY_DEFAULT;
     private LocationListener locationListener;
@@ -94,6 +94,9 @@ public class LocationFragment extends Fragment implements RouteDataListener {
         routeDataSourceFactory = new RouteDataSourceFactory(getActivity());
     }
 
+    int width = 0;
+    int height = 0;
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -101,6 +104,8 @@ public class LocationFragment extends Fragment implements RouteDataListener {
         enableLocationService = new GoogleAskToEnableLocationService(getActivity());
         mGPSLiveTrackerLocManager = new GPSLiveTrackerLocationManager(getActivity());
         googleUtils = GoogleLocationServicesUtils.getInstance(getActivity());
+        width = rootView.getWidth();
+        height = rootView.getHeight();
         return rootView;
     }
 
@@ -109,6 +114,7 @@ public class LocationFragment extends Fragment implements RouteDataListener {
             notifyUserNoLocationIsAvailable();
         } else {
             requestLastKnowLocation();
+            mGPSLiveTrackerLocManager.requestLocationUpdates(0, 0, locationListener);
         }
     }
 
@@ -181,7 +187,7 @@ public class LocationFragment extends Fragment implements RouteDataListener {
             return;
         }
         onLocationChangedListener.onLocationChanged(currentLocation);
-        if (forceZoom || !isLocationVisible(currentLocation)) {
+        if (forceZoom || !isLocationVisible(currentLocation) || isRecording()) {
             LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
             CameraUpdate cameraUpdate = forceZoom ? CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM_LEVEL) : CameraUpdateFactory.newLatLng(latLng);
             getGoogleMap().animateCamera(cameraUpdate);
@@ -260,7 +266,12 @@ public class LocationFragment extends Fragment implements RouteDataListener {
             return;
         }
 
-        moveCameraOverRoute();
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                moveCameraOverRoute();
+            }
+        });
     }
 
     private void moveCameraOverRoute() {
@@ -279,8 +290,12 @@ public class LocationFragment extends Fragment implements RouteDataListener {
                         !LocationUtils.isValidLongitude(routeStats.getLongitudeMin())) {
             return;
         }
-        int width = 40;
-        int height = 40;
+
+        if (width == 0 || height == 0) {
+            Log.d(TAG, "zero width or height");
+            width = 680;
+            height = 480;
+        }
 
         int latitudeSpanE6 = routeStats.getTop() - routeStats.getBottom();
         int longitudeSpanE6 = routeStats.getRight() - routeStats.getLeft();
@@ -407,6 +422,7 @@ public class LocationFragment extends Fragment implements RouteDataListener {
     public void onPause() {
         if (routeDataSourceFactory != null) {
             unregisterDataListeners();
+            routeDataSourceFactory.stop();
         }
         super.onPause();
     }
@@ -419,11 +435,16 @@ public class LocationFragment extends Fragment implements RouteDataListener {
             locationListener = null;
         }
         mGPSLiveTrackerLocManager.close();
-        routeDataSourceFactory.stop();
+        //routeDataSourceFactory.stop();
     }
 
     private void registerRouteDataListeners() {
-        routeDataSourceFactory.registerListeners(this, EnumSet.of(RouteType.ROUTE, RouteType.PREFERENCE, RouteType.ROUTE_CHECK_POINT, RouteType.ROUTE_POINT));
+        routeDataSourceFactory.registerListeners(this, EnumSet.of(
+                RouteType.ROUTE,
+                RouteType.PREFERENCE,
+                RouteType.ROUTE_CHECK_POINT,
+                RouteType.ROUTE_POINT,
+                RouteType.ROUTE_RESAMPLE_POINTS));
     }
 
     private void unregisterDataListeners() {
@@ -559,7 +580,7 @@ public class LocationFragment extends Fragment implements RouteDataListener {
             getActivity().runOnUiThread(new Runnable() {
                 public void run() {
                     if (isResumed() && mMap != null && currentRoute != null) {
-                        mapOverlay.update(mMap, paths, true);
+                        mapOverlay.update(mMap, paths, reload);
                     }
                 }
             });
@@ -569,6 +590,7 @@ public class LocationFragment extends Fragment implements RouteDataListener {
     @Override
     public void onNewRouteUpdate(Route route) {
         this.currentRoute = route;
+        showRoute();
     }
 
     @Override
@@ -585,12 +607,15 @@ public class LocationFragment extends Fragment implements RouteDataListener {
                 @Override
                 public void run() {
                     if (mMap != null && isResumed() && mapOverlay != null && currentRoute != null) {
-                        mapOverlay.update(mMap, paths, true);
-                    }
+                        boolean hasStartMarker = mapOverlay.update(mMap, paths, reload);
+                        if (hasStartMarker) {
+                            reload = false;
+                        }
 
-                    if (lastLocation != null && isRecording()) {
-                        boolean firstLocation = setCurrentLocation(lastLocation);
-                        updateCurrentLocation(firstLocation);
+                        if (lastLocation != null && isRecording()) {
+                            boolean firstLocation = setCurrentLocation(lastLocation);
+                            updateCurrentLocation(firstLocation);
+                        }
                     }
                 }
             });
@@ -638,8 +663,10 @@ public class LocationFragment extends Fragment implements RouteDataListener {
 
     @Override
     public void clearPoints() {
+        Log.d(TAG, "clearing points");
         if (isResumed() && mapOverlay != null) {
             mapOverlay.clearPoints();
+            reload = true;
         }
     }
 

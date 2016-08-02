@@ -84,6 +84,7 @@ public class ServiceHeadlessFragment extends Fragment {
             }
             if (startNewRecording) {
                 try {
+                    Log.d(TAG, "service is starting.");
                     mRecordingServiceConnection.startTracking();
                     recordingState = RecordingState.STARTED;
                     runOnUiThread(new Runnable() {
@@ -108,7 +109,7 @@ public class ServiceHeadlessFragment extends Fragment {
 
         @Override
         public void onDisconnected() {
-
+            callback.onUpdateUIControls(RecordingState.NOT_STARTED);
         }
 
         @Override

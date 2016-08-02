@@ -5,7 +5,6 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.SQLException;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
@@ -18,6 +17,7 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.PowerManager;
 import android.os.RemoteException;
+import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.text.TextUtils;
@@ -57,6 +57,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class RecordingServiceImpl extends Service {
 
+    private Location mockLocation;
+
     private static final long DEFAULT_ROUTE_POINT_ID = -1L;
     private long routeId;
     private static final long ONE_MINUTE = (long) (UnitConversions.MIN_TO_S * UnitConversions.S_TO_MS);
@@ -76,6 +78,7 @@ public class RecordingServiceImpl extends Service {
     private WeakReference<Context> contextWeakRef;
     private long currentRecordingInterval;
     private Handler handler;
+    private boolean firstInsert = true;
     private Messenger serviceMessenger;
     private Messenger client;
     private RouteStatsManager routeStatsManager;
@@ -126,66 +129,68 @@ public class RecordingServiceImpl extends Service {
         @Override
         public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
 
-            if (!TextUtils.isEmpty(key)) {
-                if (TextUtils.equals(key, PreferenceUtils.getKey(contextWeakRef.get(), R.string.route_id_key))) {
-                    routeId = PreferenceUtils.getLong(contextWeakRef.get(), R.string.route_id_key, -1);
-                }
-
-                //gps accuracy
-                if (TextUtils.equals(key, PreferenceUtils.getKey(contextWeakRef.get(), R.string.recording_gps_accuracy_key))) {
-                    recordingGpsAccuracy = PreferenceUtils.getInt(contextWeakRef.get(),
-                            R.string.recording_gps_accuracy_key,
-                            PreferenceUtils.RECORDING_GPS_ACCURACY_DEFAULT);
-                }
-
-                //distance interval
-                if (TextUtils.equals(key, PreferenceUtils.getKey(contextWeakRef.get(), R.string.recording_distance_interval_key))) {
-                    minRecordingDistance = PreferenceUtils.getInt(contextWeakRef.get(),
-                            R.string.recording_distance_interval_key,
-                            PreferenceUtils.RECORDING_DISTANCE_DEFAULT);
-                }
-
-                if (TextUtils.equals(key, PreferenceUtils.getKey(contextWeakRef.get(), R.string.recording_state_key))) {
-                    recordingState = PreferenceUtils.getRecordingState(contextWeakRef.get(),
-                            R.string.recording_state_key,
-                            PreferenceUtils.RECORDING_STATE_PAUSED_DEFAULT);
-                }
-
-                //distance interval
-                if (TextUtils.equals(key, PreferenceUtils.getKey(contextWeakRef.get(), R.string.max_recording_distance_key))) {
-                    maxRecordingDistance = PreferenceUtils.getInt(contextWeakRef.get(),
-                            R.string.recording_distance_interval_key,
-                            PreferenceUtils.DEFAULT_MAX_RECORDING_DISTANCE);
-                }
-
-                //location listener policy
-                if (TextUtils.equals(key, PreferenceUtils.getKey(contextWeakRef.get(), R.string.recording_location_threshold_key))) {
-                    int recordingThreshold = PreferenceUtils.getInt(contextWeakRef.get(),
-                            R.string.recording_location_threshold_key,
-                            PreferenceUtils.RECORDING_GPS_ACCURACY_DEFAULT);
-
-                    switch (recordingThreshold) {
-                        case RecordingInterval.BATTERY_LIFE:
-                            locationListenerPolicy = new LocationListenerRestrictionsImpl(DEFAULT_BATTERY_MIN_INTERVAL,
-                                    DEFAULT_BATTERY_MAX_INTERVAL, DEFAULT_BATTERY_MIN_DISTANCE);
-                            break;
-                        case RecordingInterval.ACCURACY:
-                            locationListenerPolicy = new LocationListenerRestrictionsImpl(DEFAULT_HIGH_ACCURACY_MIN_INTERVAL,
-                                    DEFAULT_HIGH_ACCURACY_MAX_INTERVAL, DEFAULT_ACCURACY_MIN_DISTANCE);
-                            break;
-                        default:
-                            locationListenerPolicy = new LocationListenerRestrictionsImpl(recordingThreshold * ONE_SECOND);
-                            break;
-                    }
-                }
-                //
+            if (key == null || TextUtils.equals(key, PreferenceUtils.getKey(contextWeakRef.get(), R.string.route_id_key))) {
+                routeId = PreferenceUtils.getLong(contextWeakRef.get(), R.string.route_id_key, -1);
             }
+
+            //gps accuracy
+            if (key == null || TextUtils.equals(key, PreferenceUtils.getKey(contextWeakRef.get(), R.string.recording_gps_accuracy_key))) {
+                recordingGpsAccuracy = PreferenceUtils.getInt(contextWeakRef.get(),
+                        R.string.recording_gps_accuracy_key,
+                        PreferenceUtils.RECORDING_GPS_ACCURACY_DEFAULT);
+            }
+
+            //distance interval
+            if (key == null || TextUtils.equals(key, PreferenceUtils.getKey(contextWeakRef.get(), R.string.recording_distance_interval_key))) {
+                minRecordingDistance = PreferenceUtils.getInt(contextWeakRef.get(),
+                        R.string.recording_distance_interval_key,
+                        PreferenceUtils.RECORDING_DISTANCE_DEFAULT);
+            }
+
+            if (key == null || TextUtils.equals(key, PreferenceUtils.getKey(contextWeakRef.get(), R.string.recording_state_key))) {
+                recordingState = PreferenceUtils.getRecordingState(contextWeakRef.get(),
+                        R.string.recording_state_key,
+                        PreferenceUtils.RECORDING_STATE_NOT_STARTED_DEFAULT);
+            }
+
+            //distance interval
+            if (key == null || TextUtils.equals(key, PreferenceUtils.getKey(contextWeakRef.get(), R.string.max_recording_distance_key))) {
+                maxRecordingDistance = PreferenceUtils.getInt(contextWeakRef.get(),
+                        R.string.recording_distance_interval_key,
+                        PreferenceUtils.DEFAULT_MAX_RECORDING_DISTANCE);
+            }
+
+            //location listener policy
+            if (key == null || TextUtils.equals(key, PreferenceUtils.getKey(contextWeakRef.get(), R.string.recording_location_threshold_key))) {
+                int recordingThreshold = PreferenceUtils.getInt(contextWeakRef.get(),
+                        R.string.recording_location_threshold_key,
+                        PreferenceUtils.RECORDING_GPS_ACCURACY_DEFAULT);
+
+                switch (recordingThreshold) {
+                    case RecordingInterval.BATTERY_LIFE:
+                        locationListenerPolicy = new LocationListenerRestrictionsImpl(DEFAULT_BATTERY_MIN_INTERVAL,
+                                DEFAULT_BATTERY_MAX_INTERVAL, DEFAULT_BATTERY_MIN_DISTANCE);
+                        break;
+                    case RecordingInterval.ACCURACY:
+                        locationListenerPolicy = new LocationListenerRestrictionsImpl(DEFAULT_HIGH_ACCURACY_MIN_INTERVAL,
+                                DEFAULT_HIGH_ACCURACY_MAX_INTERVAL, DEFAULT_ACCURACY_MIN_DISTANCE);
+                        break;
+                    default:
+                        locationListenerPolicy = new LocationListenerRestrictionsImpl(recordingThreshold * ONE_SECOND);
+                        break;
+                }
+            }
+            //
         }
     };
+
+    private Handler mockHandler;
 
     @Override
     public void onCreate() {
         super.onCreate();
+        //test
+
         initAsyncThread();
         serviceMessenger = new Messenger(handlerService);
         mLiveTrackingLocationManager = new GPSLiveTrackerLocationManager(this);
@@ -210,12 +215,43 @@ public class RecordingServiceImpl extends Service {
         }
     }
 
+    private void initMockTimer() {
+        mockHandler.postDelayed(mockRunnable, 2000);
+    }
 
-    private void updateRecordingState(long _routeId, RecordingState state) {
+    @NonNull
+    private Runnable mockRunnable = new Runnable() {
+        @Override
+        public void run() {
+            Log.d(TAG, "reload location mock timer");
+            Location lastvalid = getLastValidLocationForRoute();
+            if (lastvalid != null) {
+                lastvalid.setLatitude(lastvalid.getLatitude() + 0.00011);
+                lastvalid.setLongitude(lastvalid.getLongitude() + 0.000011);
+                lastvalid.setAccuracy(3.0f);
+                lastvalid.setTime(System.currentTimeMillis());
+            } else if (mockLocation != null) {
+                lastvalid = mockLocation;
+                lastvalid.setAccuracy(3.0f);
+                lastvalid.setLatitude(mockLocation.getLatitude() + 0.00011);
+                lastvalid.setLongitude(mockLocation.getLongitude() + 0.00011);
+            }
+            if (lastvalid != null) {
+                Log.d(TAG, "notification about location");
+                Log.d(TAG, "routestats here: " + routeStatsManager);
+                onLocationChangedAsync(lastvalid);
+            }
+
+            mockHandler.postDelayed(this, 200);
+        }
+    };
+
+
+    private void updateRecordingState(Long _routeId, RecordingState state) {
         routeId = _routeId;
         PreferenceUtils.setRouteId(this, R.string.route_id_key, routeId);
         recordingState = state;
-        PreferenceUtils.setRecordingState(this, R.string.recording_state_key, recordingState);
+        PreferenceUtils.setRecordingState(this, R.string.recording_state_key, state);
     }
 
     private void restartRoute(Route route) {
@@ -312,6 +348,7 @@ public class RecordingServiceImpl extends Service {
 
         if (!location.hasAccuracy() || location.getAccuracy() > recordingGpsAccuracy) {
             Log.d(TAG, "Ignore onLocationChangedAsync. Poor accuracy.");
+            mockLocation = location;
             return;
         }
         Location lastValidTrackLocation = getLastValidLocationForRoute();
@@ -325,16 +362,20 @@ public class RecordingServiceImpl extends Service {
             startRequestingLocationUpdates();
         }
 
+        if (firstInsert) {
+            insertLocation(route, location, null);
+            mLastLocation = location;
+            firstInsert = false;
+            return;
+
+        }
+
         //we check if either the last valid location is invalid or if it is null, meaning there was
         // none so far.
         if (!LocationUtils.isValidLocation(lastValidTrackLocation)) {
             insertLocation(route, location, null);
             mLastLocation = location;
             return;
-        }
-
-        if (lastValidTrackLocation.getLatitude() > 0.000001) {
-            location.setLatitude(lastValidTrackLocation.getLatitude() + 0.000020);
         }
 
         double distance = location.distanceTo(lastValidTrackLocation);
@@ -369,7 +410,8 @@ public class RecordingServiceImpl extends Service {
 
     protected boolean insertLocation(Route route, Location location, Location lastValidLocation) {
         // Do not insert if inserted already
-        if (lastValidLocation != null && lastValidLocation.getTime() == location.getTime()) {
+        //todo - fix this weird nullpointer.
+        if (lastValidLocation != null && location != null && lastValidLocation.getTime() == location.getTime()) {
             Log.w(TAG, "Ignore the updating of the location. location time same as last valid location time.");
             return false;
         }
@@ -384,7 +426,7 @@ public class RecordingServiceImpl extends Service {
             //sendMessageToListeners(RecordingServiceConstants.MSG_UPDATE_ROUTE_ID, id);
             //showNotification();
 
-        } catch (SQLException exc) {
+        } catch (Exception exc) {
             sendErrorLocationUpdate(new ErrorLocation(exc, location));
             return false;
         }
@@ -415,7 +457,7 @@ public class RecordingServiceImpl extends Service {
 
     private void sendErrorLocationUpdate(ErrorLocation errorLocation) {
         if (serviceMessenger != null) {
-            Message message = Message.obtain(null, RecordingServiceConstants.MSG_UPDATE_ROUTE_ID, 0, 0);
+            Message message = Message.obtain(null, RecordingServiceConstants.MSG_EXCEPTION, 0, 0);
             message.obj = errorLocation;
             try {
                 serviceMessenger.send(message);
@@ -473,10 +515,16 @@ public class RecordingServiceImpl extends Service {
 
         TrackMeDatabaseUtilsImpl.getInstance().updateRouteTrack(route);
         sendMessageToListeners(RecordingServiceConstants.MSG_UPDATE_ROUTE_ID, routeId);
-        insertRoutePoint(RouteTrackCreator.DEFAULT_ROUTE_TRACK_BUILDER);
+        //insertRoutePoint(RouteTrackCreator.DEFAULT_ROUTE_TRACK_BUILDER);
         insertRouteCheckPoint(RouteTrackCreator.DEFAULT_ROUTE_TRACK_BUILDER);
-        updateRecordingState(routeId, RecordingState.STARTED);
+
         startRecording();
+
+        updateRecordingState(routeId, RecordingState.STARTED);
+        //mock part
+        mockHandler = new Handler(Looper.getMainLooper());
+        initMockTimer();
+
     }
 
     /**
@@ -514,7 +562,6 @@ public class RecordingServiceImpl extends Service {
     private void startRecording() {
 
         mLastLocation = null;
-        recordingState = RecordingState.STARTED;
         isIdle.set(false);
         startGPSTracking();
         showNotification();
@@ -573,7 +620,7 @@ public class RecordingServiceImpl extends Service {
         stopRecordingService(false);
     }
 
-    private void stopTracking(boolean stopped) {
+    private void stopRouteTracking(boolean stopped) {
         if (!canAccess()) {
             return;
         }
@@ -583,13 +630,15 @@ public class RecordingServiceImpl extends Service {
         }
 
         long currentRouteId = routeId;
-        RecordingState state = recordingState;
-        updateRecordingState(currentRouteId, state);
+
+        RecordingState isPaused = recordingState;
+        updateRecordingState(PreferenceUtils.DEFAULT_ROUTE_ID, RecordingState.STOPPED);
         //todo update status sometime.
         Route currentRoute = TrackMeDatabaseUtilsImpl.getInstance().getRouteById(currentRouteId);
         if (currentRoute != null) {
-            if (!isPaused()) {
-                if (!insertLocation(currentRoute, mLastLocation, TrackMeDatabaseUtilsImpl.getInstance().getLastValidLocationForRoute(currentRouteId))) {
+            if (isPaused == RecordingState.PAUSED) {
+                Location lastValidLocation = TrackMeDatabaseUtilsImpl.getInstance().getLastValidLocationForRoute(currentRouteId);
+                if (LocationUtils.isValidLocation(lastValidLocation) && mLastLocation != null && !insertLocation(currentRoute, mLastLocation, lastValidLocation)) {
                     //if somehow the last location is the same as the last inserted,
                     //we still want to update the route's time.
                     //if it is true, it is updated already, does not make sense to update it again.
@@ -603,7 +652,13 @@ public class RecordingServiceImpl extends Service {
     private void stopRecordingService(boolean stopped) {
         mLastLocation = null;
         recordingState = stopped ? RecordingState.STOPPED : RecordingState.PAUSED;
+        //sendMessageToListeners(RecordingServiceConstants.MSG_CLIENT_DISCONNECT);
         stopGpsTracking(stopped);
+        //mock timer
+        Log.d(TAG, "stopping the mock timer");
+        if (mockHandler != null) {
+            mockHandler.removeCallbacks(mockRunnable);
+        }
     }
 
     /**
@@ -626,7 +681,7 @@ public class RecordingServiceImpl extends Service {
     private void showNotification() {
         if (isRecording()) {
             if (!isPaused()) {
-                Intent intent = IntentUtils.newIntent(this, MainActivity.class).putExtra(Constants.EXTRA_ROUTE_ID,routeId);
+                Intent intent = IntentUtils.newIntent(this, MainActivity.class).putExtra(Constants.EXTRA_ROUTE_ID, routeId);
                 PendingIntent pendingIntent = TaskStackBuilder.create(this).addParentStack(MainActivity.class).addNextIntent(intent).getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
                 startForegroundService(pendingIntent, R.string.tracking_record_notification);
                 sendMessageToListeners(RecordingServiceConstants.MSG_SHOW_NOTIFICATIONS, true);
@@ -706,17 +761,18 @@ public class RecordingServiceImpl extends Service {
                     startNewTracking();
                     break;
                 case RecordingServiceConstants.MSG_STOP_TRACKING:
-                    stopTracking(true);
+                    stopRouteTracking(true);
                     break;
                 case RecordingServiceConstants.MSG_PAUSE_TRACKING:
                     pauseTracking();
                     break;
-
                 case RecordingServiceConstants.MSG_RESUME_TRACKING:
                     resumeTracking();
                     break;
                 case RecordingServiceConstants.MSG_REGISTER_CLIENT: {
                     client = msg.replyTo;
+                    //reply we are here!
+                    sendMessageToListeners(RecordingServiceConstants.MSG_CLIENT_CONNECTED, null);
                     break;
                 }
             }
@@ -748,11 +804,27 @@ public class RecordingServiceImpl extends Service {
             case RecordingServiceConstants.MSG_UPDATE_ROUTE_ID: {
                 if (client != null) {
                     Message message = Message.obtain(null, RecordingServiceConstants.MSG_UPDATE_ROUTE_ID, 0, 0);
-                    message.obj = data;
+                    if (data != null) {
+                        message.obj = data;
+                    }
                     try {
                         client.send(message);
                     } catch (RemoteException remex) {
                         Log.e(TAG, "Exception in sending the message" + remex.getMessage());
+                    }
+                }
+                break;
+            }
+            case RecordingServiceConstants.MSG_CLIENT_CONNECTED: {
+                if (client != null) {
+                    Message message = Message.obtain(null, RecordingServiceConstants.MSG_CLIENT_CONNECTED, 0, 0);
+                    if (data != null) {
+                        message.obj = data;
+                    }
+                    try {
+                        client.send(message);
+                    } catch (RemoteException remex) {
+                        Log.e(TAG, "exception in sending client connected:" + remex);
                     }
                 }
                 break;

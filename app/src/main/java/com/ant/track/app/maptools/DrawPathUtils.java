@@ -25,6 +25,9 @@ public class DrawPathUtils {
      */
     public static void addPath(GoogleMap mMap, List<LatLng> points, int color, List<Polyline> paths, boolean useLastPolyline) {
 
+        if (points.size() == 0) {
+            return;
+        }
         if (paths.size() > 0 && useLastPolyline) {
             Polyline lastPolyLine = paths.get(paths.size() - 1);
             List<LatLng> allPoints = new ArrayList<>();
@@ -35,7 +38,8 @@ public class DrawPathUtils {
             PolylineOptions polylineOptions = new PolylineOptions().addAll(points).width(Constants.DEFAULT_POLYLINE_POINT_WIDTH).color(color);
             Polyline polyline = mMap.addPolyline(polylineOptions);
             paths.add(polyline);
-            points.clear();
+
         }
+        points.clear();
     }
 }

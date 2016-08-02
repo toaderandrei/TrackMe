@@ -20,12 +20,11 @@ import com.ant.track.ui.dialogs.CustomFragmentDialog;
 public class RecordControlsFragment extends Fragment {
 
     public static final String STOPS_THE_TRACKING_OR_PAUSES_IT = "Stops the tracking or pauses it.";
-    public static final String STOP_OR_PAUSE = "Stop or Pause?";
+    public static final String STOP_OR_PAUSE = "Stop or pause?";
     private ImageButton recordImageButton;
+    private static final String STOP_OR_CANCEL = "Stop or cancel?";
+    private static final String STOPS_THE_TRACKING_OR_CANCEL = "Want to stop the route tracking?";
     private RecordStateListener listener;
-    private boolean isRecording;
-    private boolean isPaused;
-    private View.OnClickListener onClickListener;
     private int totalTime;
     private static final String CUSTOM_TAG = "custom_tag";
     private Handler handler;
@@ -94,6 +93,37 @@ public class RecordControlsFragment extends Fragment {
         super.onResume();
         updateRecordState(recordingState);
     }
+
+    public View.OnLongClickListener getOnLongClickListener() {
+        return new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                if (view != null) {
+                    if (recordingState == RecordingState.PAUSED || recordingState == RecordingState.STARTED) {
+                        CustomFragmentDialog stopOrCancelDialog = CustomFragmentDialog.newInstance(STOP_OR_CANCEL,
+                                STOPS_THE_TRACKING_OR_CANCEL,
+                                getString(R.string.stop_tracking),
+                                getString(R.string.cancel),
+                                stopOrCancelCallback);
+                        stopOrCancelDialog.show(getFragmentManager(), CUSTOM_TAG);
+                    }
+                }
+                return false;
+            }
+        };
+    }
+
+    private CustomFragmentDialog.Callback stopOrCancelCallback = new CustomFragmentDialog.Callback() {
+        @Override
+        public void onPositiveButtonClicked(Bundle bundle) {
+            updateService(RecordingState.STOPPED);
+        }
+
+        @Override
+        public void onNegativeButtonClicked(Bundle bundle) {
+            //nothing for now.
+        }
+    };
 
     public View.OnClickListener getOnRecordListener() {
         return new View.OnClickListener() {

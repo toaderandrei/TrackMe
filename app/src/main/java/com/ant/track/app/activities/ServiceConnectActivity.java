@@ -81,13 +81,13 @@ public abstract class ServiceConnectActivity extends BaseActivity implements Ser
         @Override
         public void onSharedPreferenceChanged(SharedPreferences preferences, String key) {
             // Note that key can be null
-            if (TextUtils.equals(key, PreferenceUtils.getKey(ServiceConnectActivity.this, R.string.route_id_key))) {
+            if (key == null || TextUtils.equals(key, PreferenceUtils.getKey(ServiceConnectActivity.this, R.string.route_id_key))) {
                 recordingRouteId = PreferenceUtils.getLong(ServiceConnectActivity.this, R.string.route_id_key);
             }
-            if (TextUtils.equals(key, PreferenceUtils.getKey(ServiceConnectActivity.this, R.string.recording_state_key))) {
+            if (key == null || TextUtils.equals(key, PreferenceUtils.getKey(ServiceConnectActivity.this, R.string.recording_state_key))) {
                 recordingState = PreferenceUtils.getRecordingState(ServiceConnectActivity.this,
                         R.string.recording_state_key,
-                        PreferenceUtils.RECORDING_STATE_PAUSED_DEFAULT);
+                        PreferenceUtils.RECORDING_STATE_NOT_STARTED_DEFAULT);
             }
             if (key != null) {
                 runOnUiThread(new Runnable() {
@@ -128,6 +128,7 @@ public abstract class ServiceConnectActivity extends BaseActivity implements Ser
 
     @Override
     public void onUpdateUIControls(RecordingState recordingState) {
+        mMapFragment.clearPoints();
         recordControlsFragment.updateRecordState(recordingState);
     }
 
