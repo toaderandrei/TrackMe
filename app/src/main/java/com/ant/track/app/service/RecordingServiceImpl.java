@@ -562,6 +562,7 @@ public class RecordingServiceImpl extends Service {
     private void startRecording() {
 
         mLastLocation = null;
+        firstInsert = true;
         isIdle.set(false);
         startGPSTracking();
         showNotification();

@@ -179,7 +179,10 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
             notifyRouteUpdateInternal(dataListeners);
         }
 
-        listener.clearPoints();
+        boolean canSamplePoints = types.contains(RouteType.ROUTE_RESAMPLE_POINTS);
+        if (canSamplePoints) {
+            listener.clearPoints();
+        }
 
         if (types.contains(RouteType.ROUTE_CHECK_POINT)) {
             notifyRouteCheckPointUpdateInternal(dataListeners);
@@ -431,6 +434,10 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
                                  recordingGpsAccuracy = PreferenceUtils.getInt(context,
                                          R.string.recording_gps_accuracy_key,
                                          PreferenceUtils.RECORDING_GPS_ACCURACY_DEFAULT);
+                                 for (RouteDataListener routeDataListener :
+                                         contentPublisher.getListenersByType(RouteType.PREFERENCE)) {
+                                     routeDataListener.onMapTypeChanged(recordingGpsAccuracy);
+                                 }
                              }
 
                              //distance interval
@@ -438,6 +445,10 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
                                  minRecordingDistance = PreferenceUtils.getInt(context,
                                          R.string.recording_distance_interval_key,
                                          PreferenceUtils.RECORDING_DISTANCE_DEFAULT);
+                                 for (RouteDataListener routeDataListener :
+                                         contentPublisher.getListenersByType(RouteType.PREFERENCE)) {
+                                     routeDataListener.onRecordingDistanceIntervalChanged(minRecordingDistance);
+                                 }
                              }
 
                              //distance interval
@@ -445,6 +456,10 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
                                  maxRecordingDistance = PreferenceUtils.getInt(context,
                                          R.string.recording_distance_interval_key,
                                          PreferenceUtils.DEFAULT_MAX_RECORDING_DISTANCE);
+                                 for (RouteDataListener routeDataListener :
+                                         contentPublisher.getListenersByType(RouteType.PREFERENCE)) {
+                                     routeDataListener.onMapTypeChanged(maxRecordingDistance);
+                                 }
                              }
 
                              if (key == null || TextUtils.equals(key, PreferenceUtils.getKey(context, R.string.recording_state_key))) {

@@ -128,7 +128,7 @@ public abstract class ServiceConnectActivity extends BaseActivity implements Ser
 
     @Override
     public void onUpdateUIControls(RecordingState recordingState) {
-        mMapFragment.clearPoints();
+        //mMapFragment.clearPoints();
         recordControlsFragment.updateRecordState(recordingState);
     }
 

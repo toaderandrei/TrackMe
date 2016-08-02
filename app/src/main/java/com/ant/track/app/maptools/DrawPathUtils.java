@@ -28,7 +28,7 @@ public class DrawPathUtils {
         if (points.size() == 0) {
             return;
         }
-        if (paths.size() > 0 && useLastPolyline) {
+        if (paths.size() != 0 && useLastPolyline) {
             Polyline lastPolyLine = paths.get(paths.size() - 1);
             List<LatLng> allPoints = new ArrayList<>();
             allPoints.addAll(lastPolyLine.getPoints());

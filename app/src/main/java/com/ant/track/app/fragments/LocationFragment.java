@@ -15,6 +15,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.Toast;
 
 import com.ant.track.app.R;
@@ -63,6 +64,7 @@ public class LocationFragment extends Fragment implements RouteDataListener {
     private Route currentRoute;
     private Location lastLocation;
     private boolean reload;
+    private View rootView;
 
     private int recordingGpsAccuracy = PreferenceUtils.RECORDING_GPS_ACCURACY_DEFAULT;
     private LocationListener locationListener;
@@ -100,7 +102,7 @@ public class LocationFragment extends Fragment implements RouteDataListener {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.maps_layout, container, false);
+        rootView = inflater.inflate(R.layout.maps_layout, container, false);
         enableLocationService = new GoogleAskToEnableLocationService(getActivity());
         mGPSLiveTrackerLocManager = new GPSLiveTrackerLocationManager(getActivity());
         googleUtils = GoogleLocationServicesUtils.getInstance(getActivity());
@@ -293,9 +295,31 @@ public class LocationFragment extends Fragment implements RouteDataListener {
 
         if (width == 0 || height == 0) {
             Log.d(TAG, "zero width or height");
-            width = 680;
-            height = 480;
+
+            if (rootView.getViewTreeObserver().isAlive()) {
+                rootView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                    @Override
+                    public void onGlobalLayout() {
+                        if (!isResumed()) {
+                            return;
+                        }
+
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (isResumed()) {
+                                    moveCameraOverRoute();
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+
         }
+
+        width = rootView.getWidth();
+        height = rootView.getHeight();
 
         int latitudeSpanE6 = routeStats.getTop() - routeStats.getBottom();
         int longitudeSpanE6 = routeStats.getRight() - routeStats.getLeft();
@@ -664,7 +688,8 @@ public class LocationFragment extends Fragment implements RouteDataListener {
     @Override
     public void clearPoints() {
         Log.d(TAG, "clearing points");
-        if (isResumed() && mapOverlay != null) {
+        RecordingState state = PreferenceUtils.getRecordingState(getActivity(), R.string.recording_state_key, RecordingState.NOT_STARTED);
+        if (isResumed() && mapOverlay != null && (state == RecordingState.NOT_STARTED || state == RecordingState.STOPPED)) {
             mapOverlay.clearPoints();
             reload = true;
         }

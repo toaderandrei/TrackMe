@@ -141,8 +141,10 @@ public class MainActivity extends ServiceConnectActivity {
 
     @Override
     protected void onStop() {
-        sharedPreferences.unregisterOnSharedPreferenceChangeListener(onSharedPreferencesListener);
-        sharedPreferences = null;
+        if (sharedPreferences != null) {
+            sharedPreferences.unregisterOnSharedPreferenceChangeListener(onSharedPreferencesListener);
+            sharedPreferences = null;
+        }
         super.onStop();
     }
 

@@ -100,7 +100,7 @@ public class MapOverlay {
             boolean hasStartMarker = false;
             int newLocations = pendingLocations.drainTo(locations);
 
-            if (newLocations >= 0 && reload) {
+            if (reload) {
                 mMap.clear();
                 drawPath.updatePath(mMap, path, 0, locations);
                 hasStartMarker = updateStartAndEndMarkers(mMap);
