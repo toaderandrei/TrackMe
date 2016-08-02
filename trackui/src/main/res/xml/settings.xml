@@ -1,7 +1,9 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-    android:title="@string/menu_settings" >
-    <Preference
-        android:key="@string/settings_advanced_key"
-        android:persistent="false"
-        android:title="@string/settings_advanced" />
+    android:title="@string/menu_settings">
+    <PreferenceCategory android:title="@string/preference_title">
+        <Preference
+            android:key="@string/settings_advanced_key"
+            android:persistent="false"
+            android:title="@string/settings_advanced" />
+    </PreferenceCategory>
 </PreferenceScreen>

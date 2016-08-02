@@ -84,4 +84,5 @@
     <!-- Settings Advanced -->
   <string name="settings_advanced">Advanced
   </string>
+    <string name="preference_title">Settings</string>
 </resources>
