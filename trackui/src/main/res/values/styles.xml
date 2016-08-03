@@ -1,0 +1,89 @@
+<resources>
+
+    <style name="GPSLiveTrackerTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">#ffff5722</item>
+        <item name="colorPrimaryDark">#ffbf360c</item>
+        <item name="colorAccent">#ffff5722</item>
+    </style>
+
+    <style name="ScrollView">
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:scrollbarStyle">outsideInset</item>
+    </style>
+    <!-- scroll view with bottom buttons -->
+    <style name="ScrollView.WithBottomButtons">
+        <item name="android:layout_height">0dp</item>
+        <item name="android:layout_weight">1</item>
+    </style>
+
+    <style name="RedText">
+        <item name="android:textColor">@color/red</item>
+    </style>
+
+    <style name="Text">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:textColor">@android:color/holo_red_dark</item>
+    </style>
+
+    <style name="EditNameRoute" parent="@style/TextMedium">
+        <item name="android:inputType">textAutoCorrect|textCapWords</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:selectAllOnFocus">true</item>
+        <item name="android:singleLine">true</item>
+    </style>
+
+    <style name="BottomButton">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_width">0dp</item>
+        <item name="android:maxLines">2</item>
+    </style>
+
+    <!-- text medium -->
+    <style name="TextMedium" parent="@style/Text">
+        <item name="android:textSize">18sp</item>
+    </style>
+
+    <!-- text medium with icon -->
+    <style name="TextMedium.WithIcon">
+        <item name="android:drawablePadding">8dp</item>
+        <item name="android:gravity">center_vertical</item>
+    </style>
+
+    <style name="EditDescription" parent="@style/TextMedium">
+        <item name="android:inputType">textAutoCorrect|textCapSentences|textMultiLine</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:maxLines">50</item>
+        <item name="android:selectAllOnFocus">true</item>
+        <item name="android:singleLine">false</item>
+    </style>
+
+    <!-- edit label -->
+    <!-- edit label with icon -->
+    <style name="EditLabel.WithIcon" parent="@style/TextMedium.WithIcon">
+        <item name="android:layout_width">match_parent</item>
+    </style>
+    <!-- edit label with padding top -->
+    <style name="EditLabel.WithPaddingTop">
+        <item name="android:paddingTop">16dp</item>
+    </style>
+
+    <style name="BottomButtonDivider">
+        <item name="android:layout_height">0dp</item>
+        <item name="android:layout_width">0dp</item>
+        <item name="android:visibility">gone</item>
+    </style>
+
+    <style name="BottomButtonBar">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_width">match_parent</item>
+    </style>
+
+    <!-- edit label -->
+    <style name="EditLabel" parent="@style/TextMedium">
+        <item name="android:layout_width">match_parent</item>
+    </style>
+
+</resources>

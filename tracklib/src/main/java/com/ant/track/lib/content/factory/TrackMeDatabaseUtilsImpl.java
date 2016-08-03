@@ -545,12 +545,10 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
         ContentValues contentValues = new ContentValues();
 
         contentValues.put(TrackMeContract.RoutePointEntry.ROUTE_ID, routePoint.getRouteId());
-        if (LocationUtils.isValidLatitude(routePoint.getLatitude())) {
-            contentValues.put(TrackMeContract.RoutePointEntry.LOCATION_LAT, LocationUtils.getLatitude1E6FromDouble(routePoint.getLatitude()));
-        }
-        if (LocationUtils.isValidLongitude(routePoint.getLongitude())) {
-            contentValues.put(TrackMeContract.RoutePointEntry.LOCATION_LONG, LocationUtils.getLongitude1E6FromDouble(routePoint.getLongitude()));
-        }
+
+        contentValues.put(TrackMeContract.RoutePointEntry.LOCATION_LAT, LocationUtils.getLatitude1E6FromDouble(routePoint.getLatitude()));
+        contentValues.put(TrackMeContract.RoutePointEntry.LOCATION_LONG, LocationUtils.getLongitude1E6FromDouble(routePoint.getLongitude()));
+
 
         long time;
         if (routePoint.getTime() == 0) {

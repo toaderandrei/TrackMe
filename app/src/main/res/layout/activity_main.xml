@@ -43,9 +43,8 @@
             android:layout_alignParentBottom="true"
             custom:cardElevation="8dp">
 
-            <fragment
-                android:id="@+id/fragment_record_controls"
-                android:name="com.ant.track.app.fragments.RecordControlsFragment"
+            <FrameLayout
+                android:id="@+id/fm_controls_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true" />

@@ -29,6 +29,7 @@
         android:contentDescription="@string/start_tracking"
         android:gravity="center"
         android:padding="3dp"
-        android:src="@drawable/button_record" />
+        android:src="@drawable/ic_button_record_pressed"
+        />
 
 </LinearLayout>

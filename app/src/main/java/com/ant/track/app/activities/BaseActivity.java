@@ -23,7 +23,6 @@ import android.widget.SimpleAdapter;
 import com.ant.track.app.R;
 import com.ant.track.app.fragments.LocationFragment;
 import com.ant.track.app.helper.ResourceHelper;
-import com.ant.track.lib.service.RecordingState;
 
 /**
  * This is in charge of initializing the fragments and also the toolbars.
@@ -37,8 +36,6 @@ public abstract class BaseActivity extends AppCompatActivity implements RecordSt
     private ListView mDrawerList;
     private DrawerMenuContents mDrawerMenuContents;
     private boolean mToolbarInitialized;
-    protected RecordingState recordingState = RecordingState.PAUSED;
-
 
     private int mItemToOpenWhenDrawerCloses = -1;
     private FragmentManager.OnBackStackChangedListener mBackStackChangedListener =
@@ -51,7 +48,9 @@ public abstract class BaseActivity extends AppCompatActivity implements RecordSt
     private DrawerLayout.DrawerListener mDrawerListener = new DrawerLayout.DrawerListener() {
         @Override
         public void onDrawerClosed(View drawerView) {
-            if (mDrawerToggle != null) mDrawerToggle.onDrawerClosed(drawerView);
+            if (mDrawerToggle != null) {
+                mDrawerToggle.onDrawerClosed(drawerView);
+            }
             int position = mItemToOpenWhenDrawerCloses;
             if (position >= 0) {
                 Bundle extras = ActivityOptionsCompat.makeCustomAnimation(BaseActivity.this, R.anim.fade_in, R.anim.fade_out).toBundle();
@@ -89,7 +88,7 @@ public abstract class BaseActivity extends AppCompatActivity implements RecordSt
 
     protected void initGoogleMapsIfNotAlready() {
         if (mMapFragment == null) {
-            mMapFragment = LocationFragment.newInstance(recordingState);
+            mMapFragment = LocationFragment.newInstance();
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
             ft.replace(R.id.container, mMapFragment);
             ft.commit();

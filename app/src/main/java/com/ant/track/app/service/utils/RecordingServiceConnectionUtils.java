@@ -60,22 +60,15 @@ public class RecordingServiceConnectionUtils {
         }
     }
 
-    /**
-     * Stops the recording.
-     *
-     * @param mRecordingServiceConnection the recording service connection
-     */
-    public static void stopTracking(RecordingServiceConnection mRecordingServiceConnection) {
-        if (mRecordingServiceConnection != null) {
-            try {
-                mRecordingServiceConnection.stopTracking();
-            } catch (Exception e) {
-                Log.e(TAG, "Unable to stop tracking.", e);
+    public static void pauseTracking(RecordingServiceConnection mRecordingServiceConnection) {
+        try {
+            if (mRecordingServiceConnection != null) {
+                mRecordingServiceConnection.pauseTracking();
             }
+        } catch (RemoteException e) {
+            Log.e(TAG, "Unable to start the tracking.", e);
         }
-        //mRecordingServiceConnection.unbind();
     }
-
 
     /**
      * Stops the recording.
@@ -91,8 +84,8 @@ public class RecordingServiceConnectionUtils {
                 Log.e(TAG, "Unable to stop tracking.", e);
             }
         }
-        //mRecordingServiceConnection.unbind();
     }
+
     public static void resumeTracking(RecordingServiceConnection mRecordingServiceConnection) {
         if (mRecordingServiceConnection != null) {
             try {

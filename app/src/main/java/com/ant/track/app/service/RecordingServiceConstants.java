@@ -24,4 +24,5 @@ public class RecordingServiceConstants {
     public static final int MSG_SHOW_NOTIFICATIONS = 401;
     public static final int MSG_CLIENT_CONNECTED = 500;
     public static final int MSG_EXCEPTION = 600;
+    public static final int MSG_CLIENT_DISCONNECTED = 501;
 }

@@ -77,6 +77,14 @@ public class RecordingServiceConnection {
                     }
                     break;
                 }
+
+                case RecordingServiceConstants.MSG_CLIENT_DISCONNECTED: {
+                    long routeid = (long) msg.obj;
+                    if (callback != null) {
+                        callback.onDisconnected(routeid);
+                    }
+                    break;
+                }
                 case RecordingServiceConstants.MSG_EXCEPTION: {
                     if (callback != null) {
                         resetRecordingState();
@@ -218,7 +226,6 @@ public class RecordingServiceConnection {
                 attachListenerToService(binder);
             } else {
                 mServiceMessenger = null;
-                callback.onDisconnected();
             }
         } catch (RemoteException remex) {
             Log.e(TAG, "Exception in sending the message to the service");
@@ -277,8 +284,10 @@ public class RecordingServiceConnection {
 
         /**
          * callback for when the service has been disconnected.
+         *
+         * @param routeid
          */
-        void onDisconnected();
+        void onDisconnected(long routeid);
 
         /**
          * Notification about an error that occurred.

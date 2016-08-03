@@ -57,7 +57,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class RecordingServiceImpl extends Service {
 
-    private Location mockLocation;
+    private Location mockLocation = null;
 
     private static final long DEFAULT_ROUTE_POINT_ID = -1L;
     private long routeId;
@@ -216,7 +216,7 @@ public class RecordingServiceImpl extends Service {
     }
 
     private void initMockTimer() {
-        mockHandler.postDelayed(mockRunnable, 2000);
+        mockHandler.postDelayed(mockRunnable, 3000);
     }
 
     @NonNull
@@ -225,24 +225,27 @@ public class RecordingServiceImpl extends Service {
         public void run() {
             Log.d(TAG, "reload location mock timer");
             Location lastvalid = getLastValidLocationForRoute();
-            if (lastvalid != null) {
-                lastvalid.setLatitude(lastvalid.getLatitude() + 0.00011);
-                lastvalid.setLongitude(lastvalid.getLongitude() + 0.000011);
-                lastvalid.setAccuracy(3.0f);
-                lastvalid.setTime(System.currentTimeMillis());
-            } else if (mockLocation != null) {
+            if (mockLocation != null) {
                 lastvalid = mockLocation;
                 lastvalid.setAccuracy(3.0f);
                 lastvalid.setLatitude(mockLocation.getLatitude() + 0.00011);
-                lastvalid.setLongitude(mockLocation.getLongitude() + 0.00011);
+                lastvalid.setLongitude(mockLocation.getLongitude() + 0.000011);
+                mockLocation = lastvalid;
+            } else if (lastvalid != null) {
+                lastvalid.setLatitude(lastvalid.getLatitude() + 0.00011);
+                lastvalid.setLongitude(lastvalid.getLongitude() + 0.0000011);
+                lastvalid.setAccuracy(3.0f);
+                lastvalid.setTime(System.currentTimeMillis());
+                mockLocation = lastvalid;
             }
+
             if (lastvalid != null) {
                 Log.d(TAG, "notification about location");
                 Log.d(TAG, "routestats here: " + routeStatsManager);
                 onLocationChangedAsync(lastvalid);
             }
 
-            mockHandler.postDelayed(this, 200);
+            mockHandler.postDelayed(this, 3000);
         }
     };
 
@@ -498,15 +501,15 @@ public class RecordingServiceImpl extends Service {
             Log.d(TAG, "Ignore startNewTracking. Already recording.");
             return;
         }
-        startNewRouteTracking();
+        startRouteTracking();
     }
 
 
-    private void startNewRouteTracking() {
+    private void startRouteTracking() {
         long now = System.currentTimeMillis();
 
         routeStatsManager = new RouteStatsManager(now);
-        Route route = new Route();
+        Route route = new Route(true);
         Uri uriRouteInsert = TrackMeDatabaseUtilsImpl.getInstance().insertRouteTrack(route);
         long insertedRouteId = Long.parseLong(uriRouteInsert.getLastPathSegment());
         PreferenceUtils.setRouteId(this, R.string.route_id_key, insertedRouteId);
@@ -515,7 +518,6 @@ public class RecordingServiceImpl extends Service {
 
         TrackMeDatabaseUtilsImpl.getInstance().updateRouteTrack(route);
         sendMessageToListeners(RecordingServiceConstants.MSG_UPDATE_ROUTE_ID, routeId);
-        //insertRoutePoint(RouteTrackCreator.DEFAULT_ROUTE_TRACK_BUILDER);
         insertRouteCheckPoint(RouteTrackCreator.DEFAULT_ROUTE_TRACK_BUILDER);
 
         startRecording();
@@ -557,6 +559,10 @@ public class RecordingServiceImpl extends Service {
 
         }
         startRecording();
+        //mock part
+        if (mockHandler != null) {
+            mockHandler.postDelayed(mockRunnable, 1000);
+        }
     }
 
     private void startRecording() {
@@ -647,13 +653,14 @@ public class RecordingServiceImpl extends Service {
                 }
             }
         }
+        sendMessageToListeners(RecordingServiceConstants.MSG_CLIENT_DISCONNECTED, currentRouteId);
         stopRecordingService(stopped);
     }
 
     private void stopRecordingService(boolean stopped) {
         mLastLocation = null;
         recordingState = stopped ? RecordingState.STOPPED : RecordingState.PAUSED;
-        //sendMessageToListeners(RecordingServiceConstants.MSG_CLIENT_DISCONNECT);
+
         stopGpsTracking(stopped);
         //mock timer
         Log.d(TAG, "stopping the mock timer");
@@ -819,6 +826,21 @@ public class RecordingServiceImpl extends Service {
             case RecordingServiceConstants.MSG_CLIENT_CONNECTED: {
                 if (client != null) {
                     Message message = Message.obtain(null, RecordingServiceConstants.MSG_CLIENT_CONNECTED, 0, 0);
+                    if (data != null) {
+                        message.obj = data;
+                    }
+                    try {
+                        client.send(message);
+                    } catch (RemoteException remex) {
+                        Log.e(TAG, "exception in sending client connected:" + remex);
+                    }
+                }
+                break;
+            }
+
+            case RecordingServiceConstants.MSG_CLIENT_DISCONNECTED: {
+                if (client != null) {
+                    Message message = Message.obtain(null, RecordingServiceConstants.MSG_CLIENT_DISCONNECTED, 0, 0);
                     if (data != null) {
                         message.obj = data;
                     }

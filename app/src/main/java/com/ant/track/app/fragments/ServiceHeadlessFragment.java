@@ -108,8 +108,8 @@ public class ServiceHeadlessFragment extends Fragment {
         }
 
         @Override
-        public void onDisconnected() {
-            callback.onUpdateUIControls(RecordingState.NOT_STARTED);
+        public void onDisconnected(long routeid) {
+            callback.onDisconnect(routeid);
         }
 
         @Override
@@ -136,7 +136,7 @@ public class ServiceHeadlessFragment extends Fragment {
     }
 
     private void pauseTracking() {
-        RecordingServiceConnectionUtils.stopTracking(mRecordingServiceConnection);
+        RecordingServiceConnectionUtils.pauseTracking(mRecordingServiceConnection);
         //todo should be done with a callback
         recordingState = RecordingState.PAUSED;
     }
@@ -154,7 +154,7 @@ public class ServiceHeadlessFragment extends Fragment {
             startTrackingService();
         } else if (recordingState == RecordingState.RESUMED) {
             resumeTracking();
-        } else {
+        } else if (recordingState == RecordingState.STOPPED) {
             stopTracking();
         }
     }
@@ -174,5 +174,7 @@ public class ServiceHeadlessFragment extends Fragment {
         void onUpdateUIControls(RecordingState state);
 
         void onError(String message);
+
+        void onDisconnect(long routeid);
     }
 }

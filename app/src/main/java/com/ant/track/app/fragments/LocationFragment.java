@@ -82,10 +82,9 @@ public class LocationFragment extends Fragment implements RouteDataListener {
     private MapOverlay mapOverlay;
 
 
-    public static LocationFragment newInstance(RecordingState state) {
+    public static LocationFragment newInstance() {
         LocationFragment f = new LocationFragment();
         Bundle args = new Bundle();
-        args.putString("is_recording", state.getState());
         f.setArguments(args);
         return f;
     }
@@ -240,18 +239,23 @@ public class LocationFragment extends Fragment implements RouteDataListener {
         initGpsTracker();
         routeDataSourceFactory.start();
         registerRouteDataListeners();
-        initAndShowRouteInternal();
-    }
-
-    public void initAndShowRoute() {
-        initAndShowRouteInternal();
-    }
-
-    private void initAndShowRouteInternal() {
         long routeId = -1L;
         if (listener != null) {
             routeId = listener.getRouteId();
         }
+        initAndShowRouteInternal(routeId);
+    }
+
+    public void updateRoute(long routeid) {
+
+        boolean isPaused = routeDataSourceFactory.isSelectedRoutePaused();
+        if (!isPaused) {
+            initAndShowRouteInternal(routeid);
+        }
+    }
+
+    private void initAndShowRouteInternal(long routeId) {
+
         routeDataSourceFactory.loadRouteById(routeId);
         mapOverlay.setShowEndMarker(!isRecording());
         currentRoute = TrackMeDatabaseUtilsImpl.getInstance().getRouteById(routeId);
@@ -706,6 +710,12 @@ public class LocationFragment extends Fragment implements RouteDataListener {
                     }
                 }
             });
+        }
+    }
+
+    public void setShowEndMarker() {
+        if (mapOverlay != null) {
+            mapOverlay.setShowEndMarker(true);
         }
     }
 

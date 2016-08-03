@@ -49,8 +49,7 @@ public class RecordControlsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_record_controls, container, false);
         recordImageButton = (ImageButton) rootView.findViewById(R.id.play_pause_track);
-        recordImageButton.setOnClickListener(getOnRecordListener());
-
+        recordImageButton.setOnClickListener(recordListener);
 
         return rootView;
     }
@@ -61,37 +60,25 @@ public class RecordControlsFragment extends Fragment {
      * if a long press occurs while recording, the user
      * will be able either to stop it or pause it.
      *
-     * @param recordingState - t
+     * @param state -
      */
-    public void updateRecordState(RecordingState recordingState) {
+    public void updateRecordState(RecordingState state) {
         if (!isResumed()) {
             return;
         }
 
-        this.recordingState = recordingState;
+        this.recordingState = state;
         int textId = R.string.image_record;
         int resId = R.drawable.ic_button_record;
-        if (recordingState == RecordingState.STARTED | recordingState == RecordingState.RESUMED) {
+        if (state == RecordingState.STARTED || state == RecordingState.RESUMED) {
             textId = R.string.image_pause;
             resId = R.drawable.ic_button_pause;
-        } else if (recordingState == RecordingState.STOPPED | recordingState == RecordingState.PAUSED) {
+        } else if (state == RecordingState.STOPPED || state == RecordingState.PAUSED) {
             textId = R.string.image_record;
             resId = R.drawable.ic_button_record;
         }
         recordImageButton.setImageResource(resId);
         recordImageButton.setContentDescription(getActivity().getString(textId));
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        recordingState = RecordingState.PAUSED;
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        updateRecordState(recordingState);
     }
 
     public View.OnLongClickListener getOnLongClickListener() {
@@ -125,28 +112,27 @@ public class RecordControlsFragment extends Fragment {
         }
     };
 
-    public View.OnClickListener getOnRecordListener() {
-        return new View.OnClickListener() {
+    private View.OnClickListener recordListener = new View.OnClickListener() {
 
-            @Override
-            public void onClick(View view) {
-                if (view != null) {
-                    if (recordingState == RecordingState.NOT_STARTED | recordingState == RecordingState.STOPPED) {
-                        updateService(RecordingState.STARTING);
-                    } else if (recordingState == RecordingState.STARTED | recordingState == RecordingState.RESUMED) {
-                        CustomFragmentDialog customFragmentDialog = CustomFragmentDialog.newInstance(STOP_OR_PAUSE,
-                                STOPS_THE_TRACKING_OR_PAUSES_IT,
-                                getString(R.string.dialog_stop_tracking),
-                                getString(R.string.dialog_pause_tracking),
-                                customDialogCallback);
-                        customFragmentDialog.show(getFragmentManager(), CUSTOM_TAG);
-                    } else if (recordingState == RecordingState.PAUSED) {
-                        updateService(RecordingState.RESUMED);
-                    }
+        @Override
+        public void onClick(View view) {
+            if (view != null) {
+                if (recordingState == RecordingState.NOT_STARTED || recordingState == RecordingState.STOPPED) {
+                    updateService(RecordingState.STARTING);
+                } else if (recordingState == RecordingState.STARTED || recordingState == RecordingState.RESUMED) {
+                    CustomFragmentDialog customFragmentDialog = CustomFragmentDialog.newInstance(STOP_OR_PAUSE,
+                            STOPS_THE_TRACKING_OR_PAUSES_IT,
+                            getString(R.string.dialog_stop_tracking),
+                            getString(R.string.dialog_pause_tracking),
+                            customDialogCallback);
+                    customFragmentDialog.show(getFragmentManager(), CUSTOM_TAG);
+                } else if (recordingState == RecordingState.PAUSED) {
+                    updateService(RecordingState.RESUMED);
                 }
             }
-        };
-    }
+        }
+    };
+
 
     CustomFragmentDialog.Callback customDialogCallback = new CustomFragmentDialog.Callback() {
         @Override
@@ -165,5 +151,18 @@ public class RecordControlsFragment extends Fragment {
     private void updateService(RecordingState state) {
         updateRecordState(state);
         listener.updateServiceState(state);
+    }
+
+    public RecordingState getRecordState() {
+        return recordingState;
+    }
+
+    /**
+     * this should be replaced by the preferences.
+     *
+     * @param state
+     */
+    public void setRecordingState(RecordingState state) {
+        this.recordingState = state;
     }
 }

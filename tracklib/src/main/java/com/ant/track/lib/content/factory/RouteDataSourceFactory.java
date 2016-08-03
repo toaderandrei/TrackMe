@@ -496,6 +496,13 @@ public class RouteDataSourceFactory implements RouteDataSourceListener {
      * Returns true if the selected track is paused.
      */
     public boolean isSelectedRoutePaused() {
-        return currentRouteId == recordingRouteId && recordingState == RecordingState.PAUSED;
+        return currentRouteId != -1L && (recordingState == RecordingState.PAUSED || recordingState == RecordingState.RESUMED);
+    }
+
+    /**
+     * Returns true if the selected track is paused.
+     */
+    public boolean isSelectedRouteStopped() {
+        return recordingState == RecordingState.STOPPED;
     }
 }

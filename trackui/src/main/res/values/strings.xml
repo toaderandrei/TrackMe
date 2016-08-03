@@ -1,5 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+
+    <string name="view_route_details_message">View route in a detail view?</string>
+    <string name="view_route_details">View route</string>
+    <string name="save">save</string>
     <string name="app_name">GPSLiveTracker</string>
     <string name="title_activity_main">Live Tracking</string>
     <string name="info_activity">InfoActivity</string>
@@ -68,6 +73,7 @@
     <string name="enable_gps_title">Enable GPS</string>
     <string name="enable_gps_message">Do you want to enable GPS?</string>
 
+
     <string name="enable_permissions_title">Enable Location Permissions</string>
     <string name="enable_permissions_message">Do you want to enable location services permissions?</string>
 
@@ -84,5 +90,10 @@
     <!-- Settings Advanced -->
   <string name="settings_advanced">Advanced
   </string>
+    <string name="route_name">Route name</string>
     <string name="preference_title">Settings</string>
+    <string name="generic_name">new route</string>
+    <string name="generic_desc">new description</string>
+    <string name="total_time">total time</string>
 </resources>
+

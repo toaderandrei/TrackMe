@@ -1,18 +1,18 @@
 package com.ant.track.app.activities;
 
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.ant.track.app.R;
+import com.ant.track.app.fragments.RecordControlsFragment;
+import com.ant.track.app.service.utils.RecordingServiceConnectionUtils;
 import com.ant.track.lib.constants.Constants;
 import com.ant.track.lib.prefs.PreferenceUtils;
 import com.ant.track.lib.service.RecordingState;
+import com.ant.track.ui.dialogs.CustomFragmentDialog;
 import com.google.android.gms.maps.GoogleMap;
 
 /**
@@ -20,36 +20,23 @@ import com.google.android.gms.maps.GoogleMap;
  */
 public class MainActivity extends ServiceConnectActivity {
 
-    private SharedPreferences sharedPreferences;
+    private static final int REQUEST_CODE = 10001;
+
+    private static final String CUSTOM_TAG = "custom_tag2";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         initializeToolbar();
         handleIntent(getIntent());
-        sharedPreferences = getSharedPreferences(Constants.SETTINGS_NAME, Context.MODE_PRIVATE);
-        sharedPreferences.registerOnSharedPreferenceChangeListener(onSharedPreferencesListener);
-        onSharedPreferencesListener.onSharedPreferenceChanged(sharedPreferences, null);
 
-        initRecordingAndServiceFragment();
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
         setActionBarTitle();
     }
-
-    private SharedPreferences.OnSharedPreferenceChangeListener onSharedPreferencesListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
-        @Override
-        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-            if (key == null || TextUtils.equals(key, PreferenceUtils.getKey(MainActivity.this, R.string.route_id_key))) {
-                recordingRouteId = PreferenceUtils.getLong(MainActivity.this, R.string.route_id_key);
-            }
-            if (key == null || TextUtils.equals(key, PreferenceUtils.getKey(MainActivity.this, R.string.recording_state_key))) {
-                recordingState = PreferenceUtils.getRecordingState(MainActivity.this, R.string.recording_state_key, RecordingState.NOT_STARTED);
-            }
-        }
-    };
 
     @Override
     protected void onNewIntent(Intent intent) {
@@ -73,6 +60,23 @@ public class MainActivity extends ServiceConnectActivity {
         super.onResume();
         onUpdateUIControls(getRecordingState());
     }
+
+    CustomFragmentDialog.Callback callback = new CustomFragmentDialog.Callback() {
+        @Override
+        public void onPositiveButtonClicked(Bundle bundle) {
+            //start activity
+            setRecordingState(RecordingState.NOT_STARTED);
+            PreferenceUtils.setRecordingState(getApplicationContext(), R.string.recording_state_key, RecordingState.NOT_STARTED);
+            Intent intent = new Intent(MainActivity.this, RouteDetailsActivity.class);
+            intent.putExtras(bundle);
+            startActivityForResult(intent, REQUEST_CODE);
+        }
+
+        @Override
+        public void onNegativeButtonClicked(Bundle bundle) {
+            //nothing
+        }
+    };
 
     /**
      */
@@ -138,21 +142,49 @@ public class MainActivity extends ServiceConnectActivity {
         return null;
     }
 
-
-    @Override
-    protected void onStop() {
-        if (sharedPreferences != null) {
-            sharedPreferences.unregisterOnSharedPreferenceChangeListener(onSharedPreferencesListener);
-            sharedPreferences = null;
+    public RecordingState getRecordingState() {
+        if (getRecordFragment() != null) {
+            return ((RecordControlsFragment) getRecordFragment()).getRecordState();
         }
-        super.onStop();
+        return RecordingState.NOT_STARTED;
     }
 
-    public RecordingState getRecordingState() {
-        if (recordingState == RecordingState.NOT_STARTED) {
-            recordingState = routeId == recordingRouteId ? RecordingState.STARTED : RecordingState.STOPPED;
+
+    public void setRecordingState(RecordingState state) {
+        if (getRecordFragment() != null) {
+            ((RecordControlsFragment) getRecordFragment()).setRecordingState(state);
         }
-        return recordingState;
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (!RecordingServiceConnectionUtils.isRecordingServiceRunning(getApplicationContext())) {
+            long recordingTrackId = PreferenceUtils.getLong(getApplicationContext(), R.string.route_id_key, -1);
+            if (recordingTrackId != PreferenceUtils.DEFAULT_ROUTE_ID) {
+                PreferenceUtils.setRouteId(getApplicationContext(), R.string.route_id_key, PreferenceUtils.DEFAULT_ROUTE_ID);
+            }
+            RecordingState recordingTrackPaused = PreferenceUtils.getRecordingState(getApplicationContext(),
+                    R.string.recording_state_key, PreferenceUtils.RECORDING_STATE_NOT_STARTED_DEFAULT);
+            if (recordingTrackPaused != RecordingState.NOT_STARTED) {
+                PreferenceUtils.setRecordingState(getApplicationContext(), R.string.recording_state_key,
+                        PreferenceUtils.RECORDING_STATE_NOT_STARTED_DEFAULT);
+            }
+        }
+        super.onDestroy();
+    }
+
+    @Override
+    public void onDisconnect(long routeid) {
+        Bundle bundle = new Bundle();
+        bundle.putLong(Constants.EXTRA_ROUTE_ID_KEY, routeid);
+        bundle.putBoolean(Constants.EXTRA_VIEW_ROUTE_DETAILS, true);
+        CustomFragmentDialog customFragmentDialog = CustomFragmentDialog.newInstance(getString(R.string.view_route_details),
+                getString(R.string.view_route_details_message),
+                getString(R.string.ok),
+                getString(R.string.cancel),
+                callback,
+                bundle);
+        customFragmentDialog.show(getSupportFragmentManager(), CUSTOM_TAG);
     }
 
     @Override

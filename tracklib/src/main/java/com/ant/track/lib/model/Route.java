@@ -3,6 +3,8 @@ package com.ant.track.lib.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.ant.track.lib.R;
+import com.ant.track.lib.application.TrackLibApplication;
 import com.ant.track.lib.stats.RouteStats;
 
 /**
@@ -24,6 +26,13 @@ public class Route implements Parcelable {
     }
 
     public Route() {
+    }
+
+    public Route(boolean randomNameAndDesc) {
+        if (randomNameAndDesc) {
+            routeName = TrackLibApplication.getInstance().getString(R.string.generic_name);
+            description = TrackLibApplication.getInstance().getString(R.string.generic_desc);
+        }
     }
 
     protected Route(Parcel in) {
