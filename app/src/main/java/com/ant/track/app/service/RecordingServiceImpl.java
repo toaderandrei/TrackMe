@@ -58,7 +58,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class RecordingServiceImpl extends Service {
 
     private Location mockLocation = null;
-
+    /**
+     * this variable is specifically for creating mock locations.
+     * Enabled will mess up with the gps and send fake locations.
+     */
+    private boolean testAllowed = false;
     private static final long DEFAULT_ROUTE_POINT_ID = -1L;
     private long routeId;
     private static final long ONE_MINUTE = (long) (UnitConversions.MIN_TO_S * UnitConversions.S_TO_MS);
@@ -524,9 +528,11 @@ public class RecordingServiceImpl extends Service {
 
         updateRecordingState(routeId, RecordingState.STARTED);
         //mock part
-        mockHandler = new Handler(Looper.getMainLooper());
-        initMockTimer();
 
+        if (testAllowed) {
+            mockHandler = new Handler(Looper.getMainLooper());
+            initMockTimer();
+        }
     }
 
     /**
@@ -664,8 +670,10 @@ public class RecordingServiceImpl extends Service {
         stopGpsTracking(stopped);
         //mock timer
         Log.d(TAG, "stopping the mock timer");
-        if (mockHandler != null) {
-            mockHandler.removeCallbacks(mockRunnable);
+        if (testAllowed) {
+            if (mockHandler != null) {
+                mockHandler.removeCallbacks(mockRunnable);
+            }
         }
     }
 
