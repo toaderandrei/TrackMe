@@ -23,6 +23,7 @@ import android.widget.SimpleAdapter;
 import com.ant.track.app.R;
 import com.ant.track.app.fragments.LocationFragment;
 import com.ant.track.app.helper.ResourceHelper;
+import com.ant.track.lib.constants.Constants;
 
 /**
  * This is in charge of initializing the fragments and also the toolbars.
@@ -56,7 +57,13 @@ public abstract class BaseActivity extends AppCompatActivity implements RecordSt
                 Bundle extras = ActivityOptionsCompat.makeCustomAnimation(BaseActivity.this, R.anim.fade_in, R.anim.fade_out).toBundle();
 
                 Class activityClass = mDrawerMenuContents.getActivity(position);
+
                 Intent mIntent = new Intent(BaseActivity.this, activityClass);
+                if (activityClass.equals(RouteDetailsActivity.class)) {
+                    Bundle bundle = new Bundle();
+                    bundle.putBoolean(Constants.EXTRA_VIEW_ROUTE_DETAILS, false);
+                    mIntent.putExtras(bundle);
+                }
                 mIntent.putExtras(extras);
                 startActivity(mIntent);
             }

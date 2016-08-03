@@ -11,7 +11,7 @@ import java.util.Map;
 
 /**
  * Class that contains all the drawer items.
- * */
+ */
 public class DrawerMenuContents {
     public static final String FIELD_TITLE = "title";
     public static final String FIELD_ICON = "icon";
@@ -25,11 +25,13 @@ public class DrawerMenuContents {
      * @param ctx
      */
     public DrawerMenuContents(Context ctx) {
-        activities = new Class[1];
-        items = new ArrayList<>(1);
+        activities = new Class[2];
+        items = new ArrayList<>(2);
 
         activities[0] = MainActivity.class;
+        activities[1] = RouteDetailsActivity.class;
         items.add(populateDrawerItem(ctx.getString(R.string.main_activity), android.R.drawable.ic_menu_mapmode));
+        items.add(populateDrawerItem(ctx.getString(R.string.route_list), android.R.drawable.ic_menu_info_details));
     }
 
     public List<Map<String, ?>> getItems() {

@@ -95,5 +95,6 @@
     <string name="generic_name">new route</string>
     <string name="generic_desc">new description</string>
     <string name="total_time">total time</string>
+    <string name="route_list">View route list</string>
 </resources>
 
