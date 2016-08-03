@@ -10,20 +10,19 @@ public class RouteStats implements Parcelable {
 
     private long startTime = -1L;
     private long stopTime = -1L;
-    private long totalDuration;
     private double maxSpeed = Double.MIN_VALUE;
     private double minSpeed = Double.MAX_VALUE;
     private double avgSpeed = Double.MAX_VALUE;
     private double totalDistance;
     private double totalElevationGain;
     private long totalMovingTime;
+    private long totalTime;
 
     private LocationProximitiesManager latitudeProximityManager = new LocationProximitiesManager();
 
     private LocationProximitiesManager longitudeProximityManager = new LocationProximitiesManager();
 
     private LocationProximitiesManager elevationProximityManager = new LocationProximitiesManager();
-    private long totalTime;
 
     public RouteStats() {
 
@@ -45,8 +44,7 @@ public class RouteStats implements Parcelable {
         this.avgSpeed = other.avgSpeed;
 
         this.totalDistance = other.totalDistance;
-        this.totalDuration = other.totalDuration;
-
+        this.totalTime = other.totalTime;
         this.latitudeProximityManager = other.latitudeProximityManager;
         this.longitudeProximityManager = other.longitudeProximityManager;
         this.elevationProximityManager = other.elevationProximityManager;
@@ -66,7 +64,7 @@ public class RouteStats implements Parcelable {
         longitudeProximityManager = in.readParcelable(LocationProximitiesManager.class.getClassLoader());
         elevationProximityManager = in.readParcelable(LocationProximitiesManager.class.getClassLoader());
 
-        totalDuration = in.readLong();
+        totalTime = in.readLong();
 
         totalDistance = in.readDouble();
     }
@@ -86,7 +84,7 @@ public class RouteStats implements Parcelable {
         dest.writeParcelable(longitudeProximityManager, flags);
         dest.writeParcelable(elevationProximityManager, flags);
 
-        dest.writeLong(totalDuration);
+        dest.writeLong(totalTime);
 
         dest.writeDouble(totalDistance);
     }
@@ -122,10 +120,6 @@ public class RouteStats implements Parcelable {
 
     public void setStopTime(long stopTime) {
         this.stopTime = stopTime;
-    }
-
-    public long getTotalDuration() {
-        return totalDuration;
     }
 
     public double getMaxSpeed() {
@@ -249,7 +243,7 @@ public class RouteStats implements Parcelable {
     }
 
     public void addNewMovingTimeToStats(double movingTime) {
-        this.totalDuration += movingTime;
+        this.totalTime += movingTime;
     }
 
     public long getTotalTime() {

@@ -62,7 +62,7 @@ public class RecordingServiceImpl extends Service {
      * this variable is specifically for creating mock locations.
      * Enabled will mess up with the gps and send fake locations.
      */
-    private boolean testAllowed = false;
+    private boolean testAllowed = true;
     private static final long DEFAULT_ROUTE_POINT_ID = -1L;
     private long routeId;
     private static final long ONE_MINUTE = (long) (UnitConversions.MIN_TO_S * UnitConversions.S_TO_MS);

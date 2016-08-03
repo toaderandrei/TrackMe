@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import com.ant.track.app.R;
 import com.ant.track.lib.db.provider.TrackMeContract;
+import com.ant.track.lib.utils.TimeUtils;
 
 /**
  * Adapter that shows a list of routes.
@@ -67,7 +68,8 @@ public class RouteListAdapter extends CursorAdapter {
             holder.routeDescription.setText(description);
         }
         int totalTime = cursor.getInt(cursor.getColumnIndex(TrackMeContract.RouteEntry.TOTAL_TIME));
-        String stringTotalTime = String.valueOf(totalTime);
+        String stringTotalTime = TimeUtils.getTotalTime(totalTime);
+
         holder.routeTotalTime.setText(stringTotalTime);
     }
 }

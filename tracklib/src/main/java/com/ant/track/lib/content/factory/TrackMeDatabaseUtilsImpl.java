@@ -275,7 +275,7 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
     }
 
     @Override
-    public Location getLastValidLocationFromDb(){
+    public Location getLastValidLocationFromDb() {
         String selection = TrackMeContract.RoutePointEntry._ID + PARAM_SELECT_MAX + TrackMeContract.RoutePointEntry._ID + PARAM_FROM_WITH_PARENTHESES_BEFORE
                 + TrackMeContract.RoutePointEntry.TABLE_NAME + PARAM_WHERE
                 + TrackMeContract.RoutePointEntry.LOCATION_LAT + PARAM_LESS_OR_EQUAL +
@@ -627,7 +627,6 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
             contentValues.put(TrackMeContract.RouteEntry._ID, route.getRouteId());
         }
 
-        contentValues.put(TrackMeContract.RouteEntry.TOTAL_TIME, routeStats.getTotalDuration());
         //speed part
         if (SpeedUtils.isSpeedValid(routeStats.getAvgSpeed())) {
             contentValues.put(TrackMeContract.RouteEntry.AVG_SPEED, routeStats.getAvgSpeed());
@@ -661,10 +660,11 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
         }
         contentValues.put(TrackMeContract.RouteEntry.ELEVATION_GAIN, routeStats.getTotalElevationGain());
 
+        contentValues.put(TrackMeContract.RouteEntry.DESCRIPTION, route.getDescription());
         contentValues.put(TrackMeContract.RouteEntry.NAME, route.getRouteName());
         contentValues.put(TrackMeContract.RouteEntry.NUM_ROUTE_POINTS, route.getNumberOfPoints());
         contentValues.put(TrackMeContract.RouteEntry.TOTAL_DISTANCE, routeStats.getTotalDistance());
-        contentValues.put(TrackMeContract.RouteEntry.TOTAL_TIME, routeStats.getTotalDuration());
+        contentValues.put(TrackMeContract.RouteEntry.TOTAL_TIME, routeStats.getTotalTime());
         contentValues.put(TrackMeContract.RouteEntry.START_POINT_ID, route.getStartPointId());
         contentValues.put(TrackMeContract.RouteEntry.STOP_POINT_ID, route.getStopPointId());
         contentValues.put(TrackMeContract.RouteEntry.START_TIME, routeStats.getStartTime());

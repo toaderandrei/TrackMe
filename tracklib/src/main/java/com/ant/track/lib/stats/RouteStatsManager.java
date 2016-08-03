@@ -72,12 +72,22 @@ public class RouteStatsManager {
             return;
         }
 
+        double timeDiff = location.getTime() - lastLocation.getTime();
+        if (timeDiff <= MAXIMUM_TIME_NO_UPDATE) {
+            lastLocation = location;
+            return;
+        }
+
         updateLatitudeStats(location);
         updateLongitudeStats(location);
-        updateElevationStats(location);
+        double elevationdif = location.hasAltitude() ? updateElevationStats(location) : 0.0;
 
         double distanceToLastMovingLocation = lastValidLocation.distanceTo(location);
         double movingTime = location.getTime() - lastValidLocation.getTime();
+
+
+        currentRouteStats.addNewDistanceToStats(distanceToLastMovingLocation);
+        currentSegmentStats.addNewMovingTimeToStats(movingTime);
 
         if ((distanceToLastMovingLocation < minRecordingDistance) &&
                 (!location.hasSpeed() || location.getSpeed() < Constants.MAX_SPEED_NO_MOVEMENT)) {
@@ -85,14 +95,7 @@ public class RouteStatsManager {
             return;
         }
 
-        double timeDiff = location.getTime() - lastLocation.getTime();
-        if (timeDiff <= MAXIMUM_TIME_NO_UPDATE) {
-            lastLocation = location;
-            return;
-        }
 
-        currentRouteStats.addNewDistanceToStats(distanceToLastMovingLocation);
-        currentSegmentStats.addNewMovingTimeToStats(movingTime);
         if (location.hasSpeed() && lastValidLocation.hasSpeed()) {
             updateMaxSpeed(location.getTime(), location.getSpeed(), lastValidLocation.getTime(), lastValidLocation.getSpeed());
         }
@@ -110,7 +113,7 @@ public class RouteStatsManager {
     }
 
 
-    private void updateElevationStats(Location location) {
+    private double updateElevationStats(Location location) {
         double elevation = location.hasAltitude() ? location.getAltitude() : 0.0;
 
         double oldAvgElevation = elevationBuffer.getAverage();
@@ -122,6 +125,7 @@ public class RouteStatsManager {
         if (diff > 0) {
             currentSegmentStats.addElevationGain(diff);
         }
+        return diff;
     }
 
     private void updateLatitudeStats(Location currentLoc) {
@@ -197,8 +201,8 @@ public class RouteStatsManager {
     }
 
     public void updateTime(long time) {
-        this.currentSegmentStats.setTotalTime(time - currentSegmentStats.getStartTime());
         this.currentSegmentStats.setStopTime(time);
+        this.currentSegmentStats.setTotalTime(time - currentSegmentStats.getStartTime());
     }
 
     public RouteStats getCurrentRouteStats() {
