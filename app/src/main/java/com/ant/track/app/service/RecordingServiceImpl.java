@@ -414,8 +414,8 @@ public class RecordingServiceImpl extends Service {
         } else if (!isIdle.get() && location.hasSpeed() && location.getSpeed() <= Constants.MAX_SPEED_NO_MOVEMENT) {
             //looks that it is idle
             //todo think if it makes sense to insert the location when it is inside the recording distance(min) and also if the speed it is less the min movement.
-            insertLocation(route, getLastLocation(), lastValidTrackLocation);
-            insertLocation(route, location, lastValidTrackLocation);
+            //insertLocation(route, getLastLocation(), lastValidTrackLocation);
+            //insertLocation(route, location, lastValidTrackLocation);
             isIdle.set(true);
         } else if (isIdle.get() && location.hasSpeed() && location.getSpeed() > Constants.MAX_SPEED_NO_MOVEMENT) {
             isIdle.set(false);
