@@ -474,6 +474,10 @@ public class TrackMeDatabaseUtilsImpl implements TrackMeDatabaseUtils {
 
     }
 
+    @Override
+    public Route getLastRoute() {
+        return null;
+    }
 
     @Override
     public Route createRouteFromCursor(Cursor cursor) {

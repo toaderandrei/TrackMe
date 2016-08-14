@@ -107,6 +107,7 @@ public class RouteListFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor newCursor) {
         mProgressBarView.setVisibility(View.GONE);
+        mErrorMessage.setVisibility(View.GONE);
         routeCursorAdapter.swapCursor(newCursor);
     }
 

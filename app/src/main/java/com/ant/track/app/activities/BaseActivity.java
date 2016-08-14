@@ -3,8 +3,8 @@ package com.ant.track.app.activities;
 import android.app.FragmentManager;
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.graphics.Color;
 import android.os.Bundle;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
@@ -15,10 +15,6 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ListView;
-import android.widget.SimpleAdapter;
 
 import com.ant.track.app.R;
 import com.ant.track.app.fragments.LocationFragment;
@@ -34,37 +30,45 @@ public abstract class BaseActivity extends AppCompatActivity implements RecordSt
     private Toolbar mToolbar;
     private ActionBarDrawerToggle mDrawerToggle;
     private DrawerLayout mDrawerLayout;
-    private ListView mDrawerList;
-    private DrawerMenuContents mDrawerMenuContents;
     private boolean mToolbarInitialized;
 
-    private int mItemToOpenWhenDrawerCloses = -1;
-    private FragmentManager.OnBackStackChangedListener mBackStackChangedListener =
-            new FragmentManager.OnBackStackChangedListener() {
-                @Override
-                public void onBackStackChanged() {
-                    updateDrawerToggle();
-                }
-            };
+    private int itemToOpenWhenDrawerCloses = -1;
+
+    private FragmentManager.OnBackStackChangedListener mBackStackChangedListener = new FragmentManager.OnBackStackChangedListener() {
+        @Override
+        public void onBackStackChanged() {
+            updateDrawerToggle();
+        }
+    };
+
     private DrawerLayout.DrawerListener mDrawerListener = new DrawerLayout.DrawerListener() {
         @Override
         public void onDrawerClosed(View drawerView) {
             if (mDrawerToggle != null) {
                 mDrawerToggle.onDrawerClosed(drawerView);
             }
-            int position = mItemToOpenWhenDrawerCloses;
-            if (position >= 0) {
+            if (itemToOpenWhenDrawerCloses >= 0) {
                 Bundle extras = ActivityOptionsCompat.makeCustomAnimation(BaseActivity.this, R.anim.fade_in, R.anim.fade_out).toBundle();
 
-                Class activityClass = mDrawerMenuContents.getActivity(position);
+                Class activityClass;
+                switch (itemToOpenWhenDrawerCloses) {
+                    case R.id.navigation_map:
+                        activityClass = MainActivity.class;
+                        break;
+                    case R.id.navigation_list:
+                        activityClass = RouteDetailsActivity.class;
+                        break;
+                    default:
+                        activityClass = MainActivity.class;
+                        break;
+                }
 
                 Intent mIntent = new Intent(BaseActivity.this, activityClass);
                 if (activityClass.equals(RouteDetailsActivity.class)) {
-                    Bundle bundle = new Bundle();
-                    bundle.putBoolean(Constants.EXTRA_VIEW_ROUTE_DETAILS, false);
-                    mIntent.putExtras(bundle);
+                    extras.putBoolean(Constants.EXTRA_VIEW_ROUTE_DETAILS, false);
                 }
                 mIntent.putExtras(extras);
+                itemToOpenWhenDrawerCloses = -1;
                 startActivity(mIntent);
             }
         }
@@ -209,8 +213,8 @@ public abstract class BaseActivity extends AppCompatActivity implements RecordSt
 
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
         if (mDrawerLayout != null) {
-            mDrawerList = (ListView) findViewById(R.id.drawer_list);
-            if (mDrawerList == null) {
+            NavigationView navigationView = (NavigationView) this.findViewById(R.id.nav_view);
+            if (navigationView == null) {
                 throw new IllegalStateException("A layout with a drawerLayout is required to" +
                         "include a ListView with id 'drawerList'");
             }
@@ -218,9 +222,9 @@ public abstract class BaseActivity extends AppCompatActivity implements RecordSt
             // Create an ActionBarDrawerToggle that will handle opening/closing of the drawer:
             mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
                     mToolbar, R.string.open_content_drawer, R.string.close_content_drawer);
-            mDrawerLayout.setDrawerListener(mDrawerListener);
+            mDrawerLayout.addDrawerListener(mDrawerListener);
             mDrawerLayout.setStatusBarBackgroundColor(ResourceHelper.getThemeColor(this, R.attr.colorPrimary, android.R.color.black));
-            populateDrawerItems();
+            populateDrawerItems(navigationView);
             setSupportActionBar(mToolbar);
             updateDrawerToggle();
         } else {
@@ -230,40 +234,25 @@ public abstract class BaseActivity extends AppCompatActivity implements RecordSt
         mToolbarInitialized = true;
     }
 
-    private void populateDrawerItems() {
-        mDrawerMenuContents = new DrawerMenuContents(this);
-        final int selectedPosition = mDrawerMenuContents.getPosition(this.getClass());
-        final int unselectedColor = Color.WHITE;
-        final int selectedColor = getResources().getColor(R.color.drawer_item_selected_background);
-        SimpleAdapter adapter = new SimpleAdapter(this, mDrawerMenuContents.getItems(),
-                R.layout.drawer_list_item,
-                new String[]{DrawerMenuContents.FIELD_TITLE, DrawerMenuContents.FIELD_ICON},
-                new int[]{R.id.drawer_item_title, R.id.drawer_item_icon}) {
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-                View view = super.getView(position, convertView, parent);
-                int color = unselectedColor;
-                if (position == selectedPosition) {
-                    color = selectedColor;
-                }
-                view.setBackgroundColor(color);
-                return view;
-            }
-        };
+    private void populateDrawerItems(NavigationView navigationView) {
 
-        mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if (position != selectedPosition) {
-                    view.setBackgroundColor(getResources().getColor(
-                            R.color.drawer_item_selected_background));
-                    mItemToOpenWhenDrawerCloses = position;
-                }
-                mDrawerLayout.closeDrawers();
-            }
-        });
-        mDrawerList.setAdapter(adapter);
+        navigationView.setNavigationItemSelectedListener(
+                new NavigationView.OnNavigationItemSelectedListener() {
+                    @Override
+                    public boolean onNavigationItemSelected(MenuItem menuItem) {
+                        menuItem.setChecked(true);
+                        itemToOpenWhenDrawerCloses = menuItem.getItemId();
+                        mDrawerLayout.closeDrawers();
+                        return true;
+                    }
+                });
+        if (MainActivity.class.isAssignableFrom(getClass())) {
+            navigationView.setCheckedItem(R.id.navigation_map);
+        } else if (RouteDetailsActivity.class.isAssignableFrom(getClass())) {
+            navigationView.setCheckedItem(R.id.navigation_list);
+        }
     }
+
 
     protected void updateDrawerToggle() {
         if (mDrawerToggle == null) {

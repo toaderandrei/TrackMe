@@ -218,4 +218,12 @@ public interface TrackMeDatabaseUtils {
      * @return the route check point.
      */
     RouteCheckPoint getRouteCheckPointFromCursor(Cursor cursor);
+
+    /**
+     * retrives the last route
+     *
+     * @return the last route.
+     */
+    Route getLastRoute();
+
 }

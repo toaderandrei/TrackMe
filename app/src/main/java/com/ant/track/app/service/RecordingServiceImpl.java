@@ -9,6 +9,7 @@ import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
+import android.os.Binder;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
@@ -16,6 +17,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.PowerManager;
+import android.os.Process;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
@@ -83,6 +85,8 @@ public class RecordingServiceImpl extends Service {
     private long currentRecordingInterval;
     private Handler handler;
     private boolean firstInsert = true;
+
+    private ServiceBinder serviceBinder = new ServiceBinder(this);
     private Messenger serviceMessenger;
     private Messenger client;
     private RouteStatsManager routeStatsManager;
@@ -194,7 +198,9 @@ public class RecordingServiceImpl extends Service {
     public void onCreate() {
         super.onCreate();
         //test
-
+        if (testAllowed) {
+            mockHandler = new Handler(Looper.getMainLooper());
+        }
         initAsyncThread();
         serviceMessenger = new Messenger(handlerService);
         mLiveTrackingLocationManager = new GPSLiveTrackerLocationManager(this);
@@ -234,13 +240,13 @@ public class RecordingServiceImpl extends Service {
                 lastvalid.setAccuracy(3.0f);
                 lastvalid.setLatitude(mockLocation.getLatitude() + 0.00011);
                 lastvalid.setLongitude(mockLocation.getLongitude() + 0.000011);
-                mockLocation = lastvalid;
+
             } else if (lastvalid != null) {
                 lastvalid.setLatitude(lastvalid.getLatitude() + 0.00011);
                 lastvalid.setLongitude(lastvalid.getLongitude() + 0.0000011);
                 lastvalid.setAccuracy(3.0f);
                 lastvalid.setTime(System.currentTimeMillis());
-                mockLocation = lastvalid;
+
             }
 
             if (lastvalid != null) {
@@ -249,6 +255,7 @@ public class RecordingServiceImpl extends Service {
                 onLocationChangedAsync(lastvalid);
             }
 
+            mockLocation = lastvalid;
             mockHandler.postDelayed(this, 3000);
         }
     };
@@ -320,7 +327,7 @@ public class RecordingServiceImpl extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
-        return serviceMessenger.getBinder();
+        return serviceBinder;
     }
 
     private void runAsync(Runnable runnable) {
@@ -430,8 +437,8 @@ public class RecordingServiceImpl extends Service {
             routeStatsManager.addLocationToStats(location, minRecordingDistance);
 
             updateRecordingRoute(route, id, LocationUtils.isValidLocation(location));
-            //sendMessageToListeners(RecordingServiceConstants.MSG_UPDATE_ROUTE_ID, id);
-            //showNotification();
+
+            sendRouteBroadcast(R.string.route_update_broadcast_action, route.getRouteId());
 
         } catch (Exception exc) {
             sendErrorLocationUpdate(new ErrorLocation(exc, location));
@@ -486,13 +493,6 @@ public class RecordingServiceImpl extends Service {
         }
     }
 
-    public boolean isStartingToRecord() {
-        if (!canAccess()) {
-            return false;
-        }
-        return recordingState == RecordingState.STARTING;
-    }
-
     public boolean isRecording() {
         if (!canAccess()) {
             return false;
@@ -500,16 +500,16 @@ public class RecordingServiceImpl extends Service {
         return recordingState == RecordingState.RESUMED || recordingState == RecordingState.STARTED || routeId != PreferenceUtils.DEFAULT_ROUTE_ID;
     }
 
-    public void startNewTracking() {
+    public long startNewTracking() {
         if (isRecording()) {
             Log.d(TAG, "Ignore startNewTracking. Already recording.");
-            return;
+            return -1L;
         }
-        startRouteTracking();
+        return startRouteTracking();
     }
 
 
-    private void startRouteTracking() {
+    private long startRouteTracking() {
         long now = System.currentTimeMillis();
 
         routeStatsManager = new RouteStatsManager(now);
@@ -530,9 +530,9 @@ public class RecordingServiceImpl extends Service {
         //mock part
 
         if (testAllowed) {
-            mockHandler = new Handler(Looper.getMainLooper());
             initMockTimer();
         }
+        return routeId;
     }
 
     /**
@@ -577,6 +577,7 @@ public class RecordingServiceImpl extends Service {
         firstInsert = true;
         isIdle.set(false);
         startGPSTracking();
+        sendRouteBroadcast(recordingState == RecordingState.STARTED ? R.string.route_started_broadcast_action : R.string.route_resumed_broadcast_action, routeId);
         showNotification();
     }
 
@@ -660,6 +661,7 @@ public class RecordingServiceImpl extends Service {
             }
         }
         sendMessageToListeners(RecordingServiceConstants.MSG_CLIENT_DISCONNECTED, currentRouteId);
+        sendRouteBroadcast(stopped ? R.string.route_stopped_broadcast_action : R.string.route_paused_broadcast_action, routeId);
         stopRecordingService(stopped);
     }
 
@@ -863,6 +865,17 @@ public class RecordingServiceImpl extends Service {
         }
     }
 
+    /**
+     * Sends track broadcast.
+     *
+     * @param actionId the intent action id
+     * @param routeId  the track id
+     */
+    private void sendRouteBroadcast(int actionId, long routeId) {
+        Intent intent = new Intent().setAction(getString(actionId)).putExtra(getString(R.string.route_id_broadcast_extra), routeId);
+        sendBroadcast(intent, getString(R.string.permission_notification_value));
+    }
+
     protected Location getLastLocation() {
         return mLastLocation;
     }
@@ -906,6 +919,93 @@ public class RecordingServiceImpl extends Service {
 
     private TrackMeApplication getApp() {
         return (TrackMeApplication) TrackMeApplication.getInstance();
+    }
+
+
+    public static class ServiceBinder extends IRecordingService.Stub {
+
+        private static final String ServiceTAG = ServiceBinder.class.getCanonicalName();
+        private DeathRecipient deathRecipient;
+        private RecordingServiceImpl recordingService;
+
+        public ServiceBinder(RecordingServiceImpl recordingService) {
+            this.recordingService = recordingService;
+        }
+
+        @Override
+        public void linkToDeath(DeathRecipient recipient, int flags) {
+            deathRecipient = recipient;
+        }
+
+        @Override
+        public boolean unlinkToDeath(DeathRecipient recipient, int flags) {
+            if (!isBinderAlive()) {
+                return false;
+            }
+            deathRecipient = null;
+            return true;
+        }
+
+        @Override
+        public long startNewRoute() throws RemoteException {
+            if (!canContinue()) {
+                Log.d(ServiceTAG, "service is null. starting failed.");
+                return -1L;
+            }
+            return recordingService.startNewTracking();
+        }
+
+        private boolean canContinue() {
+            if (recordingService == null) {
+                throw new IllegalStateException("The track recording service has been detached!");
+            }
+            if (Process.myPid() == Binder.getCallingPid()) {
+                return true;
+            }
+            return false;
+        }
+
+        @Override
+        public void pauseCurrentRoute() throws RemoteException {
+            if (!canContinue()) {
+                Log.d(ServiceTAG, "service is null. pausing failed");
+                return;
+            }
+            recordingService.pauseTracking();
+        }
+
+        @Override
+        public void resumeRecordingService() throws RemoteException {
+            if (!canContinue()) {
+                Log.d(ServiceTAG, "service is null. resume failed.");
+                return;
+            }
+            recordingService.resumeTracking();
+        }
+
+        @Override
+        public boolean isPaused() throws RemoteException {
+            return canContinue() && recordingService.isPaused();
+        }
+
+        @Override
+        public boolean isRecording() throws RemoteException {
+            return canContinue() && recordingService.isRecording();
+        }
+
+
+        @Override
+        public void stopCurrentRoute() throws RemoteException {
+            if (!canContinue()) {
+                return;
+            }
+            recordingService.stopRouteTracking(false);
+        }
+
+        @Override
+        public long getRouteId() throws RemoteException {
+            return 0;
+        }
     }
 
 }

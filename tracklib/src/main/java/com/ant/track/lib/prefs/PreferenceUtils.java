@@ -21,6 +21,13 @@ public class PreferenceUtils {
     public static final int DEFAULT_ROUTE_COLOR = android.R.color.holo_red_dark;
     public static int MAP_TYPE_DEFAULT = 1;
 
+
+    // Track widget
+    public static final int WIDGET_ITEM1_DEFAULT = 3; // moving time
+    public static final int WIDGET_ITEM2_DEFAULT = 0; // distance
+    public static final int WIDGET_ITEM3_DEFAULT = 1; // total time
+    public static final int WIDGET_ITEM4_DEFAULT = 2; // average
+
     private PreferenceUtils() {
 
     }

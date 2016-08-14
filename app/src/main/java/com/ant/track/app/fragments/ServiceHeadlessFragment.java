@@ -1,10 +1,11 @@
 package com.ant.track.app.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.os.RemoteException;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,10 +13,16 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.ant.track.app.R;
+import com.ant.track.app.activities.MainActivity;
+import com.ant.track.app.activities.RouteDetailsActivity;
 import com.ant.track.app.application.TrackMeApplication;
+import com.ant.track.app.service.IRecordingService;
 import com.ant.track.app.service.RecordingServiceConnection;
 import com.ant.track.app.service.utils.RecordingServiceConnectionUtils;
+import com.ant.track.lib.constants.Constants;
+import com.ant.track.lib.prefs.PreferenceUtils;
 import com.ant.track.lib.service.RecordingState;
+import com.ant.track.ui.dialogs.CustomFragmentDialog;
 
 /**
  * Fragment with no UI, used mainly for starting/stopping the service.
@@ -23,6 +30,7 @@ import com.ant.track.lib.service.RecordingState;
  */
 public class ServiceHeadlessFragment extends Fragment {
 
+    private static final String CUSTOM_TAG = "ServiceHeadlessCustomTag";
     private RecordingServiceConnection mRecordingServiceConnection;
 
     private static final String TAG = ServiceHeadlessFragment.class.getCanonicalName();
@@ -77,7 +85,7 @@ public class ServiceHeadlessFragment extends Fragment {
                 return;
             }
 
-            IBinder service = mRecordingServiceConnection.getServiceIfBound();
+            IRecordingService service = mRecordingServiceConnection.getServiceIfBound();
             if (service == null) {
                 Log.d(TAG, "service not available to start gps or a new recording");
                 return;
@@ -85,12 +93,14 @@ public class ServiceHeadlessFragment extends Fragment {
             if (startNewRecording) {
                 try {
                     Log.d(TAG, "service is starting.");
-                    mRecordingServiceConnection.startTracking();
+                    startNewRecording = false;
+                    long routeid = service.startNewRoute();
+                    callback.updateRoute(routeid);
                     recordingState = RecordingState.STARTED;
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            callback.onUpdateUIControls(recordingState);
+                            updateUIControls();
                         }
                     });
                 } catch (RemoteException e) {
@@ -103,19 +113,10 @@ public class ServiceHeadlessFragment extends Fragment {
         }
 
         @Override
-        public void onRouteUpdate(long id) {
-            callback.updateRoute(id);
-        }
-
-        @Override
-        public void onDisconnected(long routeid) {
-            callback.onDisconnect(routeid);
-        }
-
-        @Override
-        public void onError(String errMessage) {
-            callback.onError(errMessage);
-            stopTracking();
+        public void onDisconnected() {
+            startNewRecording = true;
+            recordingState = RecordingState.NOT_STARTED;
+            callback.onUpdateUIControls(recordingState);
         }
     };
 
@@ -133,18 +134,65 @@ public class ServiceHeadlessFragment extends Fragment {
         RecordingServiceConnectionUtils.resumeTracking(mRecordingServiceConnection);
         //todo should be done with ca callback.
         recordingState = RecordingState.RESUMED;
+        updateUIControls();
     }
 
     private void pauseTracking() {
         RecordingServiceConnectionUtils.pauseTracking(mRecordingServiceConnection);
         //todo should be done with a callback
         recordingState = RecordingState.PAUSED;
+        updateUIControls();
     }
 
     private void stopTracking() {
-        RecordingServiceConnectionUtils.stopTrackingService(mRecordingServiceConnection);
-        //todo should be done with a callback.
+        showCustomDialog();
+    }
+
+    private void showCustomDialog() {
+        Bundle bundle = new Bundle();
+        long recordingId = PreferenceUtils.getLong(getActivity(), R.string.route_id_key, PreferenceUtils.DEFAULT_ROUTE_ID);
+        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+
+        bundle.putLong(Constants.EXTRA_ROUTE_ID_KEY, recordingId);
+        bundle.putBoolean(Constants.EXTRA_VIEW_ROUTE_DETAILS, true);
+        CustomFragmentDialog customFragmentDialog = CustomFragmentDialog.newInstance(getString(R.string.view_route_details),
+                getString(R.string.view_route_details_message),
+                getString(R.string.ok),
+                getString(R.string.cancel),
+                dialogCallback,
+                bundle);
+        customFragmentDialog.show(fragmentManager, CUSTOM_TAG);
+    }
+
+    CustomFragmentDialog.Callback dialogCallback = new CustomFragmentDialog.Callback() {
+        @Override
+        public void onPositiveButtonClicked(Bundle bundle) {
+            stopRouteTrackingInternal();
+
+            //start activity
+            callback.onUpdateUIControls(RecordingState.NOT_STARTED);
+            PreferenceUtils.setRecordingState(TrackMeApplication.getInstance().getApplicationContext(), R.string.recording_state_key, RecordingState.NOT_STARTED);
+            Intent intent = new Intent(getActivity(), RouteDetailsActivity.class);
+            intent.putExtras(bundle);
+            startActivityForResult(intent, MainActivity.REQUEST_CODE);
+        }
+
+        @Override
+        public void onNegativeButtonClicked(Bundle bundle) {
+            stopRouteTrackingInternal();
+        }
+    };
+
+    private void stopRouteTrackingInternal() {
         recordingState = RecordingState.STOPPED;
+        updateUIControls();
+
+        RecordingServiceConnectionUtils.stopTrackingService(getActivity(), mRecordingServiceConnection);
+        //todo should be done with a callback.
+    }
+
+    private void updateUIControls() {
+        callback.onUpdateUIControls(recordingState);
     }
 
     public void updateServiceState(RecordingState recordingState) {
@@ -174,7 +222,5 @@ public class ServiceHeadlessFragment extends Fragment {
         void onUpdateUIControls(RecordingState state);
 
         void onError(String message);
-
-        void onDisconnect(long routeid);
     }
 }

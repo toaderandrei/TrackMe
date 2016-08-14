@@ -38,7 +38,7 @@ public class TestDbUtils {
             contentValues.put(TrackMeContract.RouteEntry._ID, route.getRouteId());
         }
 
-        contentValues.put(TrackMeContract.RouteEntry.TOTAL_TIME, localStats.getTotalDuration());
+        contentValues.put(TrackMeContract.RouteEntry.TOTAL_TIME, localStats.getTotalTime());
 
         //speed part
         if (SpeedUtils.isSpeedValid(localStats.getAvgSpeed())) {
@@ -81,7 +81,7 @@ public class TestDbUtils {
 
         contentValues.put(TrackMeContract.RouteEntry.NUM_ROUTE_POINTS, route.getNumberOfPoints());
         contentValues.put(TrackMeContract.RouteEntry.TOTAL_DISTANCE, localStats.getTotalDistance());
-        contentValues.put(TrackMeContract.RouteEntry.TOTAL_TIME, localStats.getTotalDuration());
+        contentValues.put(TrackMeContract.RouteEntry.TOTAL_TIME, localStats.getTotalTime());
         contentValues.put(TrackMeContract.RouteEntry.START_POINT_ID, route.getStartPointId());
         contentValues.put(TrackMeContract.RouteEntry.STOP_POINT_ID, route.getStopPointId());
         contentValues.put(TrackMeContract.RouteEntry.START_TIME, localStats.getStartTime());

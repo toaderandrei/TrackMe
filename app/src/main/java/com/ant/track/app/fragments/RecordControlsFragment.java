@@ -25,9 +25,7 @@ public class RecordControlsFragment extends Fragment {
     private static final String STOP_OR_CANCEL = "Stop or cancel?";
     private static final String STOPS_THE_TRACKING_OR_CANCEL = "Want to stop the route tracking?";
     private RecordStateListener listener;
-    private int totalTime;
     private static final String CUSTOM_TAG = "custom_tag";
-    private Handler handler;
     private RecordingState recordingState = RecordingState.NOT_STARTED;
 
     @Override
@@ -41,7 +39,6 @@ public class RecordControlsFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        handler = new Handler();
     }
 
     @Nullable
@@ -149,7 +146,7 @@ public class RecordControlsFragment extends Fragment {
     };
 
     private void updateService(RecordingState state) {
-        updateRecordState(state);
+        //updateRecordState(state);
         listener.updateServiceState(state);
     }
 

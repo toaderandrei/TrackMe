@@ -43,7 +43,6 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Polyline;
@@ -63,9 +62,8 @@ public class LocationFragment extends Fragment implements RouteDataListener {
     private GoogleMap mMap;
     private Route currentRoute;
     private Location lastLocation;
-    private boolean reload;
+    private boolean reload = true;
     private View rootView;
-
     private int recordingGpsAccuracy = PreferenceUtils.RECORDING_GPS_ACCURACY_DEFAULT;
     private LocationListener locationListener;
     private LocationSource.OnLocationChangedListener onLocationChangedListener;
@@ -95,9 +93,6 @@ public class LocationFragment extends Fragment implements RouteDataListener {
         routeDataSourceFactory = new RouteDataSourceFactory(getActivity());
     }
 
-    int width = 0;
-    int height = 0;
-
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -105,8 +100,7 @@ public class LocationFragment extends Fragment implements RouteDataListener {
         enableLocationService = new GoogleAskToEnableLocationService(getActivity());
         mGPSLiveTrackerLocManager = new GPSLiveTrackerLocationManager(getActivity());
         googleUtils = GoogleLocationServicesUtils.getInstance(getActivity());
-        width = rootView.getWidth();
-        height = rootView.getHeight();
+
         return rootView;
     }
 
@@ -297,45 +291,21 @@ public class LocationFragment extends Fragment implements RouteDataListener {
             return;
         }
 
-        if (width == 0 || height == 0) {
-            Log.d(TAG, "zero width or height");
-
-            if (rootView.getViewTreeObserver().isAlive()) {
-                rootView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-                    @Override
-                    public void onGlobalLayout() {
-                        if (!isResumed()) {
-                            return;
-                        }
-
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (isResumed()) {
-                                    moveCameraOverRoute();
-                                }
-                            }
-                        });
-                    }
-                });
-            }
-
+        if (rootView.getWidth() == 0 || rootView.getHeight() == 0) {
+            Log.d(TAG, "empty view. return. not showing any route");
+            return;
         }
-
-        width = rootView.getWidth();
-        height = rootView.getHeight();
 
         int latitudeSpanE6 = routeStats.getTop() - routeStats.getBottom();
         int longitudeSpanE6 = routeStats.getRight() - routeStats.getLeft();
-        if (latitudeSpanE6 > 0 && latitudeSpanE6 < 180E6 && longitudeSpanE6 > 0
-                && longitudeSpanE6 < 360E6) {
-            LatLng southWest = new LatLng(
-                    routeStats.getBottomDegrees(), routeStats.getLeftDegrees());
-            LatLng northEast = new LatLng(
-                    routeStats.getTopDegrees(), routeStats.getRightDegrees());
+        if (latitudeSpanE6 > 0 && latitudeSpanE6 < 180E6 && longitudeSpanE6 > 0 && longitudeSpanE6 < 360E6) {
+            LatLng southWest = new LatLng(routeStats.getBottomDegrees(), routeStats.getLeftDegrees());
+            LatLng northEast = new LatLng(routeStats.getTopDegrees(), routeStats.getRightDegrees());
+
             LatLngBounds bounds = LatLngBounds.builder().include(southWest).include(northEast).build();
-            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngBounds(bounds, width, height, 32);
+            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngBounds(bounds, rootView.getWidth(), rootView.getHeight(), 32);
             mMap.moveCamera(cameraUpdate);
+
         }
     }
 
@@ -419,13 +389,13 @@ public class LocationFragment extends Fragment implements RouteDataListener {
         }
     };
 
-    private GoogleMap.OnCameraChangeListener getCameraChangeListener() {
-        return new GoogleMap.OnCameraChangeListener() {
+    private GoogleMap.OnCameraMoveStartedListener getCameraChangeListener() {
+        return new GoogleMap.OnCameraMoveStartedListener() {
 
             @Override
-            public void onCameraChange(CameraPosition cameraPosition) {
+            public void onCameraMoveStarted(int i) {
                 if (isResumed() && currentLocation != null && !isLocationVisible(currentLocation)) {
-                    //TODO
+                    //todo
                 }
             }
         };
@@ -492,7 +462,7 @@ public class LocationFragment extends Fragment implements RouteDataListener {
                 mMap.getUiSettings().setMyLocationButtonEnabled(true);
                 mMap.setOnMyLocationButtonClickListener(getOnMyLocationClickListener());
                 mMap.setLocationSource(getNewLocationSource());
-                mMap.setOnCameraChangeListener(getCameraChangeListener());
+                mMap.setOnCameraMoveStartedListener(getCameraChangeListener());
                 mMap.getUiSettings().setCompassEnabled(true);
                 mMap.getUiSettings().setZoomControlsEnabled(true);
                 initGpsTracker();

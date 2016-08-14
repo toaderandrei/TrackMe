@@ -96,5 +96,32 @@
     <string name="generic_desc">new description</string>
     <string name="total_time">total time</string>
     <string name="route_list">View route list</string>
+    <string name="add">add</string>
+
+    <string name="widget_item1">widgetItem1</string>
+    <string name="widget_item2">widgetItem2</string>
+    <string name="widget_item3">widgetItem3</string>
+    <string name="stats_distance">Distance</string>
+    <string name="stats_total_time">Total time</string>
+    <string name="stats_moving_time">Moving time</string>
+    <string name="route_paused_broadcast_action">route_paused_action</string>
+    <string name="route_resumed_broadcast_action">route_resumed_action</string>
+    <string name="route_stopped_broadcast_action">route_stopped_action</string>
+    <string name="route_update_broadcast_action">route_update_action</string>
+    <string name="value_unknown">unknown</string>
+    <string name="stats_average_speed">stats_average_speed</string>
+    <string name="stats_average_moving_speed">stats_average_moving_speed</string>
+    <string name="widget_config_title">RouteWidget</string>
+  <string name="unit_meter" translation_description="Abbreviation for meters. E.g., '2 m'.">
+    m
+  </string>
+  <string name="unit_kilometer_per_hour" translation_description="Abbreviation for kilometers per hour. E.g., '5 km/h'.">
+    km/h
+  </string>
+    <string name="permission_notification_value">com.ant.track.app.TRACKME_NOTIFICATIONS</string>
+  <string name="icon_map">Map</string>
+  <string name="action_view_details">View routes</string>
+  <string name="duration">Total duration</string>
+  <string name="error_showing_data">Error showing data</string>
 </resources>
 

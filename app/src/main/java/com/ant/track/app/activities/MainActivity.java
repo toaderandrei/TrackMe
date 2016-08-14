@@ -2,6 +2,7 @@ package com.ant.track.app.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -20,8 +21,8 @@ import com.google.android.gms.maps.GoogleMap;
  */
 public class MainActivity extends ServiceConnectActivity {
 
-    private static final int REQUEST_CODE = 10001;
-
+    public static final int REQUEST_CODE = 10001;
+    private static final String ROUTE_ID_SAVE_KEY = "route_id_save_key";
     private static final String CUSTOM_TAG = "custom_tag2";
 
     @Override
@@ -31,11 +32,17 @@ public class MainActivity extends ServiceConnectActivity {
 
         initializeToolbar();
         handleIntent(getIntent());
-
+        handlePrefs(savedInstanceState);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
         setActionBarTitle();
+    }
+
+    private void handlePrefs(Bundle bundle) {
+        if (bundle != null) {
+            routeId = bundle.getLong(ROUTE_ID_SAVE_KEY, PreferenceUtils.DEFAULT_ROUTE_ID);
+        }
     }
 
     @Override
@@ -60,23 +67,6 @@ public class MainActivity extends ServiceConnectActivity {
         super.onResume();
         onUpdateUIControls(getRecordingState());
     }
-
-    CustomFragmentDialog.Callback callback = new CustomFragmentDialog.Callback() {
-        @Override
-        public void onPositiveButtonClicked(Bundle bundle) {
-            //start activity
-            setRecordingState(RecordingState.NOT_STARTED);
-            PreferenceUtils.setRecordingState(getApplicationContext(), R.string.recording_state_key, RecordingState.NOT_STARTED);
-            Intent intent = new Intent(MainActivity.this, RouteDetailsActivity.class);
-            intent.putExtras(bundle);
-            startActivityForResult(intent, REQUEST_CODE);
-        }
-
-        @Override
-        public void onNegativeButtonClicked(Bundle bundle) {
-            //nothing
-        }
-    };
 
     /**
      */
@@ -135,6 +125,17 @@ public class MainActivity extends ServiceConnectActivity {
         return true;
     }
 
+
+    @Override
+    protected void onStop() {
+        if (isRecordingServiceRunning()) {
+            Bundle outState = new Bundle();
+            outState.putLong(ROUTE_ID_SAVE_KEY, routeId);
+            onSaveInstanceState(outState);
+        }
+        super.onStop();
+    }
+
     protected GoogleMap getGoogleMap() {
         if (mMapFragment != null) {
             return mMapFragment.getGoogleMap();
@@ -158,7 +159,12 @@ public class MainActivity extends ServiceConnectActivity {
 
     @Override
     protected void onDestroy() {
-        if (!RecordingServiceConnectionUtils.isRecordingServiceRunning(getApplicationContext())) {
+        resetPrefRouteAndFRecordState();
+        super.onDestroy();
+    }
+
+    private void resetPrefRouteAndFRecordState() {
+        if (!isRecordingServiceRunning()) {
             long recordingTrackId = PreferenceUtils.getLong(getApplicationContext(), R.string.route_id_key, -1);
             if (recordingTrackId != PreferenceUtils.DEFAULT_ROUTE_ID) {
                 PreferenceUtils.setRouteId(getApplicationContext(), R.string.route_id_key, PreferenceUtils.DEFAULT_ROUTE_ID);
@@ -170,21 +176,10 @@ public class MainActivity extends ServiceConnectActivity {
                         PreferenceUtils.RECORDING_STATE_NOT_STARTED_DEFAULT);
             }
         }
-        super.onDestroy();
     }
 
-    @Override
-    public void onDisconnect(long routeid) {
-        Bundle bundle = new Bundle();
-        bundle.putLong(Constants.EXTRA_ROUTE_ID_KEY, routeid);
-        bundle.putBoolean(Constants.EXTRA_VIEW_ROUTE_DETAILS, true);
-        CustomFragmentDialog customFragmentDialog = CustomFragmentDialog.newInstance(getString(R.string.view_route_details),
-                getString(R.string.view_route_details_message),
-                getString(R.string.ok),
-                getString(R.string.cancel),
-                callback,
-                bundle);
-        customFragmentDialog.show(getSupportFragmentManager(), CUSTOM_TAG);
+    private boolean isRecordingServiceRunning() {
+        return RecordingServiceConnectionUtils.isRecordingServiceRunning(getApplicationContext());
     }
 
     @Override

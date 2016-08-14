@@ -22,11 +22,14 @@ public class RouteListAdapter extends CursorAdapter {
         public final TextView routeName;
         public final TextView routeDescription;
         public final TextView routeTotalTime;
+        public final TextView routeTotalDistance;
 
         public ViewHolder(View view) {
             routeName = (TextView) view.findViewById(R.id.tv_route_name);
             routeDescription = (TextView) view.findViewById(R.id.tv_route_desc);
             routeTotalTime = (TextView) view.findViewById(R.id.route_total_time);
+            routeTotalDistance = (TextView)view.findViewById(R.id.tv_total_distance);
+
         }
     }
 
@@ -70,6 +73,8 @@ public class RouteListAdapter extends CursorAdapter {
         int totalTime = cursor.getInt(cursor.getColumnIndex(TrackMeContract.RouteEntry.TOTAL_TIME));
         String stringTotalTime = TimeUtils.getTotalTime(totalTime);
 
+        String stringTotalDistance = cursor.getString(cursor.getColumnIndex(TrackMeContract.RouteEntry.TOTAL_DISTANCE));
         holder.routeTotalTime.setText(stringTotalTime);
+        holder.routeTotalDistance.setText(stringTotalDistance);
     }
 }

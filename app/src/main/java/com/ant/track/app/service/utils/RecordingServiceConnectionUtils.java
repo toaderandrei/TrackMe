@@ -3,11 +3,19 @@ package com.ant.track.app.service.utils;
 import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.Context;
+import android.os.Bundle;
 import android.os.RemoteException;
 import android.util.Log;
 
+import com.ant.track.app.R;
+import com.ant.track.app.application.TrackMeApplication;
+import com.ant.track.app.service.IRecordingService;
 import com.ant.track.app.service.RecordingServiceConnection;
 import com.ant.track.app.service.RecordingServiceImpl;
+import com.ant.track.lib.constants.Constants;
+import com.ant.track.lib.prefs.PreferenceUtils;
+import com.ant.track.lib.service.RecordingState;
+import com.ant.track.ui.dialogs.CustomFragmentDialog;
 
 import java.util.List;
 
@@ -42,6 +50,9 @@ public class RecordingServiceConnectionUtils {
 
     public static void startConnection(RecordingServiceConnection mRecordingServiceConnection) {
         mRecordingServiceConnection.bindIfConnected();
+        if (!isRecordingServiceRunning(TrackMeApplication.getInstance())) {
+            resetRecordingState(TrackMeApplication.getInstance());
+        }
     }
 
 
@@ -53,7 +64,10 @@ public class RecordingServiceConnectionUtils {
     public static void startTracking(RecordingServiceConnection mRecordingServiceConnection) {
         try {
             if (mRecordingServiceConnection != null) {
-                mRecordingServiceConnection.startTracking();
+                IRecordingService service = mRecordingServiceConnection.getServiceIfBound();
+                if (service != null) {
+                    service.startNewRoute();
+                }
             }
         } catch (RemoteException e) {
             Log.e(TAG, "Unable to start the tracking.", e);
@@ -63,7 +77,11 @@ public class RecordingServiceConnectionUtils {
     public static void pauseTracking(RecordingServiceConnection mRecordingServiceConnection) {
         try {
             if (mRecordingServiceConnection != null) {
-                mRecordingServiceConnection.pauseTracking();
+                IRecordingService service = mRecordingServiceConnection.getServiceIfBound();
+
+                if (service != null) {
+                    service.pauseCurrentRoute();
+                }
             }
         } catch (RemoteException e) {
             Log.e(TAG, "Unable to start the tracking.", e);
@@ -75,21 +93,29 @@ public class RecordingServiceConnectionUtils {
      *
      * @param mRecordingServiceConnection the recording service connection
      */
-    public static void stopTrackingService(RecordingServiceConnection mRecordingServiceConnection) {
+    public static void stopTrackingService(Context context, RecordingServiceConnection mRecordingServiceConnection) {
         if (mRecordingServiceConnection != null) {
             try {
-                mRecordingServiceConnection.stopTracking();
-                mRecordingServiceConnection.unbindAndStop();
+                IRecordingService service = mRecordingServiceConnection.getServiceIfBound();
+                if (service != null) {
+
+                    service.stopCurrentRoute();
+                }
             } catch (Exception e) {
                 Log.e(TAG, "Unable to stop tracking.", e);
             }
+            resetRecordingState(context);
+            mRecordingServiceConnection.unbindAndStop();
         }
     }
 
     public static void resumeTracking(RecordingServiceConnection mRecordingServiceConnection) {
         if (mRecordingServiceConnection != null) {
             try {
-                mRecordingServiceConnection.resumeTracking();
+                IRecordingService service = mRecordingServiceConnection.getServiceIfBound();
+                if (service != null) {
+                    service.resumeRecordingService();
+                }
             } catch (Exception e) {
                 Log.e(TAG, "Unable to resume tracking.", e);
             }
@@ -103,6 +129,26 @@ public class RecordingServiceConnectionUtils {
             } catch (Exception e) {
                 Log.e(TAG, "Unable to start the recording.", e);
             }
+        }
+    }
+
+    private static void showDetails(long routeid) {
+
+    }
+
+    /**
+     * in cases when there is a crash and we want a full reset.
+     */
+    private static void resetRecordingState(Context context) {
+        long recordingTrackId = PreferenceUtils.getLong(context, R.string.route_id_key, -1);
+        if (recordingTrackId != PreferenceUtils.DEFAULT_ROUTE_ID) {
+            PreferenceUtils.setRouteId(context, R.string.route_id_key, PreferenceUtils.DEFAULT_ROUTE_ID);
+        }
+        RecordingState recordingTrackPaused = PreferenceUtils.getRecordingState(context,
+                R.string.recording_state_key, PreferenceUtils.RECORDING_STATE_NOT_STARTED_DEFAULT);
+        if (recordingTrackPaused != RecordingState.NOT_STARTED) {
+            PreferenceUtils.setRecordingState(context, R.string.recording_state_key,
+                    PreferenceUtils.RECORDING_STATE_NOT_STARTED_DEFAULT);
         }
     }
 }

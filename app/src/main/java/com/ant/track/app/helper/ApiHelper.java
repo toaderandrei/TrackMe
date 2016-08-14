@@ -2,13 +2,17 @@ package com.ant.track.app.helper;
 
 import android.os.Build;
 
+import com.ant.track.app.widget.AppWidget;
+import com.ant.track.app.widget.AppWidgetImpl;
+import com.ant.track.app.widget.AppWidgetImplApi16;
+
 /**
- * Created by Toader on 6/2/2015.
+ *
  */
 public class ApiHelper {
 
     public static boolean hasLocationMode() {
-        boolean hasLocationServices = false;
+        boolean hasLocationServices;
         if (getSdkInt() >= 19) {
             hasLocationServices = true;
         } else if (getSdkInt() >= 17) {
@@ -35,5 +39,12 @@ public class ApiHelper {
 
     public static boolean isApi23() {
         return Build.VERSION.SDK_INT == Build.VERSION_CODES.M;
+    }
+
+    public static AppWidget getAppWidget() {
+        if (getSdkInt() >= 16) {
+            return new AppWidgetImplApi16();
+        }
+        return new AppWidgetImpl();
     }
 }

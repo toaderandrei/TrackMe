@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="route_description">Route description</string>
+    <string name="route_started_broadcast_action">route_started_action</string>
+    <string name="route_id_broadcast_extra">route_id_broadcast_extra</string>
 </resources>

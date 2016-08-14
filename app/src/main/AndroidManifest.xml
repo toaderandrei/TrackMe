@@ -11,6 +11,8 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="com.ant.track.app.TRACKME_NOTIFICATIONS" />
+
 
     <!-- Creating Permission to receive Google Maps -->
     <permission
@@ -31,8 +33,9 @@
     <application
         android:name=".application.TrackMeApplication"
         android:allowBackup="true"
-        android:icon="@drawable/walk"
+        android:icon="@drawable/trackme_logo"
         android:label="@string/app_name"
+        android:supportsRtl="true"
         android:theme="@style/GPSLiveTrackerTheme"
 
         tools:replace="android:name">
@@ -47,21 +50,24 @@
         <activity
             android:name=".activities.MainActivity"
             android:label="@string/title_activity_main"
-            android:launchMode="singleTask"
-            android:screenOrientation="portrait">
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <activity
-            android:name=".activities.SettingsActivity"
-            android:screenOrientation="portrait" />
+        <activity android:name=".activities.SettingsActivity" />
+
+        <activity android:name=".activities.RouteDetailsActivity" />
 
         <activity
-            android:name=".activities.RouteDetailsActivity"
-            android:screenOrientation="portrait" />
+            android:name=".widget.RouteWidgetActivity"
+            android:label="@string/widget_config_title">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
 
         <service
             android:name=".service.RecordingServiceImpl"
@@ -69,6 +75,20 @@
             android:exported="true"
             android:icon="@drawable/ic_arrow_320"
             android:label="@string/gps_live_tracking_recording_service" />
+
+        <receiver android:name=".widget.RouteWidgetProvider">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.ant.track.app_PAUSED" />
+                <action android:name="com.ant.track.app.ROUTE_RESUMED" />
+                <action android:name="com.ant.track.app.ROUTE_STARTED" />
+                <action android:name="com.ant.track.app.ROUTE_STOPPED" />
+                <action android:name="com.ant.track.app.ROUTE_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info" />
+        </receiver>
 
     </application>
 

@@ -25,10 +25,7 @@ public abstract class ServiceConnectActivity extends BaseActivity implements Ser
     private static final String RECORD_FRAGMENT_CONTROLS_TAG = "RECORD_FRAGMENT_CONTROLS_TAG";
 
     private SharedPreferences sharedPreferences;
-
     protected long routeId;
-    protected long recordingRouteId;
-
     private static final String HEADLESS_TAG = "HEADLESS_TAG";
 
 
@@ -80,7 +77,7 @@ public abstract class ServiceConnectActivity extends BaseActivity implements Ser
         public void onSharedPreferenceChanged(SharedPreferences preferences, String key) {
             // Note that key can be null
             if (key == null || TextUtils.equals(key, PreferenceUtils.getKey(ServiceConnectActivity.this, R.string.route_id_key))) {
-                recordingRouteId = PreferenceUtils.getLong(ServiceConnectActivity.this, R.string.route_id_key);
+                routeId = PreferenceUtils.getLong(ServiceConnectActivity.this, R.string.route_id_key);
             }
             if (key == null || TextUtils.equals(key, PreferenceUtils.getKey(ServiceConnectActivity.this, R.string.recording_state_key))) {
                 final RecordingState recordingState = PreferenceUtils.getRecordingState(ServiceConnectActivity.this,
@@ -131,7 +128,12 @@ public abstract class ServiceConnectActivity extends BaseActivity implements Ser
 
     @Override
     public void onUpdateUIControls(RecordingState recordingState) {
-        //mMapFragment.clearPoints();
+        if (recordingState == RecordingState.NOT_STARTED || recordingState == RecordingState.STOPPED) {
+            if (mMapFragment != null) {
+                mMapFragment.clearPoints();
+            }
+            //mMapFragment.clearPoints();
+        }
         updateUIControlsInternal(recordingState);
     }
 
@@ -141,9 +143,6 @@ public abstract class ServiceConnectActivity extends BaseActivity implements Ser
             ((RecordControlsFragment) fragment).updateRecordState(recordingState);
         }
     }
-
-
-
 
     @Override
     public void updateRoute(long routeId) {
