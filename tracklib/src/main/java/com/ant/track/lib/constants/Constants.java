@@ -15,6 +15,9 @@ public class Constants {
 
     public static final String EXTRA_VIEW_ROUTE_DETAILS = "extra_view_route_details";
 
+    public static final String STOPS_THE_TRACKING_OR_PAUSES_IT = "Stops the tracking or pauses it.";
+    public static final String STOP_OR_PAUSE = "Stop or pause?";
+
     public static final int MAX_LONGITUDE = 180;
     public static final int MAX_LATITUDE = 90000000;
     public static final String EMPTY_STRING = "";

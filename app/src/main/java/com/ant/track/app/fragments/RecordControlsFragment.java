@@ -11,6 +11,7 @@ import android.widget.ImageButton;
 
 import com.ant.track.app.R;
 import com.ant.track.app.activities.RecordStateListener;
+import com.ant.track.lib.constants.Constants;
 import com.ant.track.lib.service.RecordingState;
 import com.ant.track.ui.dialogs.CustomFragmentDialog;
 
@@ -19,11 +20,7 @@ import com.ant.track.ui.dialogs.CustomFragmentDialog;
  */
 public class RecordControlsFragment extends Fragment {
 
-    public static final String STOPS_THE_TRACKING_OR_PAUSES_IT = "Stops the tracking or pauses it.";
-    public static final String STOP_OR_PAUSE = "Stop or pause?";
     private ImageButton recordImageButton;
-    private static final String STOP_OR_CANCEL = "Stop or cancel?";
-    private static final String STOPS_THE_TRACKING_OR_CANCEL = "Want to stop the route tracking?";
     private RecordStateListener listener;
     private static final String CUSTOM_TAG = "custom_tag";
     private RecordingState recordingState = RecordingState.NOT_STARTED;
@@ -60,9 +57,6 @@ public class RecordControlsFragment extends Fragment {
      * @param state -
      */
     public void updateRecordState(RecordingState state) {
-        if (!isResumed()) {
-            return;
-        }
 
         this.recordingState = state;
         int textId = R.string.image_record;
@@ -78,37 +72,6 @@ public class RecordControlsFragment extends Fragment {
         recordImageButton.setContentDescription(getActivity().getString(textId));
     }
 
-    public View.OnLongClickListener getOnLongClickListener() {
-        return new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                if (view != null) {
-                    if (recordingState == RecordingState.PAUSED || recordingState == RecordingState.STARTED) {
-                        CustomFragmentDialog stopOrCancelDialog = CustomFragmentDialog.newInstance(STOP_OR_CANCEL,
-                                STOPS_THE_TRACKING_OR_CANCEL,
-                                getString(R.string.stop_tracking),
-                                getString(R.string.cancel),
-                                stopOrCancelCallback);
-                        stopOrCancelDialog.show(getFragmentManager(), CUSTOM_TAG);
-                    }
-                }
-                return false;
-            }
-        };
-    }
-
-    private CustomFragmentDialog.Callback stopOrCancelCallback = new CustomFragmentDialog.Callback() {
-        @Override
-        public void onPositiveButtonClicked(Bundle bundle) {
-            updateService(RecordingState.STOPPED);
-        }
-
-        @Override
-        public void onNegativeButtonClicked(Bundle bundle) {
-            //nothing for now.
-        }
-    };
-
     private View.OnClickListener recordListener = new View.OnClickListener() {
 
         @Override
@@ -117,8 +80,8 @@ public class RecordControlsFragment extends Fragment {
                 if (recordingState == RecordingState.NOT_STARTED || recordingState == RecordingState.STOPPED) {
                     updateService(RecordingState.STARTING);
                 } else if (recordingState == RecordingState.STARTED || recordingState == RecordingState.RESUMED) {
-                    CustomFragmentDialog customFragmentDialog = CustomFragmentDialog.newInstance(STOP_OR_PAUSE,
-                            STOPS_THE_TRACKING_OR_PAUSES_IT,
+                    CustomFragmentDialog customFragmentDialog = CustomFragmentDialog.newInstance(Constants.STOP_OR_PAUSE,
+                            Constants.STOPS_THE_TRACKING_OR_PAUSES_IT,
                             getString(R.string.dialog_stop_tracking),
                             getString(R.string.dialog_pause_tracking),
                             customDialogCallback);
@@ -146,20 +109,10 @@ public class RecordControlsFragment extends Fragment {
     };
 
     private void updateService(RecordingState state) {
-        //updateRecordState(state);
         listener.updateServiceState(state);
     }
 
     public RecordingState getRecordState() {
         return recordingState;
-    }
-
-    /**
-     * this should be replaced by the preferences.
-     *
-     * @param state
-     */
-    public void setRecordingState(RecordingState state) {
-        this.recordingState = state;
     }
 }

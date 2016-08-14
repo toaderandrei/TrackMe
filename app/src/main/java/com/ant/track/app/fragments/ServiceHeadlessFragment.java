@@ -220,7 +220,9 @@ public class ServiceHeadlessFragment extends Fragment {
          * updates the UI controls.
          */
         void onUpdateUIControls(RecordingState state);
+    }
 
-        void onError(String message);
+    public RecordingState getRecordingState() {
+        return recordingState;
     }
 }

@@ -10,7 +10,6 @@ import android.text.TextUtils;
 import com.ant.track.app.R;
 import com.ant.track.app.fragments.RecordControlsFragment;
 import com.ant.track.app.fragments.ServiceHeadlessFragment;
-import com.ant.track.app.helper.UiHelperUtils;
 import com.ant.track.lib.constants.Constants;
 import com.ant.track.lib.prefs.PreferenceUtils;
 import com.ant.track.lib.service.RecordingState;
@@ -28,6 +27,30 @@ public abstract class ServiceConnectActivity extends BaseActivity implements Ser
     protected long routeId;
     private static final String HEADLESS_TAG = "HEADLESS_TAG";
 
+    /**
+     * Note that sharedPreferenceChangeListener cannot be an anonymous inner
+     * class. Anonymous inner class will get garbage collected.
+     */
+    private final SharedPreferences.OnSharedPreferenceChangeListener sharedPreferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+        @Override
+        public void onSharedPreferenceChanged(SharedPreferences preferences, String key) {
+            // Note that key can be null
+            if (key == null || TextUtils.equals(key, PreferenceUtils.getKey(ServiceConnectActivity.this, R.string.route_id_key))) {
+                routeId = PreferenceUtils.getLong(ServiceConnectActivity.this, R.string.route_id_key);
+            }
+            if (key == null || TextUtils.equals(key, PreferenceUtils.getKey(ServiceConnectActivity.this, R.string.recording_state_key))) {
+                final RecordingState recordingState = PreferenceUtils.getRecordingState(ServiceConnectActivity.this,
+                        R.string.recording_state_key,
+                        PreferenceUtils.RECORDING_STATE_NOT_STARTED_DEFAULT);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        updateServiceState(recordingState);
+                    }
+                });
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,31 +91,6 @@ public abstract class ServiceConnectActivity extends BaseActivity implements Ser
         return getSupportFragmentManager().findFragmentByTag(RECORD_FRAGMENT_CONTROLS_TAG);
     }
 
-    /*
-  * Note that sharedPreferenceChangeListener cannot be an anonymous inner
-  * class. Anonymous inner class will get garbage collected.
-  */
-    private final SharedPreferences.OnSharedPreferenceChangeListener sharedPreferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
-        @Override
-        public void onSharedPreferenceChanged(SharedPreferences preferences, String key) {
-            // Note that key can be null
-            if (key == null || TextUtils.equals(key, PreferenceUtils.getKey(ServiceConnectActivity.this, R.string.route_id_key))) {
-                routeId = PreferenceUtils.getLong(ServiceConnectActivity.this, R.string.route_id_key);
-            }
-            if (key == null || TextUtils.equals(key, PreferenceUtils.getKey(ServiceConnectActivity.this, R.string.recording_state_key))) {
-                final RecordingState recordingState = PreferenceUtils.getRecordingState(ServiceConnectActivity.this,
-                        R.string.recording_state_key,
-                        PreferenceUtils.RECORDING_STATE_NOT_STARTED_DEFAULT);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        updateServiceState(recordingState);
-                    }
-                });
-            }
-        }
-    };
-
     @Override
     protected void onStart() {
         super.onStart();
@@ -119,20 +117,11 @@ public abstract class ServiceConnectActivity extends BaseActivity implements Ser
     }
 
     @Override
-    public void onError(String message) {
-        if (message == null) {
-            message = GENERIC_ERROR_IN_STARTING_THE_LOCATION_SERVICE;
-        }
-        showErrToast(message);
-    }
-
-    @Override
     public void onUpdateUIControls(RecordingState recordingState) {
         if (recordingState == RecordingState.NOT_STARTED || recordingState == RecordingState.STOPPED) {
             if (mMapFragment != null) {
                 mMapFragment.clearPoints();
             }
-            //mMapFragment.clearPoints();
         }
         updateUIControlsInternal(recordingState);
     }
@@ -151,7 +140,11 @@ public abstract class ServiceConnectActivity extends BaseActivity implements Ser
         }
     }
 
-    private void showErrToast(String errMessage) {
-        UiHelperUtils.showErrToast(ServiceConnectActivity.this, errMessage);
+    public RecordingState getRecordingState() {
+        ServiceHeadlessFragment serviceHeadlessFragment = (ServiceHeadlessFragment) getServiceFragment();
+        if (serviceHeadlessFragment != null) {
+            return serviceHeadlessFragment.getRecordingState();
+        }
+        return RecordingState.NOT_STARTED;
     }
 }

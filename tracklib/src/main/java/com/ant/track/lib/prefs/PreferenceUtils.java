@@ -3,6 +3,7 @@ package com.ant.track.lib.prefs;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.ant.track.lib.application.TrackLibApplication;
 import com.ant.track.lib.constants.Constants;
 import com.ant.track.lib.service.RecordingState;
 import com.ant.track.lib.service.RecordingStateUtils;
@@ -40,14 +41,18 @@ public class PreferenceUtils {
         return context.getString(keyId);
     }
 
-    public static void setInt(Context context, int keyId, int value) {
+    public static void setInt(Context ctx, int keyId, int value) {
+        Context context = getContext(ctx);
+
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.SETTINGS_KEY, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putInt(getKey(context, keyId), value);
         editor.apply();
     }
 
-    public static int getInt(Context context, int keyId, int value) {
+    public static int getInt(Context ctx, int keyId, int value) {
+        Context context = getContext(ctx);
+
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.SETTINGS_KEY, Context.MODE_PRIVATE);
         return sharedPreferences.getInt(getKey(context, keyId), value);
     }
@@ -71,17 +76,23 @@ public class PreferenceUtils {
         return sharedPreferences.getBoolean(getKey(context, keyId), value);
     }
 
-    public static long getLong(Context context, int keyId) {
+    public static long getLong(Context ctx, int keyId) {
+        Context context = getContext(ctx);
+
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.SETTINGS_KEY, Context.MODE_PRIVATE);
         return sharedPreferences.getLong(getKey(context, keyId), -1L);
     }
 
-    public static long getLong(Context context, int keyId, long defaultVal) {
+    public static long getLong(Context ctx, int keyId, long defaultVal) {
+        Context context = getContext(ctx);
+
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.SETTINGS_KEY, Context.MODE_PRIVATE);
         return sharedPreferences.getLong(getKey(context, keyId), defaultVal);
     }
 
-    public static void setRouteId(Context context, int keyid, long routeId) {
+    public static void setRouteId(Context ctx, int keyid, long routeId) {
+        Context context = getContext(ctx);
+
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.SETTINGS_KEY, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putLong(getKey(context, keyid), routeId);
@@ -92,7 +103,8 @@ public class PreferenceUtils {
         return context.getSharedPreferences(Constants.SETTINGS_KEY, Context.MODE_PRIVATE);
     }
 
-    public static RecordingState getRecordingState(Context context, int recording_state_key, RecordingState recordingStatePausedDefault) {
+    public static RecordingState getRecordingState(Context ctx, int recording_state_key, RecordingState recordingStatePausedDefault) {
+        Context context = getContext(ctx);
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.SETTINGS_KEY, Context.MODE_PRIVATE);
         String key = sharedPreferences.getString(getKey(context, recording_state_key), recordingStatePausedDefault.getState());
         RecordingState recordingState = RecordingStateUtils.getString(key);
@@ -102,10 +114,19 @@ public class PreferenceUtils {
         return recordingStatePausedDefault;
     }
 
-    public static void setRecordingState(Context context, int keyid, RecordingState state) {
+    public static void setRecordingState(Context ctx, int keyid, RecordingState state) {
+        Context context = getContext(ctx);
         SharedPreferences sharedPreferences = context.getSharedPreferences(Constants.SETTINGS_KEY, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString(getKey(context, keyid), state.getState());
         editor.apply();
+    }
+
+    private static Context getContext(Context ctx) {
+        Context context = ctx;
+        if (context == null) {
+            context = TrackLibApplication.getInstance().getApplicationContext();
+        }
+        return context;
     }
 }

@@ -23,7 +23,6 @@ public class MainActivity extends ServiceConnectActivity {
 
     public static final int REQUEST_CODE = 10001;
     private static final String ROUTE_ID_SAVE_KEY = "route_id_save_key";
-    private static final String CUSTOM_TAG = "custom_tag2";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -141,20 +140,6 @@ public class MainActivity extends ServiceConnectActivity {
             return mMapFragment.getGoogleMap();
         }
         return null;
-    }
-
-    public RecordingState getRecordingState() {
-        if (getRecordFragment() != null) {
-            return ((RecordControlsFragment) getRecordFragment()).getRecordState();
-        }
-        return RecordingState.NOT_STARTED;
-    }
-
-
-    public void setRecordingState(RecordingState state) {
-        if (getRecordFragment() != null) {
-            ((RecordControlsFragment) getRecordFragment()).setRecordingState(state);
-        }
     }
 
     @Override
