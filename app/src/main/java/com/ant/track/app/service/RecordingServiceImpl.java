@@ -57,14 +57,21 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Tracking Service
  */
-public class RecordingServiceImpl extends Service{
+public class RecordingServiceImpl extends Service {
 
+    /**
+     * data used for testing. When enabled, it will create
+     * mock locations using the start location.
+     */
+    //used for testing only
+    private boolean testAllowed = false;
+    private Handler mockHandler;
     private Location mockLocation = null;
+    // end for testing
     /**
      * this variable is specifically for creating mock locations.
      * Enabled will mess up with the gps and send fake locations.
      */
-    private boolean testAllowed = false;
     private static final long DEFAULT_ROUTE_POINT_ID = -1L;
     private long routeId;
     private static final long ONE_MINUTE = (long) (UnitConversions.MIN_TO_S * UnitConversions.S_TO_MS);
@@ -192,8 +199,6 @@ public class RecordingServiceImpl extends Service{
         }
     };
 
-    private Handler mockHandler;
-
     @Override
     public void onCreate() {
         super.onCreate();
@@ -234,28 +239,28 @@ public class RecordingServiceImpl extends Service{
         @Override
         public void run() {
             Log.d(TAG, "reload location mock timer");
-            Location lastvalid = getLastValidLocationForRoute();
+            Location lastValidLoc = getLastValidLocationForRoute();
             if (mockLocation != null) {
-                lastvalid = mockLocation;
-                lastvalid.setAccuracy(3.0f);
-                lastvalid.setLatitude(mockLocation.getLatitude() + 0.00011);
-                lastvalid.setLongitude(mockLocation.getLongitude() + 0.000011);
+                lastValidLoc = mockLocation;
+                lastValidLoc.setAccuracy(3.0f);
+                lastValidLoc.setLatitude(mockLocation.getLatitude() + 0.00011);
+                lastValidLoc.setLongitude(mockLocation.getLongitude() + 0.000011);
 
-            } else if (lastvalid != null) {
-                lastvalid.setLatitude(lastvalid.getLatitude() + 0.00011);
-                lastvalid.setLongitude(lastvalid.getLongitude() + 0.0000011);
-                lastvalid.setAccuracy(3.0f);
-                lastvalid.setTime(System.currentTimeMillis());
+            } else if (lastValidLoc != null) {
+                lastValidLoc.setLatitude(lastValidLoc.getLatitude() + 0.00011);
+                lastValidLoc.setLongitude(lastValidLoc.getLongitude() + 0.0000011);
+                lastValidLoc.setAccuracy(3.0f);
+                lastValidLoc.setTime(System.currentTimeMillis());
 
             }
 
-            if (lastvalid != null) {
+            if (lastValidLoc != null) {
                 Log.d(TAG, "notification about location");
                 Log.d(TAG, "routestats here: " + routeStatsManager);
-                onLocationChangedAsync(lastvalid);
+                onLocationChangedAsync(lastValidLoc);
             }
 
-            mockLocation = lastvalid;
+            mockLocation = lastValidLoc;
             mockHandler.postDelayed(this, 3000);
         }
     };
