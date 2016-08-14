@@ -2,18 +2,15 @@ package com.ant.track.app.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.FragmentManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.ant.track.app.R;
-import com.ant.track.app.fragments.RecordControlsFragment;
 import com.ant.track.app.service.utils.RecordingServiceConnectionUtils;
 import com.ant.track.lib.constants.Constants;
 import com.ant.track.lib.prefs.PreferenceUtils;
 import com.ant.track.lib.service.RecordingState;
-import com.ant.track.ui.dialogs.CustomFragmentDialog;
 import com.google.android.gms.maps.GoogleMap;
 
 /**
@@ -31,7 +28,7 @@ public class MainActivity extends ServiceConnectActivity {
 
         initializeToolbar();
         handleIntent(getIntent());
-        handlePrefs(savedInstanceState);
+        // handlePrefs(savedInstanceState);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
@@ -127,11 +124,6 @@ public class MainActivity extends ServiceConnectActivity {
 
     @Override
     protected void onStop() {
-        if (isRecordingServiceRunning()) {
-            Bundle outState = new Bundle();
-            outState.putLong(ROUTE_ID_SAVE_KEY, routeId);
-            onSaveInstanceState(outState);
-        }
         super.onStop();
     }
 
@@ -165,10 +157,5 @@ public class MainActivity extends ServiceConnectActivity {
 
     private boolean isRecordingServiceRunning() {
         return RecordingServiceConnectionUtils.isRecordingServiceRunning(getApplicationContext());
-    }
-
-    @Override
-    public long getRouteId() {
-        return routeId;
     }
 }

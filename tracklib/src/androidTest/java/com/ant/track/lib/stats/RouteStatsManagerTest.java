@@ -225,7 +225,7 @@ public class RouteStatsManagerTest extends AndroidJUnitRunner {
         Location loc2 = DEFAULT_LINZ_LOC_2;
         loc2.setTime(time3);
         manager.addLocationToStats(loc2, 200);
-        assertEquals(200, manager.getCurrentSegmentStats().getTotalTime());
+        assertEquals(300, manager.getCurrentSegmentStats().getTotalTime());
         //check for stop time and start time
         assertEquals(time, manager.getCurrentSegmentStats().getStartTime());
         //stop time

@@ -20,37 +20,10 @@ import com.ant.track.lib.service.RecordingState;
 public abstract class ServiceConnectActivity extends BaseActivity implements ServiceHeadlessFragment.Callback {
 
     private static final String TAG = ServiceConnectActivity.class.getSimpleName();
-    public static final String GENERIC_ERROR_IN_STARTING_THE_LOCATION_SERVICE = "Generic Error in starting the location service!";
     private static final String RECORD_FRAGMENT_CONTROLS_TAG = "RECORD_FRAGMENT_CONTROLS_TAG";
 
-    private SharedPreferences sharedPreferences;
     protected long routeId;
     private static final String HEADLESS_TAG = "HEADLESS_TAG";
-
-    /**
-     * Note that sharedPreferenceChangeListener cannot be an anonymous inner
-     * class. Anonymous inner class will get garbage collected.
-     */
-    private final SharedPreferences.OnSharedPreferenceChangeListener sharedPreferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
-        @Override
-        public void onSharedPreferenceChanged(SharedPreferences preferences, String key) {
-            // Note that key can be null
-            if (key == null || TextUtils.equals(key, PreferenceUtils.getKey(ServiceConnectActivity.this, R.string.route_id_key))) {
-                routeId = PreferenceUtils.getLong(ServiceConnectActivity.this, R.string.route_id_key);
-            }
-            if (key == null || TextUtils.equals(key, PreferenceUtils.getKey(ServiceConnectActivity.this, R.string.recording_state_key))) {
-                final RecordingState recordingState = PreferenceUtils.getRecordingState(ServiceConnectActivity.this,
-                        R.string.recording_state_key,
-                        PreferenceUtils.RECORDING_STATE_NOT_STARTED_DEFAULT);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        updateServiceState(recordingState);
-                    }
-                });
-            }
-        }
-    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,23 +65,6 @@ public abstract class ServiceConnectActivity extends BaseActivity implements Ser
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        sharedPreferences = this.getSharedPreferences(Constants.SETTINGS_NAME, Context.MODE_PRIVATE);
-
-        sharedPreferences.registerOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
-        sharedPreferenceChangeListener.onSharedPreferenceChanged(null, null);
-    }
-
-    @Override
-    protected void onStop() {
-        if (sharedPreferences != null) {
-            sharedPreferences.unregisterOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
-        }
-        super.onStop();
-    }
-
-    @Override
     public void updateServiceState(RecordingState state) {
         Fragment serviceHeadlessFragment = getServiceFragment();
         if (serviceHeadlessFragment != null && serviceHeadlessFragment instanceof ServiceHeadlessFragment) {
@@ -146,5 +102,14 @@ public abstract class ServiceConnectActivity extends BaseActivity implements Ser
             return serviceHeadlessFragment.getRecordingState();
         }
         return RecordingState.NOT_STARTED;
+    }
+
+    @Override
+    public long getRouteId() {
+        ServiceHeadlessFragment serviceHeadlessFragment = (ServiceHeadlessFragment) getServiceFragment();
+        if (serviceHeadlessFragment != null) {
+            return serviceHeadlessFragment.getRouteId();
+        }
+        return -1L;
     }
 }

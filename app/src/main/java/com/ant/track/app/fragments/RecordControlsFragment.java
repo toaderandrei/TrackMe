@@ -93,7 +93,6 @@ public class RecordControlsFragment extends Fragment {
         }
     };
 
-
     CustomFragmentDialog.Callback customDialogCallback = new CustomFragmentDialog.Callback() {
         @Override
         public void onPositiveButtonClicked(Bundle bundle) {
@@ -110,9 +109,5 @@ public class RecordControlsFragment extends Fragment {
 
     private void updateService(RecordingState state) {
         listener.updateServiceState(state);
-    }
-
-    public RecordingState getRecordState() {
-        return recordingState;
     }
 }

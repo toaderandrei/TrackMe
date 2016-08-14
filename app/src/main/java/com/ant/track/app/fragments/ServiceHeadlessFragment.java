@@ -1,11 +1,14 @@
 package com.ant.track.app.fragments;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -36,7 +39,36 @@ public class ServiceHeadlessFragment extends Fragment {
     private static final String TAG = ServiceHeadlessFragment.class.getCanonicalName();
     private Callback callback;
     private RecordingState recordingState = RecordingState.NOT_STARTED;
-    private boolean startNewRecording = true;
+    private boolean startNewRecording = false;
+    private long routeId;
+
+    private SharedPreferences sharedPreferences;
+
+    /**
+     * Note that sharedPreferenceChangeListener cannot be an anonymous inner
+     * class. Anonymous inner class will get garbage collected.
+     */
+    private final SharedPreferences.OnSharedPreferenceChangeListener sharedPreferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+        @Override
+        public void onSharedPreferenceChanged(SharedPreferences preferences, String key) {
+            // Note that key can be null
+            if (key == null || TextUtils.equals(key, PreferenceUtils.getKey(getActivity(), R.string.route_id_key))) {
+                routeId = PreferenceUtils.getLong(getActivity(), R.string.route_id_key);
+            }
+            if (key == null || TextUtils.equals(key, PreferenceUtils.getKey(getActivity(), R.string.recording_state_key))) {
+                recordingState = PreferenceUtils.getRecordingState(getActivity(),
+                        R.string.recording_state_key,
+                        PreferenceUtils.RECORDING_STATE_NOT_STARTED_DEFAULT);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onUpdateUIControls(recordingState);
+                    }
+                });
+            }
+        }
+    };
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -61,6 +93,24 @@ public class ServiceHeadlessFragment extends Fragment {
     public void onStart() {
         super.onStart();
         RecordingServiceConnectionUtils.startConnection(mRecordingServiceConnection);
+
+        sharedPreferences = getActivity().getSharedPreferences(Constants.SETTINGS_NAME, Context.MODE_PRIVATE);
+
+        sharedPreferences.registerOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
+        sharedPreferenceChangeListener.onSharedPreferenceChanged(null, null);
+    }
+
+    @Override
+    public void onStop() {
+        if (sharedPreferences != null) {
+            sharedPreferences.unregisterOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
+        }
+        super.onStop();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
 
     }
 
@@ -94,8 +144,8 @@ public class ServiceHeadlessFragment extends Fragment {
                 try {
                     Log.d(TAG, "service is starting.");
                     startNewRecording = false;
-                    long routeid = service.startNewRoute();
-                    callback.updateRoute(routeid);
+                    routeId = service.startNewRoute();
+                    callback.updateRoute(routeId);
                     recordingState = RecordingState.STARTED;
                     runOnUiThread(new Runnable() {
                         @Override
@@ -109,7 +159,6 @@ public class ServiceHeadlessFragment extends Fragment {
                     Log.e(TAG, "Unable to start a new recording.", e);
                 }
             }
-
         }
 
         @Override
@@ -120,26 +169,23 @@ public class ServiceHeadlessFragment extends Fragment {
         }
     };
 
-
     private void runOnUiThread(final Runnable runnable) {
         getActivity().runOnUiThread(runnable);
     }
 
-
     private void startTrackingService() {
+        startNewRecording = true;
         RecordingServiceConnectionUtils.startTrackingService(mRecordingServiceConnection);
     }
 
     private void resumeTracking() {
         RecordingServiceConnectionUtils.resumeTracking(mRecordingServiceConnection);
-        //todo should be done with ca callback.
         recordingState = RecordingState.RESUMED;
         updateUIControls();
     }
 
     private void pauseTracking() {
         RecordingServiceConnectionUtils.pauseTracking(mRecordingServiceConnection);
-        //todo should be done with a callback
         recordingState = RecordingState.PAUSED;
         updateUIControls();
     }
@@ -188,7 +234,6 @@ public class ServiceHeadlessFragment extends Fragment {
         updateUIControls();
 
         RecordingServiceConnectionUtils.stopTrackingService(getActivity(), mRecordingServiceConnection);
-        //todo should be done with a callback.
     }
 
     private void updateUIControls() {
@@ -207,6 +252,14 @@ public class ServiceHeadlessFragment extends Fragment {
         }
     }
 
+    public long getRouteId() {
+        return routeId;
+    }
+
+    public RecordingState getRecordingState() {
+        return recordingState;
+    }
+
     public interface Callback {
 
         /**
@@ -220,9 +273,5 @@ public class ServiceHeadlessFragment extends Fragment {
          * updates the UI controls.
          */
         void onUpdateUIControls(RecordingState state);
-    }
-
-    public RecordingState getRecordingState() {
-        return recordingState;
     }
 }
