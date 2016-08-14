@@ -94,8 +94,6 @@ public class RecordingServiceImpl extends Service {
     private boolean firstInsert = true;
 
     private ServiceBinder serviceBinder = new ServiceBinder(this);
-    private Messenger serviceMessenger;
-    private Messenger client;
     private RouteStatsManager routeStatsManager;
     private RecordingState recordingState = RecordingState.NOT_STARTED;
     private int minRecordingDistance = 1;
@@ -118,7 +116,7 @@ public class RecordingServiceImpl extends Service {
         @Override
         public void onLocationChanged(final Location location) {
             if (mLiveTrackingLocationManager == null || !mLiveTrackingLocationManager.isAllowed()) {
-                sendErrorLocationUpdate(NOT_ALLOWED_TO_ACCESS_THE_LOCATION_SERVICES, RecordingServiceConstants.MSG_NOT_ALLOWED);
+                //sendErrorLocationUpdate(NOT_ALLOWED_TO_ACCESS_THE_LOCATION_SERVICES, RecordingServiceConstants.MSG_NOT_ALLOWED);
                 return;
             }
             runAsync(new Runnable() {
@@ -207,7 +205,6 @@ public class RecordingServiceImpl extends Service {
             mockHandler = new Handler(Looper.getMainLooper());
         }
         initAsyncThread();
-        serviceMessenger = new Messenger(handlerService);
         mLiveTrackingLocationManager = new GPSLiveTrackerLocationManager(this);
         contextWeakRef = new WeakReference<Context>(this);
         locationListenerPolicy = new LocationListenerRestrictionsImpl(minRecordingIntervalTime * ONE_SECOND);
@@ -321,7 +318,7 @@ public class RecordingServiceImpl extends Service {
     private void initAsyncThread() {
         handlerThread = new HandlerThread("ServiceThread");
         handlerThread.start();
-        handlerService = new IncomingHandler(handlerThread.getLooper());
+        handlerService = new Handler(handlerThread.getLooper());
         handler = new Handler();
     }
 
@@ -406,7 +403,7 @@ public class RecordingServiceImpl extends Service {
             Location pauseLocation = new Location(LocationManager.GPS_PROVIDER);
             pauseLocation.setLatitude(Constants.PAUSE_LATITUDE);
             //todo think about a better time, maybe a mix between last valid and current location?
-            pauseLocation.setTime(location.getTime());
+            pauseLocation.setTime(mLastLocation.getTime());
             insertLocation(route, pauseLocation, lastValidTrackLocation);
             insertLocation(route, location, lastValidTrackLocation);
             isIdle.set(false);
@@ -416,7 +413,9 @@ public class RecordingServiceImpl extends Service {
             isIdle.set(false);
         } else if (!isIdle.get() && location.hasSpeed() && location.getSpeed() <= Constants.MAX_SPEED_NO_MOVEMENT) {
             //looks that it is idle
-            //todo think if it makes sense to insert the location when it is inside the recording distance(min and also if the speed it is less the min movement.
+            //todo think if it makes sense to insert the location when it is inside the recording distance(min) and also if the speed it is less the min movement.
+            insertLocation(route, getLastLocation(), lastValidTrackLocation);
+            insertLocation(route, location, lastValidTrackLocation);
             isIdle.set(true);
         } else if (isIdle.get() && location.hasSpeed() && location.getSpeed() > Constants.MAX_SPEED_NO_MOVEMENT) {
             isIdle.set(false);
@@ -446,7 +445,6 @@ public class RecordingServiceImpl extends Service {
             sendRouteBroadcast(R.string.route_update_broadcast_action, route.getRouteId());
 
         } catch (Exception exc) {
-            sendErrorLocationUpdate(new ErrorLocation(exc, location));
             return false;
         }
         return true;
@@ -473,35 +471,7 @@ public class RecordingServiceImpl extends Service {
         TrackMeDatabaseUtilsImpl.getInstance().updateRouteTrack(route);
     }
 
-
-    private void sendErrorLocationUpdate(ErrorLocation errorLocation) {
-        if (serviceMessenger != null) {
-            Message message = Message.obtain(null, RecordingServiceConstants.MSG_EXCEPTION, 0, 0);
-            message.obj = errorLocation;
-            try {
-                serviceMessenger.send(message);
-            } catch (RemoteException remex) {
-                Log.e(TAG, "Exception in sending the message" + remex.getMessage());
-            }
-        }
-    }
-
-    private void sendErrorLocationUpdate(String errMessage, int messageId) {
-        if (serviceMessenger != null) {
-            Message message = Message.obtain(null, messageId, 0, 0);
-            message.obj = errMessage;
-            try {
-                serviceMessenger.send(message);
-            } catch (RemoteException remex) {
-                Log.e(TAG, "Exception in sending the message" + remex.getMessage());
-            }
-        }
-    }
-
     public boolean isRecording() {
-        if (!canAccess()) {
-            return false;
-        }
         return recordingState == RecordingState.RESUMED || recordingState == RecordingState.STARTED || routeId != PreferenceUtils.DEFAULT_ROUTE_ID;
     }
 
@@ -526,7 +496,6 @@ public class RecordingServiceImpl extends Service {
         route.setRouteId(insertedRouteId);
 
         TrackMeDatabaseUtilsImpl.getInstance().updateRouteTrack(route);
-        sendMessageToListeners(RecordingServiceConstants.MSG_UPDATE_ROUTE_ID, routeId);
         insertRouteCheckPoint(RouteTrackCreator.DEFAULT_ROUTE_TRACK_BUILDER);
 
         startRecording();
@@ -640,9 +609,7 @@ public class RecordingServiceImpl extends Service {
     }
 
     private void stopRouteTracking(boolean stopped) {
-        if (!canAccess()) {
-            return;
-        }
+
         if (!isRecording()) {
             Log.d(TAG, "Ignore endCurrentTrack. Not recording.");
             return;
@@ -665,7 +632,6 @@ public class RecordingServiceImpl extends Service {
                 }
             }
         }
-        sendMessageToListeners(RecordingServiceConstants.MSG_CLIENT_DISCONNECTED, currentRouteId);
         sendRouteBroadcast(stopped ? R.string.route_stopped_broadcast_action : R.string.route_paused_broadcast_action, routeId);
         stopRecordingService(stopped);
     }
@@ -707,7 +673,6 @@ public class RecordingServiceImpl extends Service {
                 Intent intent = IntentUtils.newIntent(this, MainActivity.class).putExtra(Constants.EXTRA_ROUTE_ID, routeId);
                 PendingIntent pendingIntent = TaskStackBuilder.create(this).addParentStack(MainActivity.class).addNextIntent(intent).getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
                 startForegroundService(pendingIntent, R.string.tracking_record_notification);
-                sendMessageToListeners(RecordingServiceConstants.MSG_SHOW_NOTIFICATIONS, true);
             } else {
                 stopForegroundService();
             }
@@ -716,7 +681,6 @@ public class RecordingServiceImpl extends Service {
 
     private void stopNotifications() {
         stopForegroundService();
-        sendMessageToListeners(RecordingServiceConstants.MSG_STOP_NOTIFICATIONS, true);
     }
 
 
@@ -765,108 +729,6 @@ public class RecordingServiceImpl extends Service {
         if (wakeLock != null && wakeLock.isHeld()) {
             wakeLock.release();
             wakeLock = null;
-        }
-    }
-
-    /**
-     * Service Binder class that implements the aidl interface
-     */
-
-    private class IncomingHandler extends Handler {
-        IncomingHandler(Looper lopper) {
-            super(lopper);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case RecordingServiceConstants.MSG_START_TRACKING:
-                    startNewTracking();
-                    break;
-                case RecordingServiceConstants.MSG_STOP_TRACKING:
-                    stopRouteTracking(true);
-                    break;
-                case RecordingServiceConstants.MSG_PAUSE_TRACKING:
-                    pauseTracking();
-                    break;
-                case RecordingServiceConstants.MSG_RESUME_TRACKING:
-                    resumeTracking();
-                    break;
-                case RecordingServiceConstants.MSG_REGISTER_CLIENT: {
-                    client = msg.replyTo;
-                    //reply we are here!
-                    sendMessageToListeners(RecordingServiceConstants.MSG_CLIENT_CONNECTED, null);
-                    break;
-                }
-            }
-        }
-    }
-
-    private boolean canAccess() {
-        if (serviceMessenger == null) {
-            throw new IllegalStateException("The track recording service has been detached!");
-        }
-        //TODO check for the processes - which process accesses it.
-        return true;
-    }
-
-    /**
-     * sends messages to the listeners
-     *
-     * @param messageId the id to identify the type of message.
-     */
-    private void sendMessageToListeners(int messageId, Object data) {
-
-        switch (messageId) {
-            case RecordingServiceConstants.MSG_SHOW_NOTIFICATIONS:
-                //todo notify ui
-                break;
-            case RecordingServiceConstants.MSG_STOP_NOTIFICATIONS:
-                //todo notify ui
-                break;
-            case RecordingServiceConstants.MSG_UPDATE_ROUTE_ID: {
-                if (client != null) {
-                    Message message = Message.obtain(null, RecordingServiceConstants.MSG_UPDATE_ROUTE_ID, 0, 0);
-                    if (data != null) {
-                        message.obj = data;
-                    }
-                    try {
-                        client.send(message);
-                    } catch (RemoteException remex) {
-                        Log.e(TAG, "Exception in sending the message" + remex.getMessage());
-                    }
-                }
-                break;
-            }
-            case RecordingServiceConstants.MSG_CLIENT_CONNECTED: {
-                if (client != null) {
-                    Message message = Message.obtain(null, RecordingServiceConstants.MSG_CLIENT_CONNECTED, 0, 0);
-                    if (data != null) {
-                        message.obj = data;
-                    }
-                    try {
-                        client.send(message);
-                    } catch (RemoteException remex) {
-                        Log.e(TAG, "exception in sending client connected:" + remex);
-                    }
-                }
-                break;
-            }
-
-            case RecordingServiceConstants.MSG_CLIENT_DISCONNECTED: {
-                if (client != null) {
-                    Message message = Message.obtain(null, RecordingServiceConstants.MSG_CLIENT_DISCONNECTED, 0, 0);
-                    if (data != null) {
-                        message.obj = data;
-                    }
-                    try {
-                        client.send(message);
-                    } catch (RemoteException remex) {
-                        Log.e(TAG, "exception in sending client connected:" + remex);
-                    }
-                }
-                break;
-            }
         }
     }
 
