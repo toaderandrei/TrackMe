@@ -35,12 +35,6 @@ public class MainActivity extends ServiceConnectActivity {
         setActionBarTitle();
     }
 
-    private void handlePrefs(Bundle bundle) {
-        if (bundle != null) {
-            routeId = bundle.getLong(ROUTE_ID_SAVE_KEY, PreferenceUtils.DEFAULT_ROUTE_ID);
-        }
-    }
-
     @Override
     protected void onNewIntent(Intent intent) {
         handleIntent(intent);

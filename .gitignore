@@ -5,5 +5,5 @@
 .DS_Store
 /build
 tracklib/build
-trackui/trackui.iml
 trackui/build
+trackui/trackui.iml
