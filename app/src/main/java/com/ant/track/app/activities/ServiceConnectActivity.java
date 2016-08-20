@@ -103,7 +103,15 @@ public abstract class ServiceConnectActivity extends BaseActivity implements Ser
         }
         return RecordingState.NOT_STARTED;
     }
-
+    
+    @Override
+    public void onUpdateLockControls(boolean lock) {
+        Fragment fragment = getRecordFragment();
+        if (fragment != null && fragment instanceof RecordControlsFragment) {
+            ((RecordControlsFragment) fragment).updateLockControls(lock);
+        }
+    }
+    
     @Override
     public long getRouteId() {
         ServiceHeadlessFragment serviceHeadlessFragment = (ServiceHeadlessFragment) getServiceFragment();
