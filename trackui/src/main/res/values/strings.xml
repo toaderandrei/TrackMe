@@ -123,5 +123,7 @@
   <string name="action_view_details">View routes</string>
   <string name="duration">Total duration</string>
   <string name="error_showing_data">Error showing data</string>
+  <string name="lock_route">Lock</string>
+    <string name="recording_locked_key">recording_lock_key</string>
 </resources>
 
